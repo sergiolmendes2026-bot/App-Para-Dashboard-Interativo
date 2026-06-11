@@ -8,7 +8,7 @@
 
 Confira meu projetos publicados com **Streamlit**:
 
-📊 [![Streamlit App](https://app-para-dashboard-interativo.streamlit.app/)  
+📊 https://app-para-dashboard-interativo.streamlit.app/
   Dashboard Interativo de Sales Analytics
 
 
