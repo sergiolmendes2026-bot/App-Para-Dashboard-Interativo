@@ -1,3 +1,4 @@
+
 ## Olá, meu nome é Sergio 👋
 	• 🔭 Atualmente estou trabalhando em projetos de análise de dados.
 	• 🌱 Atualmente estou aprendendo sobre inteligência artificial e machine learning.
@@ -7,8 +8,9 @@
 
 Confira meu projetos publicados com **Streamlit**:
 
-📊 [![Streamlit App]()  
+📊 [![Streamlit App](https://app-para-dashboard-interativo.streamlit.app/)  
   Dashboard Interativo de Sales Analytics
+
 
 
 🎯 objetivo
