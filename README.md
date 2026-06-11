@@ -6,7 +6,7 @@
 	• 🤔 Estou buscando ajuda com boas práticas de deploy em nuvem.
 	• 📫 Como me encontrar: sergiolmendes2026@gmail.com
 
-Confira meu projetos publicados com **Streamlit**:
+Confira meu projeto publicado com **Streamlit**:
 
 📊 https://app-para-dashboard-interativo.streamlit.app/
   Dashboard Interativo de Sales Analytics
