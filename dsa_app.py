@@ -651,7 +651,7 @@ def dsa_set_custom_theme():
 # 4. Renderiza o conteúdo da página principal (títulos, KPIs, abas)
 
 # Função principal
-def datascienceacademy_mp10():
+def sergiolmendes2026():
 
     # Chama a função (Bloco 8) para injetar o CSS customizado
     dsa_set_custom_theme()
@@ -866,6 +866,10 @@ def datascienceacademy_mp10():
 # só será executado se este arquivo for o ponto de partida,
 # e não se ele for apenas importado como um módulo.
 if __name__ == "__main__":
+
+    # Chama a função principal (Bloco 9) para iniciar o aplicativo.
+    sergiolmendes2026()
+
     
   
 
