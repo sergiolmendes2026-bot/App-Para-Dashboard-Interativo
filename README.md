@@ -13,6 +13,9 @@ Confira meu projetos publicados com **Streamlit**:
 
 
 
+
+
+
 🎯 objetivo
 Desenvolver um aplicativo de análise de vendas completo, utilizando Python e bibliotecas, com foco em entregar um dashboard executivo interativo. O projeto demonstra habilidades de ponta a ponta — desde a modelagem de dados até a construção de uma interface web profissional.
 
