@@ -867,12 +867,7 @@ def datascienceacademy_mp10():
 # e não se ele for apenas importado como um módulo.
 if __name__ == "__main__":
     
-    # Chama a função principal (Bloco 9) para iniciar o aplicativo.
-    datascienceacademy_mp10()
-
-
-# Obrigado DSA
-
+  
 
 
 
