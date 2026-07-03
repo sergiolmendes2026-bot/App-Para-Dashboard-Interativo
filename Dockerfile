@@ -10,11 +10,14 @@ RUN apt-get update && apt-get install -y \
 # Define o diretório de trabalho
 WORKDIR /app
 
-# Copia os requisitos e instala
+# Copia apenas o requirements.txt primeiro para aproveitar o cache do Docker
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
 
-# Copia o restante do código
+# Instala as dependências de uma só vez
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
+
+# Copia todo o restante do código da aplicação
 COPY . .
 
 # Expõe a porta do Streamlit
