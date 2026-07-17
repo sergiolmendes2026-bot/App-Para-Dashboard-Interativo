@@ -306,33 +306,7 @@ def dsa_filtros_sidebar(df):
     # 'expanded=False' garante que ele comece fechado
     with st.sidebar.expander("🆘 Suporte / Fale conosco", expanded = False):
         st.write("Se tiver dúvidas envie mensagem para sergiolmendes2026@gmail.com")
-        st.sidebar.markdown(
-    f"""
-    <a href="{URL_WHATSAPP}" target="_blank" style="
-        display: flex;
-        align-items: center;
-        justify-content: left;
-        background-color: #262730;
-        color: #FAFAFA;
-        padding: 0.5rem 1rem;
-        border-radius: 0.5rem;
-        text-decoration: none;
-        font-family: 'Source Sans Pro', sans-serif;
-        font-weight: 400;
-        font-size: 1rem;
-        margin-bottom: 0.5rem;
-        border: 1px solid #464e5f;
-        transition: border-color 300ms, background-color 300ms;
-        width: 100%;
-        box-sizing: border-box;
-    " onmouseover="this.style.borderColor='#FF4B4B'; this.style.backgroundColor='#2e303a'" onmouseout="this.style.borderColor='#464e5f'; this.style.backgroundColor='#262730'">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" width="20" style="margin-right: 10px;">
-        WhatsApp Falar com Suporte
-    </a>
-    """, unsafe_allow_html=True
-)
-
-    
+         
     # Adiciona uma legenda de rodapé com 'st.sidebar.caption'
     st.sidebar.caption("Dashboard Desenvolvido Analytics.")
 
