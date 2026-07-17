@@ -307,13 +307,16 @@ def dsa_filtros_sidebar(df):
     with st.sidebar.expander("🆘 Suporte / Fale conosco", expanded = False):
         st.write("Se tiver dúvidas envie mensagem para sergiolmendes2026@gmail.com")
 
-        # --- Botão do WhatsApp adicionado aqui ---
+        # Botão do WhatsApp customizado
         st.markdown(
             """
-            <a href="https://wa.me/5511994376755" target="_blank" style="background-color: #25d366; color: white; padding: 10px; text-decoration: none; border-radius: 5px; font-weight: bold; display: block; text-align: center; margin-top: 10px;">
-                💬 Chamar no WhatsApp
+            <a href="https://wa.me/55SEUNUMERO" target="_blank" 
+               style="background-color: #25d366; color: white; padding: 10px 15px; 
+               text-decoration: none; border-radius: 5px; font-weight: bold; 
+               display: block; text-align: center; margin-top: 10px;">
+               💬 Falar no WhatsApp
             </a>
-            """,
+            """, 
             unsafe_allow_html=True
         )
          
