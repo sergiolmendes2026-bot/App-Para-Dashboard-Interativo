@@ -9,7 +9,7 @@
 Confira meu projeto publicado com **Streamlit Community Cloud**:
 
 
-
+https://salesanalytics.duckdns.org/
   
 
 
