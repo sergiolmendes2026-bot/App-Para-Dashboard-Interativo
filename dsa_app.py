@@ -161,8 +161,11 @@ elif selected == "Cadastro de Clientes":
                 link_wa = f"https://wa.me/55{fone_limpo}?text={msg_padrao.replace(' ', '%20')}"
                 st.markdown(f'''
                     <a href="{link_wa}" target="_blank" style="text-decoration: none;">
-                        <button style="background-color:#25D366; color:white; border:none; padding:10px 20px; border-radius:5px; cursor:pointer; font-weight:bold; display: flex; align-items: center; gap: 8px;">
-                            <i class="bi bi-whatsapp" style="font-size: 18px;"></i> Enviar Mensagem via WhatsApp
+                        <button style="background-color:#25D366; color:white; border:none; padding:10px 20px; border-radius:8px; cursor:pointer; font-weight:bold; display: flex; align-items: center; gap: 10px; font-size: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="white" viewBox="0 0 16 16">
+                                <path d="M13.601 2.326A7.85 7.85 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.9 7.9 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.9 7.9 0 0 0 13.6 2.326zM7.994 14.521a6.6 6.6 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.558 6.558 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592zm3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.348.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.342-.116-.008-.249-.008-.383-.008a.749.749 0 0 0-.543.25c-.187.198-.716.7-.716 1.707 0 1.008 1.034 1.981 1.177 2.115.143.133 2.031 3.102 4.922 4.349.688.297 1.226.474 1.646.607.692.22 1.32.189 1.817.115.556-.083 1.17-.478 1.338-.94.168-.46.168-.855.117-.94-.05-.085-.183-.138-.38-.235z"/>
+                            </svg>
+                            Enviar Mensagem via WhatsApp
                         </button>
                     </a>
                 ''', unsafe_allow_html=True)
