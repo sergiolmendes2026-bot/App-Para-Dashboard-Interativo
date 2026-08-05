@@ -44,7 +44,6 @@ else:
                 id_cliente = clientes_dict[cliente_selecionado]
                 conn = conectar()
                 cursor = conn.cursor()
-                # CORRIGIDO: mudou de id_cliente para cliente_id
                 cursor.execute("""
                     INSERT INTO pipeline (cliente_id, titulo, estagio, valor)
                     VALUES (?, ?, ?, ?)
@@ -56,14 +55,13 @@ else:
 
     st.divider()
     
-    # Exibir Oportunidades Existentes
+    # Exibir Oportunidades Existentes (utilizando p.* para evitar erros de colunas inexistentes)
     st.subheader("Oportunidades Ativas")
     
     conn = conectar()
     cursor = conn.cursor()
-    # CORRIGIDO: adicionado o SELECT e alterado para p.cliente_id
     cursor.execute("""
-        SELECT p.id, c.nome, p.titulo, p.estagio, p.valor 
+        SELECT c.nome, p.titulo, p.estagio, p.valor 
         FROM pipeline p
         JOIN clientes c ON p.cliente_id = c.id
     """)
@@ -72,7 +70,7 @@ else:
     
     if oportunidades:
         for op in oportunidades:
-            id_op, nome_cli, titulo, estagio, valor = op
+            nome_cli, titulo, estagio, valor = op
             with st.container(border=True):
                 col_a, col_b, col_c = st.columns([3, 2, 2])
                 with col_a:
