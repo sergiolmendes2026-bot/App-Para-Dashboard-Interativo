@@ -30,7 +30,6 @@ with st.form("form_cliente", clear_on_submit=True):
         else:
             conn = conectar()
             cursor = conn.cursor()
-            # Ajuste os nomes das colunas conforme a estrutura do seu banco
             cursor.execute("""
                 INSERT INTO clientes (nome, empresa, email, telefone, regiao, data_cadastro)
                 VALUES (?, ?, ?, ?, ?, ?)
@@ -50,7 +49,6 @@ conn.close()
 if not df_clientes.empty:
     whatsapp_ativo = st.session_state.get("whatsapp_ativo", False)
     
-    # Exibe cada cliente em um container personalizado com o botão de WhatsApp
     for _, row in df_clientes.iterrows():
         cli_nome = row.get("nome", "Contato")
         cli_empresa = row.get("empresa", "Empresa não informada")
@@ -68,13 +66,13 @@ if not df_clientes.empty:
             with c2:
                 st.markdown(f"📧 {cli_email}")
                 st.markdown(f"📱 {cli_tel if cli_tel else 'Sem telefone'}")
-                with c3:
+                
+            with c3:
                 # Botão interativo do WhatsApp caso a integração esteja ativa e exista telefone
                 if whatsapp_ativo and cli_tel:
                     tel_limpo = "".join(filter(str.isdigit, str(cli_tel)))
                     link_wa = f"https://wa.me/55{tel_limpo}"
                     
-                    # COLE O CÓDIGO AQUI:
                     st.markdown(f"""
                         <a href="{link_wa}" target="_blank" style="
                             display: flex;
