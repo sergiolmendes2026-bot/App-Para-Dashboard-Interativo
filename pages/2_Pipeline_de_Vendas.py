@@ -1,5 +1,6 @@
 import streamlit as st
 import sqlite3
+import pandas as pd
 from database import conectar, inicializar_banco
 
 # Garante que o banco e as tabelas existem
@@ -55,30 +56,37 @@ else:
 
     st.divider()
     
-    # Exibir Oportunidades Existentes (utilizando p.* para evitar erros de colunas inexistentes)
+    # Exibir Oportunidades Existentes usando Pandas para evitar erros de colunas específicas do SQL
     st.subheader("Oportunidades Ativas")
     
     conn = conectar()
-    cursor = conn.cursor()
-    cursor.execute("""
-        SELECT c.nome, p.titulo, p.estagio, p.valor 
-        FROM pipeline p
-        JOIN clientes c ON p.cliente_id = c.id
-    """)
-    oportunidades = cursor.fetchall()
+    df_pipeline = pd.read_sql("SELECT * FROM pipeline", conn)
+    df_clientes = pd.read_sql("SELECT * FROM clientes", conn)
     conn.close()
     
-    if oportunidades:
-        for op in oportunidades:
-            nome_cli, titulo, estagio, valor = op
-            with st.container(border=True):
-                col_a, col_b, col_c = st.columns([3, 2, 2])
-                with col_a:
-                    st.markdown(f"**{titulo}**")
-                    st.caption(f"Cliente: {nome_cli}")
-                with col_b:
-                    st.markdown(f"Estágio: `{estagio}`")
-                with col_c:
-                    st.markdown(f"**R$ {valor:,.2f}**")
+    if not df_pipeline.empty and not df_clientes.empty:
+        # Tenta identificar qual coluna de ID de cliente existe na tabela pipeline
+        col_id_cli = "cliente_id" if "cliente_id" in df_pipeline.columns else "id_cliente"
+        
+        if col_id_cli in df_pipeline.columns:
+            df_merged = df_pipeline.merge(df_clientes, left_on=col_id_cli, right_on="id", suffixes=("_pipe", "_cli"))
+            
+            for _, row in df_merged.iterrows():
+                titulo = row.get("titulo", row.get("descricao", "Oportunidade"))
+                nome_cli = row.get("nome", "Cliente")
+                estagio = row.get("estagio", "Prospecção")
+                valor = row.get("valor", 0.0)
+                
+                with st.container(border=True):
+                    col_a, col_b, col_c = st.columns([3, 2, 2])
+                    with col_a:
+                        st.markdown(f"**{titulo}**")
+                        st.caption(f"Cliente: {nome_cli}")
+                    with col_b:
+                        st.markdown(f"Estágio: `{estagio}`")
+                    with col_c:
+                        st.markdown(f"**R$ {valor:,.2f}**")
+        else:
+            st.dataframe(df_pipeline, use_container_width=True)
     else:
         st.info("Nenhuma oportunidade registrada no pipeline até o momento.")
