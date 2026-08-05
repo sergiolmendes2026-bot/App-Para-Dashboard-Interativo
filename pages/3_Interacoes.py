@@ -1,17 +1,17 @@
 import streamlit as st
 import sqlite3
-from datetime import date
+import pandas as pd
 from database import conectar, inicializar_banco
 
 # Garante que o banco e as tabelas existem
 inicializar_banco()
 
-st.set_page_config(page_title="Interações - CRM", page_icon="💬", layout="wide")
+st.set_page_config(page_title="Histórico de Interações - CRM", page_icon="💬", layout="wide")
 
 st.title("💬 Histórico de Interações")
 st.write("Registre ligações, reuniões, e-mails ou anotações importantes com os clientes.")
 
-# Buscar clientes para associar à interação
+# Buscar clientes cadastrados para associar à interação
 conn = conectar()
 cursor = conn.cursor()
 cursor.execute("SELECT id, nome, empresa FROM clientes")
@@ -19,8 +19,9 @@ clientes = cursor.fetchall()
 conn.close()
 
 if not clientes:
-    st.warning("Cadastre pelo menos um cliente na primeira página antes de registrar interações.")
+    st.warning("Nenhum cliente cadastrado ainda. Cadastre um cliente na página anterior antes de registrar interações.")
 else:
+    # Mapear clientes para seleção amigável
     clientes_dict = {f"{c[1]} ({c[2]})" if c[2] else c[1]: c[0] for c in clientes}
     
     with st.form("form_interacao"):
@@ -29,13 +30,13 @@ else:
         
         with col1:
             cliente_selecionado = st.selectbox("Selecione o Cliente", options=list(clientes_dict.keys()))
-            tipo = st.selectbox("Tipo de Contato", ["Ligação", "Reunião", "E-mail", "WhatsApp", "Outro"])
+            tipo_contato = st.selectbox("Tipo de Contato", ["Ligação", "Reunião", "E-mail", "WhatsApp", "Outro"])
             
         with col2:
-            data_interacao = st.date_input("Data da Interação", date.today())
+            data_interacao = st.date_input("Data da Interação")
             
         descricao = st.text_area("Descrição / Notas da Conversa *")
-        
+            
         submitted = st.form_submit_button("Salvar Interação")
         
         if submitted:
@@ -46,9 +47,9 @@ else:
                 conn = conectar()
                 cursor = conn.cursor()
                 cursor.execute("""
-                    INSERT INTO interacoes (id_cliente, tipo, descricao, data_interacao)
+                    INSERT INTO interacoes (cliente_id, tipo, descricao, data_interacao)
                     VALUES (?, ?, ?, ?)
-                """, (id_cliente, tipo, descricao, str(data_interacao)))
+                """, (id_cliente, tipo_contato, descricao, str(data_interacao)))
                 conn.commit()
                 conn.close()
                 st.success("Interação registrada com sucesso!")
@@ -56,30 +57,37 @@ else:
 
     st.divider()
     
-    # Exibir Histórico Recente
+    # Exibir Últimas Interações com segurança usando Pandas
     st.subheader("Últimas Interações Registradas")
     
     conn = conectar()
-    cursor = conn.cursor()
-    cursor.execute("""
-        SELECT i.data_interacao, c.nome, i.tipo, i.descricao 
-        FROM interacoes i
-        JOIN clientes c ON i.id_cliente = c.id
-        ORDER BY i.data_interacao DESC
-    """)
-    interacoes = cursor.fetchall()
+    df_interacoes = pd.read_sql("SELECT * FROM interacoes", conn)
+    df_clientes = pd.read_sql("SELECT * FROM clientes", conn)
     conn.close()
     
-    if interacoes:
-        for inter in interacoes:
-            data_i, nome_cli, tipo, desc = inter
-            with st.container(border=True):
-                col_a, col_b = st.columns([1, 4])
-                with col_a:
-                    st.markdown(f"**{data_i}**")
-                    st.caption(f"Tipo: `{tipo}`")
-                with col_b:
-                    st.markdown(f"**Cliente:** {nome_cli}")
-                    st.write(desc)
+    if not df_interacoes.empty and not df_clientes.empty:
+        col_id_cli = "cliente_id" if "cliente_id" in df_interacoes.columns else "id_cliente"
+        
+        if col_id_cli in df_interacoes.columns:
+            df_merged = df_interacoes.merge(df_clientes, left_on=col_id_cli, right_on="id", suffixes=("_inter", "_cli"))
+            
+            # Ordena por data de forma decrescente se a coluna existir
+            col_data = "data_interacao" if "data_interacao" in df_merged.columns else df_merged.columns[0]
+            df_merged = df_merged.sort_values(by=col_data, ascending=False)
+            
+            for _, row in df_merged.iterrows():
+                tipo = row.get("tipo", "Contato")
+                data = row.get("data_interacao", "")
+                nome_cli = row.get("nome", "Cliente")
+                desc = row.get("descricao", "")
+                
+                with st.container(border=True):
+                    col_a, col_b = st.columns([3, 1])
+                    with col_a:
+                        st.markdown(f"**{tipo}** — *{data}*")
+                        st.caption(f"Cliente: {nome_cli}")
+                        st.write(desc)
+        else:
+            st.dataframe(df_interacoes, use_container_width=True)
     else:
         st.info("Nenhuma interação registrada até o momento.")
