@@ -23,8 +23,8 @@ def carregar_dados():
     df_clientes = pd.read_sql("SELECT * FROM clientes", conn)
     
     # Pipeline
-    df_pipeline = pd.read_sql("""
-        p.id, p.id_cliente, c.nome as cliente, p.titulo, p.estagio, p.valor 
+  df_pipeline = pd.read_sql("""
+        SELECT p.id, p.id_cliente, c.nome as cliente, p.titulo, p.estagio, p.valor 
         FROM pipeline p
         JOIN clientes c ON p.id_cliente = c.id
     """, conn)
