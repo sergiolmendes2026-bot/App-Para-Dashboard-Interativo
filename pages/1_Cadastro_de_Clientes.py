@@ -68,13 +68,33 @@ if not df_clientes.empty:
             with c2:
                 st.markdown(f"📧 {cli_email}")
                 st.markdown(f"📱 {cli_tel if cli_tel else 'Sem telefone'}")
-                
-            with c3:
+                with c3:
                 # Botão interativo do WhatsApp caso a integração esteja ativa e exista telefone
                 if whatsapp_ativo and cli_tel:
                     tel_limpo = "".join(filter(str.isdigit, str(cli_tel)))
                     link_wa = f"https://wa.me/55{tel_limpo}"
-                    st.link_button("💬 Abrir no WhatsApp", link_wa, use_container_width=True)
+                    
+                    # COLE O CÓDIGO AQUI:
+                    st.markdown(f"""
+                        <a href="{link_wa}" target="_blank" style="
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            gap: 8px;
+                            background-color: #262730;
+                            color: #ffffff;
+                            padding: 0.5rem 1rem;
+                            border-radius: 0.5rem;
+                            border: 1px solid rgba(250, 250, 250, 0.2);
+                            text-decoration: none;
+                            font-weight: 400;
+                            width: 100%;
+                            box-sizing: border-box;
+                        ">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" width="20" style="vertical-align: middle;" />
+                            Abrir no WhatsApp
+                        </a>
+                    """, unsafe_allow_html=True)
                 else:
                     st.info("WhatsApp inativo ou sem tel")
 else:
