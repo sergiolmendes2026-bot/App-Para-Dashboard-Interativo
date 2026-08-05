@@ -15,33 +15,14 @@ st.set_page_config(
 st.title("📊 Dashboard Executivo - CRM de Vendas")
 st.write("Visão geral dos indicadores de clientes, pipeline, interações e faturamento.")
 
-# Funções para carregar dados do SQLite em DataFrames do Pandas
+# Funções para carregar dados do SQLite de forma segura
 def carregar_dados():
     conn = conectar()
     
-    # Clientes
     df_clientes = pd.read_sql("SELECT * FROM clientes", conn)
-    
-    # Pipeline (ajustado para usar * para evitar conflitos de nomes de colunas)
-    df_pipeline = pd.read_sql("""
-        SELECT p.*, c.nome as cliente 
-        FROM pipeline p
-        JOIN clientes c ON p.cliente_id = c.id
-    """, conn)
-    
-    # Vendas
-    df_vendas = pd.read_sql("""
-        SELECT v.*, c.nome as cliente 
-        FROM vendas v
-        JOIN clientes c ON v.id_cliente = c.id
-    """, conn)
-    
-    # Interações
-    df_interacoes = pd.read_sql("""
-        SELECT i.*, c.nome as cliente 
-        FROM interacoes i
-        JOIN clientes c ON i.id_cliente = c.id
-    """, conn)
+    df_pipeline = pd.read_sql("SELECT * FROM pipeline", conn)
+    df_vendas = pd.read_sql("SELECT * FROM vendas", conn)
+    df_interacoes = pd.read_sql("SELECT * FROM interacoes", conn)
     
     conn.close()
     return df_clientes, df_pipeline, df_vendas, df_interacoes
@@ -50,9 +31,9 @@ df_clientes, df_pipeline, df_vendas, df_interacoes = carregar_dados()
 
 # Métricas Principais (KPIs)
 total_clientes = len(df_clientes)
-total_vendas_valor = df_vendas["valor"].sum() if not df_vendas.empty else 0.0
+total_vendas_valor = df_vendas["valor"].sum() if not df_vendas.empty and "valor" in df_vendas.columns else 0.0
 total_oportunidades = len(df_pipeline)
-pipeline_valor = df_pipeline["valor"].sum() if not df_pipeline.empty else 0.0
+pipeline_valor = df_pipeline["valor"].sum() if not df_pipeline.empty and "valor" in df_pipeline.columns else 0.0
 
 col1, col2, col3, col4 = st.columns(4)
 
@@ -72,7 +53,7 @@ col_left, col_right = st.columns(2)
 
 with col_left:
     st.subheader("💰 Vendas por Produto / Serviço")
-    if not df_vendas.empty:
+    if not df_vendas.empty and "produto_servico" in df_vendas.columns:
         df_vendas_grouped = df_vendas.groupby("produto_servico")["valor"].sum().reset_index()
         st.dataframe(df_vendas_grouped, use_container_width=True)
     else:
@@ -80,7 +61,7 @@ with col_left:
 
 with col_right:
     st.subheader("📈 Oportunidades por Estágio")
-    if not df_pipeline.empty:
+    if not df_pipeline.empty and "estagio" in df_pipeline.columns:
         df_pipe_grouped = df_pipeline.groupby("estagio")["valor"].sum().reset_index()
         st.dataframe(df_pipe_grouped, use_container_width=True)
     else:
@@ -91,6 +72,7 @@ st.divider()
 # Tabela Recente de Clientes
 st.subheader("👥 Clientes Cadastrados Recentemente")
 if not df_clientes.empty:
-    st.dataframe(df_clientes[["nome", "empresa", "email", "telefone", "regiao", "data_cadastro"]], use_container_width=True)
+    colunas_exibir = [col for col in ["nome", "empresa", "email", "telefone", "regiao", "data_cadastro"] if col in df_clientes.columns]
+    st.dataframe(df_clientes[colunas_exibir], use_container_width=True)
 else:
     st.info("Nenhum cliente cadastrado ainda. Use a página '1_Cadastro_de_Clientes' para começar.")
