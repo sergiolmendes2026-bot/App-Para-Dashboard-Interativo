@@ -44,8 +44,9 @@ else:
                 id_cliente = clientes_dict[cliente_selecionado]
                 conn = conectar()
                 cursor = conn.cursor()
+                # CORRIGIDO: mudou de id_cliente para cliente_id
                 cursor.execute("""
-                    INSERT INTO pipeline (id_cliente, titulo, estagio, valor)
+                    INSERT INTO pipeline (cliente_id, titulo, estagio, valor)
                     VALUES (?, ?, ?, ?)
                 """, (id_cliente, titulo_oportunidade, estagio, valor))
                 conn.commit()
@@ -60,10 +61,11 @@ else:
     
     conn = conectar()
     cursor = conn.cursor()
+    # CORRIGIDO: adicionado o SELECT e alterado para p.cliente_id
     cursor.execute("""
-        p.id, c.nome, p.titulo, p.estagio, p.valor 
+        SELECT p.id, c.nome, p.titulo, p.estagio, p.valor 
         FROM pipeline p
-        JOIN clientes c ON p.id_cliente = c.id
+        JOIN clientes c ON p.cliente_id = c.id
     """)
     oportunidades = cursor.fetchall()
     conn.close()
