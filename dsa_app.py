@@ -33,7 +33,7 @@ with st.sidebar:
             "plug-fill",
         ],
         menu_icon="cast",
-        default_index=2, # Mantém selecionado ou ajusta conforme navegação
+        default_index=1,
         styles={
             "container": {"padding": "0!important", "background-color": "transparent"},
             "icon": {"color": "#ff4b4b", "font-size": "16px"},
@@ -159,7 +159,13 @@ elif selected == "Cadastro de Clientes":
                 fone_limpo = "".join(filter(str.isdigit, str(fone_cliente)))
                 msg_padrao = f"Olá {cliente_selecionado}, tudo bem? Entramos em contato pelo CRM da nossa empresa."
                 link_wa = f"https://wa.me/55{fone_limpo}?text={msg_padrao.replace(' ', '%20')}"
-                st.markdown(f'<a href="{link_wa}" target="_blank"><button style="background-color:#25D366; color:white; border:none; padding:10px 20px; border-radius:5px; cursor:pointer; font-weight:bold;">📲 Enviar Mensagem via WhatsApp</button></a>', unsafe_allow_html=True)
+                st.markdown(f'''
+                    <a href="{link_wa}" target="_blank" style="text-decoration: none;">
+                        <button style="background-color:#25D366; color:white; border:none; padding:10px 20px; border-radius:5px; cursor:pointer; font-weight:bold; display: flex; align-items: center; gap: 8px;">
+                            <i class="bi bi-whatsapp" style="font-size: 18px;"></i> Enviar Mensagem via WhatsApp
+                        </button>
+                    </a>
+                ''', unsafe_allow_html=True)
     else:
         st.info("Nenhum cliente cadastrado.")
 
@@ -171,7 +177,6 @@ elif selected == "Pipeline de Vendas":
         st.subheader("Adicionar Oportunidade ao Pipeline")
         col1, col2 = st.columns(2)
         with col1:
-            # Lista clientes cadastrados para vincular à oportunidade
             clientes_nomes = df_clientes["nome"].tolist() if not df_clientes.empty else []
             cliente_op = st.selectbox("Cliente *", clientes_nomes if clientes_nomes else ["Cadastre um cliente primeiro"])
             titulo_op = st.text_input("Título da Oportunidade *")
