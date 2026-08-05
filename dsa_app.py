@@ -33,7 +33,7 @@ with st.sidebar:
             "plug-fill",
         ],
         menu_icon="cast",
-        default_index=0,
+        default_index=2, # Mantém selecionado ou ajusta conforme navegação
         styles={
             "container": {"padding": "0!important", "background-color": "transparent"},
             "icon": {"color": "#ff4b4b", "font-size": "16px"},
@@ -138,7 +138,7 @@ elif selected == "Cadastro de Clientes":
                     """, (nome, empresa, email, telefone, regiao))
                     conn.commit()
                     conn.close()
-                    st.success(f"Cliente '{nome}' cadastrado com sucesso! Recarregue a página se necessário.")
+                    st.success(f"Cliente '{nome}' cadastrado com sucesso!")
                     st.rerun()
                 except Exception as e:
                     st.error(f"Erro ao salvar no banco de dados: {e}")
@@ -150,14 +150,12 @@ elif selected == "Cadastro de Clientes":
     if not df_clientes.empty:
         st.dataframe(df_clientes, use_container_width=True)
         
-        # Botão rápido para contato via WhatsApp se houver telefone
         if "telefone" in df_clientes.columns and not df_clientes["telefone"].isnull().all():
             st.markdown("### 💬 Ações Rápidas - WhatsApp")
             cliente_selecionado = st.selectbox("Selecione o cliente para enviar mensagem:", df_clientes["nome"].tolist())
             fone_cliente = df_clientes.loc[df_clientes["nome"] == cliente_selecionado, "telefone"].values[0]
             
             if fone_cliente:
-                # Limpa caracteres especiais do telefone para o link do WhatsApp
                 fone_limpo = "".join(filter(str.isdigit, str(fone_cliente)))
                 msg_padrao = f"Olá {cliente_selecionado}, tudo bem? Entramos em contato pelo CRM da nossa empresa."
                 link_wa = f"https://wa.me/55{fone_limpo}?text={msg_padrao.replace(' ', '%20')}"
@@ -168,14 +166,79 @@ elif selected == "Cadastro de Clientes":
 elif selected == "Pipeline de Vendas":
     st.title("📊 Pipeline de Vendas")
     st.write("Acompanhamento do funil de oportunidades comerciais.")
+
+    with st.form("form_pipeline", clear_on_submit=True):
+        st.subheader("Adicionar Oportunidade ao Pipeline")
+        col1, col2 = st.columns(2)
+        with col1:
+            # Lista clientes cadastrados para vincular à oportunidade
+            clientes_nomes = df_clientes["nome"].tolist() if not df_clientes.empty else []
+            cliente_op = st.selectbox("Cliente *", clientes_nomes if clientes_nomes else ["Cadastre um cliente primeiro"])
+            titulo_op = st.text_input("Título da Oportunidade *")
+        with col2:
+            estagio_op = st.selectbox("Estágio do Funil", ["Prospecção", "Qualificação", "Proposta", "Fechamento"])
+            valor_op = st.number_input("Valor Estimado (R$)", min_value=0.0, step=100.0)
+
+        btn_salvar_pipe = st.form_submit_button("Salvar Oportunidade")
+        
+        if btn_salvar_pipe:
+            if titulo_op and clientes_nomes:
+                try:
+                    conn = conectar()
+                    cursor = conn.cursor()
+                    cursor.execute("""
+                        INSERT INTO pipeline (cliente, titulo, estagio, valor)
+                        VALUES (?, ?, ?, ?)
+                    """, (cliente_op, titulo_op, estagio_op, valor_op))
+                    conn.commit()
+                    conn.close()
+                    st.success("Oportunidade adicionada ao pipeline com sucesso!")
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"Erro ao salvar oportunidade: {e}")
+            else:
+                st.warning("Preencha o título e certifique-se de ter clientes cadastrados.")
+
+    st.divider()
+    st.subheader("Oportunidades Atuais")
     if not df_pipeline.empty:
         st.dataframe(df_pipeline, use_container_width=True)
     else:
-        st.info("Nenhuma oportunidade no pipeline.")
+        st.info("Nenhuma oportunidade no pipeline registrada.")
 
 elif selected == "Interações":
     st.title("💬 Histórico de Interações")
-    st.write("Acompanhe o registro de contatos com os clientes.")
+    st.write("Acompanhe e registre os contatos realizados com os clientes.")
+
+    with st.form("form_interacao", clear_on_submit=True):
+        st.subheader("Registrar Nova Interação")
+        clientes_nomes = df_clientes["nome"].tolist() if not df_clientes.empty else []
+        cliente_int = st.selectbox("Cliente *", clientes_nomes if clientes_nomes else ["Cadastre um cliente primeiro"])
+        tipo_contato = st.selectbox("Tipo de Contato", ["WhatsApp", "Ligação", "E-mail", "Reunião"])
+        descricao_int = st.text_area("Descrição da Conversa / Observações")
+
+        btn_salvar_int = st.form_submit_button("Salvar Interação")
+
+        if btn_salvar_int:
+            if clientes_nomes:
+                try:
+                    conn = conectar()
+                    cursor = conn.cursor()
+                    cursor.execute("""
+                        INSERT INTO interacoes (cliente, tipo, descricao)
+                        VALUES (?, ?, ?)
+                    """, (cliente_int, tipo_contato, descricao_int))
+                    conn.commit()
+                    conn.close()
+                    st.success("Interação registrada com sucesso!")
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"Erro ao salvar interação: {e}")
+            else:
+                st.warning("Cadastre um cliente antes de registrar interações.")
+
+    st.divider()
+    st.subheader("Interações Registradas")
     if not df_interacoes.empty:
         st.dataframe(df_interacoes, use_container_width=True)
     else:
@@ -183,7 +246,41 @@ elif selected == "Interações":
 
 elif selected == "Vendas":
     st.title("💰 Gestão de Vendas")
-    st.write("Controle completo de faturamento e vendas realizadas.")
+    st.write("Controle completo de faturamento e vendas efetivadas.")
+
+    with st.form("form_venda", clear_on_submit=True):
+        st.subheader("Registrar Nova Venda")
+        col1, col2 = st.columns(2)
+        with col1:
+            clientes_nomes = df_clientes["nome"].tolist() if not df_clientes.empty else []
+            cliente_venda = st.selectbox("Cliente *", clientes_nomes if clientes_nomes else ["Cadastre um cliente primeiro"])
+            produto_venda = st.text_input("Produto / Serviço *")
+        with col2:
+            valor_venda = st.number_input("Valor da Venda (R$)", min_value=0.0, step=100.0)
+            status_venda = st.selectbox("Status", ["Concluída", "Pendente", "Cancelada"])
+
+        btn_salvar_venda = st.form_submit_button("Salvar Venda")
+
+        if btn_salvar_venda:
+            if produto_venda and clientes_nomes:
+                try:
+                    conn = conectar()
+                    cursor = conn.cursor()
+                    cursor.execute("""
+                        INSERT INTO vendas (cliente, produto_servico, valor, status)
+                        VALUES (?, ?, ?, ?)
+                    """, (cliente_venda, produto_venda, valor_venda, status_venda))
+                    conn.commit()
+                    conn.close()
+                    st.success("Venda registrada com sucesso!")
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"Erro ao salvar venda: {e}")
+            else:
+                st.warning("Preencha o produto/serviço e certifique-se de ter clientes cadastrados.")
+
+    st.divider()
+    st.subheader("Histórico de Vendas")
     if not df_vendas.empty:
         st.dataframe(df_vendas, use_container_width=True)
     else:
@@ -192,4 +289,4 @@ elif selected == "Vendas":
 elif selected == "Integrações":
     st.title("🔌 Configuração de Integrações")
     st.write("Gerencie as conexões com APIs e ferramentas externas.")
-    st.info("Nenhuma integração configurada no momento.")
+    st.info("Módulo preparado para futuras integrações (WhatsApp API, Webhooks, Gateway de Pagamento).")
