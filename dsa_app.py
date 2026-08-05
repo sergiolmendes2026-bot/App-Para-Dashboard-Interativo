@@ -20,9 +20,9 @@ with st.sidebar:
             "Dashboard",
             "Cadastro de Clientes",
             "Pipeline de Vendas",
+            "Integrações",
             "Interações",
             "Vendas",
-            "Integrações",
         ],
         icons=[
             "speedometer2",
@@ -36,7 +36,7 @@ with st.sidebar:
         default_index=1,
         styles={
             "container": {"padding": "0!important", "background-color": "transparent"},
-            "icon": {"color": "#ff4b4b", "font-size": "16px"},
+            "icon": {"color": "#E3B341", "font-size": "16px"},  # Cor dos ícones alterada para dourado/amarelado
             "nav-link": {
                 "font-size": "14px",
                 "text-align": "left",
@@ -44,8 +44,8 @@ with st.sidebar:
                 "--hover-color": "#262730",
             },
             "nav-link-selected": {
-                "background-color": "#ff4b4b",
-                "color": "white",
+                "background-color": "#E3B341",  # Fundo do item selecionado alterado para o mesmo tom
+                "color": "#111111",  # Texto escuro para dar contraste ideal com o fundo amarelo/dourado
             },
         },
     )
