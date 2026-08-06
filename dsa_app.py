@@ -13,29 +13,29 @@ st.set_page_config(
     page_title="Dashboard CRM de Vendas", page_icon="📊", layout="wide"
 )
 
-# --- BARRA LATERAL COM MENU E ÍCONES DO BOOTSTRAP ---
+# --- BARRA LATERAL COM MENU E ORDEM CORRETA DE ÍCONES ---
 with st.sidebar:
     st.markdown("### 🚀 dsa app")
     selected = option_menu(
         menu_title=None,
         options=[
-            "Dashboard",
-            "Cadastro de Clientes",
-            "Pipeline de Vendas",
-            "Integrações",
-            "Interações",
+            "Clientes",
             "Vendas",
+            "Pipeline",
+            "Interações",
+            "Integrações",
+            "Dashboard",
         ],
         icons=[
-            "speedometer2",    # Ícone Dashboard
-            "people-fill",     # Ícone Clientes
-            "kanban",          # Ícone Pipeline
-            "plug",            # Ícone Integrações
-            "headset",         # Ícone Interações
-            "trophy-fill",     # Ícone Vendas
+            "people-fill",     # Clientes
+            "trophy-fill",     # Vendas
+            "kanban",          # Pipeline
+            "headset",         # Interações
+            "plug",            # Integrações
+            "speedometer2",    # Dashboard
         ],
         menu_icon="cast",
-        default_index=0,
+        default_index=5,
         styles={
             "container": {"padding": "0!important", "background-color": "transparent"},
             "icon": {"color": "#E3B341", "font-size": "16px"},
@@ -126,7 +126,7 @@ if selected == "Dashboard":
     else:
         st.info("Nenhum cliente cadastrado ainda.")
 
-elif selected == "Cadastro de Clientes":
+elif selected == "Clientes":
     st.title("👤 Cadastro de Clientes e Leads")
     st.write("Adicione novos clientes para alimentar o seu CRM e a sua operação comercial.")
 
@@ -191,7 +191,7 @@ elif selected == "Cadastro de Clientes":
     else:
         st.info("Nenhum cliente cadastrado.")
 
-elif selected == "Pipeline de Vendas":
+elif selected == "Pipeline":
     st.title("📊 Pipeline de Vendas")
     st.write("Acompanhamento do funil de oportunidades comerciais.")
 
@@ -294,9 +294,6 @@ elif selected == "Vendas":
                     conn = conectar()
                     cursor = conn.cursor()
                     cursor.execute("""
-                        INSERT INTO vendas (clientee, produto_servico, valor, status)
-                        VALUES (?, ?, ?, ?)
-                    """ if "clientee" in "clientes" else """
                         INSERT INTO vendas (cliente, produto_servico, valor, status)
                         VALUES (?, ?, ?, ?)
                     """, (cliente_venda, produto_venda, valor_venda, status_venda))
