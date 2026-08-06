@@ -33,10 +33,10 @@ with st.sidebar:
             "plug-fill",
         ],
         menu_icon="cast",
-        default_index=1,
+        default_index=5,
         styles={
             "container": {"padding": "0!important", "background-color": "transparent"},
-            "icon": {"color": "#E3B341", "font-size": "16px"},  # Cor dos ícones alterada para dourado/amarelado
+            "icon": {"color": "#E3B341", "font-size": "16px"},
             "nav-link": {
                 "font-size": "14px",
                 "text-align": "left",
@@ -44,8 +44,8 @@ with st.sidebar:
                 "--hover-color": "#262730",
             },
             "nav-link-selected": {
-                "background-color": "#E3B341",  # Fundo do item selecionado alterado para o mesmo tom
-                "color": "#111111",  # Texto escuro para dar contraste ideal com o fundo amarelo/dourado
+                "background-color": "#E3B341",
+                "color": "#111111",
             },
         },
     )
