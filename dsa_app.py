@@ -157,16 +157,21 @@ if selected == "Dashboard":
 
     st.markdown("<div style='margin-bottom: 25px;'></div>", unsafe_allow_html=True)
 
-    # --- 1. FUNIL DE VENDAS (PLOTLY - APENAS VALOR E PORCENTAGEM) ---
+    # --- 1. FUNIL DE VENDAS (PLOTLY - TEXTO ÚNICO EXATO) ---
     etapas = ['Prospecção', 'Qualificação', 'Proposta', 'Negociação', 'Fechamento']
     valores = [500, 340, 170, 85, 42]
-    percentuais = [100, 68, 34, 17, 8]
     cores_funil = ["#2563EB", "#3b82f6", "#60a5fa", "#38bdf8", "#7dd3fc"]
 
     fig_funil = go.Figure(go.Funnel(
         y=etapas,
         x=valores,
-        text=[f"{v} ({p}%)" for v, p in zip(valores, percentuais)],
+        text=[
+            "500 (100%)",
+            "340 (68%)",
+            "170 (34%)",
+            "85 (17%)",
+            "42 (8%)"
+        ],
         textposition="outside",
         textfont=dict(color="white", size=13),
         marker=dict(color=cores_funil),
