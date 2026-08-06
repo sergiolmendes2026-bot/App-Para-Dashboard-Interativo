@@ -137,23 +137,48 @@ if selected == "Dashboard":
 
     st.markdown("<div style='margin-bottom: 25px;'></div>", unsafe_allow_html=True)
 
-    # --- DEFINIÇÃO DOS GRÁFICOS ALTAIR (FUNIL PADRÃO ALINHADO À ESQUERDA) ---
+    # --- DEFINIÇÃO DOS GRÁFICOS ALTAIR (FUNIL SIMÉTRICO CENTRALIZADO COM RÓTULOS) ---
     estagios_padrao = ['Prospecção', 'Qualificação', 'Proposta', 'Negociação', 'Fechamento']
-    valores_padrao = [1250, 850, 420, 210, 120]
+    valores_padrao = [500, 340, 170, 85, 42]
+    porcentagens = ["100%", "68%", "34%", "17%", "8%"]
     cores_funil = ["#2563EB", "#3b82f6", "#60a5fa", "#38bdf8", "#7dd3fc"]
     
     df_funil = pd.DataFrame({
         "estagio": estagios_padrao, 
         "quantidade": valores_padrao,
+        "rotulo": [f"{val} ({pct})" for val, pct in zip(valores_padrao, porcentagens)],
         "cor": cores_funil
     })
+    
+    # Simula o efeito de centralização do funil dividindo a barra em metades negativas e positivas
+    df_funil["val_neg"] = df_funil["quantidade"] / -2
+    df_funil["val_pos"] = df_funil["quantidade"] / 2
 
-    chart_funil = alt.Chart(df_funil).mark_bar(cornerRadiusTopRight=4, cornerRadiusBottomRight=4).encode(
-        y=alt.Y('estagio:N', sort=estagios_padrao, title=None, axis=alt.Axis(labelColor="#f8fafc", labelFontSize=12, domain=False, ticks=False)),
-        x=alt.X('quantidade:Q', title=None, axis=alt.Axis(labels=False, ticks=False, grid=False, domain=False)),
+    base_funil = alt.Chart(df_funil).encode(
+        y=alt.Y('estagio:N', sort=estagios_padrao, title=None, axis=alt.Axis(labels=False, ticks=False, domain=False))
+    )
+    
+    bar_neg = base_funil.mark_bar(cornerRadiusBottomLeft=6, cornerRadiusTopLeft=6).encode(
+        x=alt.X('val_neg:Q', title=None, axis=alt.Axis(labels=False, ticks=False, grid=False, domain=False)),
+        color=alt.Color('estagio:N', scale=alt.Scale(domain=estagios_padrao, range=cores_funil), legend=None)
+    )
+    
+    bar_pos = base_funil.mark_bar(cornerRadiusBottomRight=6, cornerRadiusTopRight=6).encode(
+        x=alt.X('val_pos:Q', title=None, axis=alt.Axis(labels=False, ticks=False, grid=False, domain=False)),
         color=alt.Color('estagio:N', scale=alt.Scale(domain=estagios_padrao, range=cores_funil), legend=None),
         tooltip=['estagio', 'quantidade']
-    ).properties(height=220).configure_view(stroke=None)
+    )
+
+    # Rótulos internos/externos para os nomes dos estágios (à esquerda) e valores com % (à direita)
+    text_left = base_funil.mark_text(align='left', dx=-230, color='#ffffff', fontWeight='bold', fontSize=12).encode(
+        text='estagio:N'
+    )
+    
+    text_right = base_funil.mark_text(align='right', dx=230, color='#ffffff', fontWeight='bold', fontSize=12).encode(
+        text='rotulo:N'
+    )
+    
+    chart_funil = (bar_neg + bar_pos + text_left + text_right).properties(height=220).configure_view(stroke=None)
 
     df_vendas_mes = pd.DataFrame({
         "Mês": ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun"],
