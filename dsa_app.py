@@ -13,7 +13,7 @@ st.set_page_config(
     page_title="Dashboard CRM de Vendas", page_icon="📊", layout="wide"
 )
 
-# --- BARRA LATERAL COM MENU MODERNIZADO ---
+# --- BARRA LATERAL COM MENU E ÍCONES DO BOOTSTRAP ---
 with st.sidebar:
     st.markdown("### 🚀 dsa app")
     selected = option_menu(
@@ -27,12 +27,12 @@ with st.sidebar:
             "Vendas",
         ],
         icons=[
-            "speedometer2",
-            "people-fill",
-            "kanban-fill",
-            "chat-dots-fill",
-            "cart-fill",
-            "plug-fill",
+            "speedometer2",    # Ícone Dashboard
+            "people-fill",     # Ícone Clientes
+            "kanban",          # Ícone Pipeline
+            "plug",            # Ícone Integrações
+            "headset",         # Ícone Interações
+            "trophy-fill",     # Ícone Vendas
         ],
         menu_icon="cast",
         default_index=0,
@@ -294,6 +294,9 @@ elif selected == "Vendas":
                     conn = conectar()
                     cursor = conn.cursor()
                     cursor.execute("""
+                        INSERT INTO vendas (clientee, produto_servico, valor, status)
+                        VALUES (?, ?, ?, ?)
+                    """ if "clientee" in "clientes" else """
                         INSERT INTO vendas (cliente, produto_servico, valor, status)
                         VALUES (?, ?, ?, ?)
                     """, (cliente_venda, produto_venda, valor_venda, status_venda))
