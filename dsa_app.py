@@ -157,7 +157,7 @@ if selected == "Dashboard":
 
     st.markdown("<div style='margin-bottom: 25px;'></div>", unsafe_allow_html=True)
 
-    # --- 1. FUNIL DE VENDAS (PLOTLY - TEXTOS FORA DAS BARRAS) ---
+    # --- 1. FUNIL DE VENDAS (PLOTLY - APENAS VALOR E PORCENTAGEM) ---
     etapas = ['Prospecção', 'Qualificação', 'Proposta', 'Negociação', 'Fechamento']
     valores = [500, 340, 170, 85, 42]
     percentuais = [100, 68, 34, 17, 8]
@@ -167,7 +167,7 @@ if selected == "Dashboard":
         y=etapas,
         x=valores,
         text=[f"{v} ({p}%)" for v, p in zip(valores, percentuais)],
-        textposition="outside",  # <-- Alterado para deixar os textos para fora
+        textposition="outside",
         textfont=dict(color="white", size=13),
         marker=dict(color=cores_funil),
         connector=dict(visible=False)
