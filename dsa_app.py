@@ -48,7 +48,7 @@ with st.sidebar:
             "gear-fill"       
         ],
         menu_icon="cast",
-        default_index=1, # Inicia em Clientes ou conforme navegação
+        default_index=0,
         styles={
             "container": {"padding": "0!important", "background-color": "transparent"},
             "icon": {"color": "#60a5fa", "font-size": "15px"},
@@ -96,7 +96,9 @@ if selected == "Dashboard":
     clientes_ativos = len(df_clientes[df_clientes["status"] == "Ativo"]) if not df_clientes.empty and "status" in df_clientes.columns else 873
     faturamento_mes = df_vendas["valor"].sum() if not df_vendas.empty and "valor" in df_vendas.columns else 245780.0
 
+    # 4 Cards Superiores (KPIs Estilizados)
     col1, col2, col3, col4 = st.columns(4)
+    
     with col1:
         st.markdown(f"""
             <div style="background-color: #1e293b; padding: 20px; border-radius: 12px; border: 1px solid #334155;">
@@ -133,11 +135,112 @@ if selected == "Dashboard":
             </div>
         """, unsafe_allow_html=True)
 
+    st.markdown("<div style='margin-bottom: 25px;'></div>", unsafe_allow_html=True)
+
+    # Linha 1 de Gráficos: Funil de Vendas e Vendas por Mês
+    col_left, col_right = st.columns(2)
+    
+    with col_left:
+        st.markdown("""
+            <div style="background-color: #1e293b; padding: 20px; border-radius: 12px; border: 1px solid #334155; height: 360px;">
+                <div style="color: #ffffff; font-size: 16px; font-weight: 600; margin-bottom: 15px;">Funil de Vendas</div>
+        """, unsafe_allow_html=True)
+        
+        estagios_padrao = ['Prospecção', 'Qualificação', 'Proposta', 'Negociação', 'Fechamento']
+        valores_padrao = [1250, 850, 420, 210, 120]
+        cores_funil = ["#2563EB", "#3b82f6", "#60a5fa", "#38bdf8", "#7dd3fc"]
+        
+        df_funil = pd.DataFrame({
+            "estagio": estagios_padrao, 
+            "quantidade": valores_padrao,
+            "cor": cores_funil
+        })
+
+        chart_funil = alt.Chart(df_funil).mark_bar(cornerRadiusTopRight=4, cornerRadiusBottomRight=4).encode(
+            y=alt.Y('estagio:N', sort=estagios_padrao, title=None, axis=alt.Axis(labelColor="#f8fafc", labelFontSize=12)),
+            x=alt.X('quantidade:Q', title=None, axis=alt.Axis(labels=False, ticks=False, domain=False)),
+            color=alt.Color('estagio:N', scale=alt.Scale(domain=estagios_padrao, range=cores_funil), legend=None),
+            tooltip=['estagio', 'quantidade']
+        ).properties(height=240).configure_view(stroke=None)
+
+        st.altair_chart(chart_funil, use_container_width=True)
+        st.markdown("</div>", unsafe_allow_html=True)
+
+    with col_right:
+        st.markdown("""
+            <div style="background-color: #1e293b; padding: 20px; border-radius: 12px; border: 1px solid #334155; height: 360px;">
+                <div style="color: #ffffff; font-size: 16px; font-weight: 600; margin-bottom: 15px;">Vendas por Mês</div>
+        """, unsafe_allow_html=True)
+        
+        df_vendas_mes = pd.DataFrame({
+            "Mês": ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun"],
+            "valor": [80000, 85000, 140000, 75000, 210000, 290000]
+        })
+
+        chart_line = alt.Chart(df_vendas_mes).mark_line(color="#38bdf8", strokeWidth=3, point=alt.MarkConfig(color="#38bdf8", size=80)).encode(
+            x=alt.X('Mês:N', title=None, axis=alt.Axis(labelColor="#94a3b8", labelFontSize=12)),
+            y=alt.Y('valor:Q', title=None, axis=alt.Axis(labelColor="#94a3b8", gridColor="#334155", labelFontSize=12)),
+            tooltip=['Mês', 'valor']
+        ).properties(height=240).configure_view(stroke=None)
+
+        st.altair_chart(chart_line, use_container_width=True)
+        st.markdown("</div>", unsafe_allow_html=True)
+
+    st.markdown("<div style='margin-bottom: 20px;'></div>", unsafe_allow_html=True)
+
+    # Linha 2 de Gráficos: Vendas por Região e Tipos de Clientes
+    col_l2, col_r2 = st.columns(2)
+    
+    with col_l2:
+        st.markdown("""
+            <div style="background-color: #1e293b; padding: 20px; border-radius: 12px; border: 1px solid #334155; height: 320px;">
+                <div style="color: #ffffff; font-size: 16px; font-weight: 600; margin-bottom: 15px;">Vendas por Região</div>
+        """, unsafe_allow_html=True)
+
+        df_reg = pd.DataFrame({
+            "regiao": ["Sudeste (45%)", "Sul (25%)", "Nordeste (15%)", "Centro-Oeste (10%)", "Norte (5%)"],
+            "porcentagem": [45, 25, 15, 10, 5]
+        })
+
+        cores_reg = ["#2563EB", "#3b82f6", "#10b981", "#f59e0b", "#ef4444"]
+        
+        base_reg = alt.Chart(df_reg).encode(
+            theta=alt.Theta(field="porcentagem", type="quantitative"),
+            color=alt.Color(field="regiao", type="nominal", scale=alt.Scale(domain=df_reg["regiao"].tolist(), range=cores_reg), legend=alt.Legend(orient="right", title=None, labelColor="#f8fafc", labelFontSize=11))
+        )
+        pie_reg = base_reg.mark_arc(innerRadius=60, outerRadius=95)
+        chart_pie_reg = pie_reg.properties(height=210).configure_view(stroke=None)
+        
+        st.altair_chart(chart_pie_reg, use_container_width=True)
+        st.markdown("</div>", unsafe_allow_html=True)
+
+    with col_r2:
+        st.markdown("""
+            <div style="background-color: #1e293b; padding: 20px; border-radius: 12px; border: 1px solid #334155; height: 320px;">
+                <div style="color: #ffffff; font-size: 16px; font-weight: 600; margin-bottom: 15px;">Tipos de Clientes</div>
+        """, unsafe_allow_html=True)
+
+        df_tipos = pd.DataFrame({
+            "tipo": ["Clientes (68%)", "Leads (22%)", "Inativos (10%)"],
+            "porcentagem": [68, 22, 10]
+        })
+
+        cores_tipos = ["#2563EB", "#0ea5e9", "#10b981"]
+        
+        base_tipo = alt.Chart(df_tipos).encode(
+            theta=alt.Theta(field="porcentagem", type="quantitative"),
+            color=alt.Color(field="tipo", type="nominal", scale=alt.Scale(domain=df_tipos["tipo"].tolist(), range=cores_tipos), legend=alt.Legend(orient="right", title=None, labelColor="#f8fafc", labelFontSize=11))
+        )
+        pie_tipo = base_tipo.mark_arc(innerRadius=60, outerRadius=95)
+        chart_pie_tipo = pie_tipo.properties(height=210).configure_view(stroke=None)
+        
+        st.altair_chart(chart_pie_tipo, use_container_width=True)
+        st.markdown("</div>", unsafe_allow_html=True)
+
 elif selected == "Clientes":
     st.markdown("### 👤 Cadastro de Clientes e Leads")
     st.markdown("<p style='color: #94a3b8; font-size: 14px; margin-bottom: 20px;'>Adicione novos clientes para alimentar o seu CRM e a sua operação comercial.</p>", unsafe_allow_html=True)
     
-    # Formulário de Cadastro com 2 Colunas Exatamente como na Referência
     with st.form("form_cliente_completo", clear_on_submit=True):
         col_c1, col_c2 = st.columns(2)
         
@@ -185,7 +288,6 @@ elif selected == "Clientes":
     st.markdown("### 📋 Tabela de Clientes e Contatos (CRM)")
     
     if not df_clientes.empty:
-        # Prepara o dataframe para exibição alinhada ao layout desejado
         df_exibicao = pd.DataFrame()
         df_exibicao["Cliente"] = df_clientes.apply(lambda row: f"{row['nome']} - {row.get('empresa', 'CRM')}" if pd.notnull(row.get('empresa')) and row.get('empresa') != "" else row['nome'], axis=1)
         df_exibicao["Tipo"] = df_clientes["regiao"] if "regiao" in df_clientes.columns else "Região Sul"
