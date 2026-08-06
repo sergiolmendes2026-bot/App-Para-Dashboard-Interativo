@@ -199,30 +199,58 @@ if selected == "Dashboard":
         tooltip=['Mês', 'valor']
     ).properties(height=220).configure_view(stroke=None)
 
-    # --- GRÁFICOS DE PIZZA ---
-    df_reg = pd.DataFrame({
-        "regiao": ["Sudeste (45%)", "Sul (25%)", "Nordeste (15%)", "Centro-Oeste (10%)", "Norte (5%)"],
-        "porcentagem": [45, 25, 15, 10, 5]
-    })
-    cores_reg = ["#2563EB", "#3b82f6", "#10b981", "#f59e0b", "#ef4444"]
-    
-    base_reg = alt.Chart(df_reg).encode(
-        theta=alt.Theta(field="porcentagem", type="quantitative"),
-        color=alt.Color(field="regiao", type="nominal", scale=alt.Scale(domain=df_reg["regiao"].tolist(), range=cores_reg), legend=alt.Legend(orient="right", title=None, labelColor="#f8fafc", labelFontSize=11))
-    )
-    chart_pie_reg = base_reg.mark_arc(innerRadius=50, outerRadius=85).properties(height=180).configure_view(stroke=None)
+    # --- GRÁFICOS DE ROSCA (PIZZA) COM PLOTLY ---
+    # 1. Vendas por Região
+    labels_regiao = ["Sudeste", "Sul", "Nordeste", "Centro-Oeste", "Norte"]
+    values_regiao = [45, 25, 15, 10, 5]
+    cores_regiao = ["#2563EB", "#3b82f6", "#10b981", "#f59e0b", "#ef4444"]
 
-    df_tipos = pd.DataFrame({
-        "tipo": ["Clientes (68%)", "Leads (22%)", "Inativos (10%)"],
-        "porcentagem": [68, 22, 10]
-    })
-    cores_tipos = ["#2563EB", "#0ea5e9", "#10b981"]
-    
-    base_tipo = alt.Chart(df_tipos).encode(
-        theta=alt.Theta(field="porcentagem", type="quantitative"),
-        color=alt.Color(field="tipo", type="nominal", scale=alt.Scale(domain=df_tipos["tipo"].tolist(), range=cores_tipos), legend=alt.Legend(orient="right", title=None, labelColor="#f8fafc", labelFontSize=11))
+    fig_regiao = go.Figure(go.Pie(
+        labels=labels_regiao,
+        values=values_regiao,
+        hole=0.6,
+        textinfo='none',
+        marker=dict(colors=cores_regiao)
+    ))
+    fig_regiao.update_layout(
+        margin=dict(l=10, r=10, t=10, b=10),
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        height=200,
+        showlegend=True,
+        legend=dict(
+            font=dict(color="#f8fafc", size=11),
+            orientation="v",
+            x=1.0,
+            y=0.5
+        )
     )
-    chart_pie_tipo = base_tipo.mark_arc(innerRadius=50, outerRadius=85).properties(height=180).configure_view(stroke=None)
+
+    # 2. Tipos de Clientes
+    labels_tipo = ["Clientes", "Leads", "Inativos"]
+    values_tipo = [68, 22, 10]
+    cores_tipo = ["#2563EB", "#0ea5e9", "#10b981"]
+
+    fig_tipo = go.Figure(go.Pie(
+        labels=labels_tipo,
+        values=values_tipo,
+        hole=0.6,
+        textinfo='none',
+        marker=dict(colors=cores_tipo)
+    ))
+    fig_tipo.update_layout(
+        margin=dict(l=10, r=10, t=10, b=10),
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        height=200,
+        showlegend=True,
+        legend=dict(
+            font=dict(color="#f8fafc", size=11),
+            orientation="v",
+            x=1.0,
+            y=0.5
+        )
+    )
 
     # --- LINHA 1 DE GRÁFICOS ---
     col_left, col_right = st.columns(2)
@@ -245,7 +273,7 @@ if selected == "Dashboard":
 
     st.markdown("<div style='margin-bottom: 20px;'></div>", unsafe_allow_html=True)
 
-    # --- LINHA 2 DE GRÁFICOS ---
+    # --- LINHA 2 DE GRÁFICOS (COM PLOTLY ALINHADO) ---
     col_l2, col_r2 = st.columns(2)
     
     with col_l2:
@@ -253,7 +281,7 @@ if selected == "Dashboard":
             <div style="background-color: #1e293b; padding: 20px; border-radius: 12px; border: 1px solid #334155;">
                 <div style="color: #ffffff; font-size: 16px; font-weight: 600; margin-bottom: 15px;">Vendas por Região</div>
         """, unsafe_allow_html=True)
-        st.altair_chart(chart_pie_reg, use_container_width=True)
+        st.plotly_chart(fig_regiao, use_container_width=True, config={'displayModeBar': False})
         st.markdown("</div>", unsafe_allow_html=True)
 
     with col_r2:
@@ -261,7 +289,7 @@ if selected == "Dashboard":
             <div style="background-color: #1e293b; padding: 20px; border-radius: 12px; border: 1px solid #334155;">
                 <div style="color: #ffffff; font-size: 16px; font-weight: 600; margin-bottom: 15px;">Tipos de Clientes</div>
         """, unsafe_allow_html=True)
-        st.altair_chart(chart_pie_tipo, use_container_width=True)
+        st.plotly_chart(fig_tipo, use_container_width=True, config={'displayModeBar': False})
         st.markdown("</div>", unsafe_allow_html=True)
 
 elif selected == "Clientes":
