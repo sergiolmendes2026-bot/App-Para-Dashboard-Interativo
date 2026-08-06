@@ -1,7 +1,6 @@
 import pandas as pd
 import sqlite3
 import streamlit as st
-import altair as alt
 import plotly.graph_objects as go
 from datetime import date
 from streamlit_option_menu import option_menu
@@ -158,7 +157,7 @@ if selected == "Dashboard":
 
     st.markdown("<div style='margin-bottom: 25px;'></div>", unsafe_allow_html=True)
 
-    # --- DEFINIÇÃO DO FUNIL DE VENDAS COM PLOTLY ---
+    # --- 1. FUNIL DE VENDAS (PLOTLY) ---
     etapas = ['Prospecção', 'Qualificação', 'Proposta', 'Negociação', 'Fechamento']
     valores = [500, 340, 170, 85, 42]
     percentuais = [100, 68, 34, 17, 8]
@@ -187,20 +186,38 @@ if selected == "Dashboard":
         xaxis=dict(visible=False)
     )
 
-    # --- GRÁFICO DE LINHA (VENDAS POR MÊS) ---
-    df_vendas_mes = pd.DataFrame({
-        "Mês": ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun"],
-        "valor": [80000, 85000, 140000, 75000, 210000, 290000]
-    })
+    # --- 2. VENDAS POR MÊS (PLOTLY - ORDEM CORRETA GARANTIDA) ---
+    meses_ordem = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun"]
+    valores_mes = [80000, 85000, 140000, 75000, 210000, 290000]
 
-    chart_line = alt.Chart(df_vendas_mes).mark_line(color="#38bdf8", strokeWidth=3, point=alt.MarkConfig(color="#38bdf8", size=80)).encode(
-        x=alt.X('Mês:N', title=None, axis=alt.Axis(labelColor="#94a3b8", labelFontSize=12, domain=False, ticks=False)),
-        y=alt.Y('valor:Q', title=None, axis=alt.Axis(labelColor="#94a3b8", gridColor="#334155", labelFontSize=12, domain=False)),
-        tooltip=['Mês', 'valor']
-    ).properties(height=220).configure_view(stroke=None)
+    fig_line = go.Figure(go.Scatter(
+        x=meses_ordem,
+        y=valores_mes,
+        mode='lines+markers',
+        line=dict(color='#38bdf8', width=3),
+        marker=dict(color='#38bdf8', size=8)
+    ))
 
-    # --- GRÁFICOS DE ROSCA (PIZZA) COM PLOTLY ---
-    # 1. Vendas por Região
+    fig_line.update_layout(
+        margin=dict(l=10, r=10, t=10, b=10),
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        height=220,
+        xaxis=dict(
+            categoryorder='array',
+            categoryarray=meses_ordem,
+            tickfont=dict(color="#94a3b8", size=12),
+            showgrid=False,
+            zeroline=False
+        ),
+        yaxis=dict(
+            tickfont=dict(color="#94a3b8", size=12),
+            gridcolor="#334155",
+            zeroline=False
+        )
+    )
+
+    # --- 3. VENDAS POR REGIÃO (PLOTLY) ---
     labels_regiao = ["Sudeste", "Sul", "Nordeste", "Centro-Oeste", "Norte"]
     values_regiao = [45, 25, 15, 10, 5]
     cores_regiao = ["#2563EB", "#3b82f6", "#10b981", "#f59e0b", "#ef4444"]
@@ -226,7 +243,7 @@ if selected == "Dashboard":
         )
     )
 
-    # 2. Tipos de Clientes
+    # --- 4. TIPOS DE CLIENTES (PLOTLY) ---
     labels_tipo = ["Clientes", "Leads", "Inativos"]
     values_tipo = [68, 22, 10]
     cores_tipo = ["#2563EB", "#0ea5e9", "#10b981"]
@@ -268,12 +285,12 @@ if selected == "Dashboard":
             <div style="background-color: #1e293b; padding: 20px; border-radius: 12px; border: 1px solid #334155;">
                 <div style="color: #ffffff; font-size: 16px; font-weight: 600; margin-bottom: 15px;">Vendas por Mês</div>
         """, unsafe_allow_html=True)
-        st.altair_chart(chart_line, use_container_width=True)
+        st.plotly_chart(fig_line, use_container_width=True, config={'displayModeBar': False})
         st.markdown("</div>", unsafe_allow_html=True)
 
     st.markdown("<div style='margin-bottom: 20px;'></div>", unsafe_allow_html=True)
 
-    # --- LINHA 2 DE GRÁFICOS (COM PLOTLY ALINHADO) ---
+    # --- LINHA 2 DE GRÁFICOS ---
     col_l2, col_r2 = st.columns(2)
     
     with col_l2:
