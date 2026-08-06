@@ -137,7 +137,7 @@ if selected == "Dashboard":
 
     st.markdown("<div style='margin-bottom: 25px;'></div>", unsafe_allow_html=True)
 
-    # --- DEFINIÇÃO DOS GRÁFICOS ALTAIR ---
+    # --- DEFINIÇÃO DOS GRÁFICOS ALTAIR (SEM ERROS DE ATRIBUTO) ---
     estagios_padrao = ['Prospecção', 'Qualificação', 'Proposta', 'Negociação', 'Fechamento']
     valores_padrao = [1250, 850, 420, 210, 120]
     cores_funil = ["#2563EB", "#3b82f6", "#60a5fa", "#38bdf8", "#7dd3fc"]
@@ -153,7 +153,7 @@ if selected == "Dashboard":
         x=alt.X('quantidade:Q', title=None, axis=alt.Axis(labels=False, ticks=False, domain=False)),
         color=alt.Color('estagio:N', scale=alt.Scale(domain=estagios_padrao, range=cores_funil), legend=None),
         tooltip=['estagio', 'quantidade']
-    ).properties(height=220).configure_view(stroke=None).configure_background(fill='transparent')
+    ).properties(height=220).configure_view(stroke=None)
 
     df_vendas_mes = pd.DataFrame({
         "Mês": ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun"],
@@ -164,7 +164,7 @@ if selected == "Dashboard":
         x=alt.X('Mês:N', title=None, axis=alt.Axis(labelColor="#94a3b8", labelFontSize=12)),
         y=alt.Y('valor:Q', title=None, axis=alt.Axis(labelColor="#94a3b8", gridColor="#334155", labelFontSize=12)),
         tooltip=['Mês', 'valor']
-    ).properties(height=220).configure_view(stroke=None).configure_background(fill='transparent')
+    ).properties(height=220).configure_view(stroke=None)
 
     df_reg = pd.DataFrame({
         "regiao": ["Sudeste (45%)", "Sul (25%)", "Nordeste (15%)", "Centro-Oeste (10%)", "Norte (5%)"],
@@ -176,7 +176,7 @@ if selected == "Dashboard":
         theta=alt.Theta(field="porcentagem", type="quantitative"),
         color=alt.Color(field="regiao", type="nominal", scale=alt.Scale(domain=df_reg["regiao"].tolist(), range=cores_reg), legend=alt.Legend(orient="right", title=None, labelColor="#f8fafc", labelFontSize=11))
     )
-    chart_pie_reg = base_reg.mark_arc(innerRadius=50, outerRadius=85).properties(height=180).configure_view(stroke=None).configure_background(fill='transparent')
+    chart_pie_reg = base_reg.mark_arc(innerRadius=50, outerRadius=85).properties(height=180).configure_view(stroke=None)
 
     df_tipos = pd.DataFrame({
         "tipo": ["Clientes (68%)", "Leads (22%)", "Inativos (10%)"],
@@ -188,9 +188,9 @@ if selected == "Dashboard":
         theta=alt.Theta(field="porcentagem", type="quantitative"),
         color=alt.Color(field="tipo", type="nominal", scale=alt.Scale(domain=df_tipos["tipo"].tolist(), range=cores_tipos), legend=alt.Legend(orient="right", title=None, labelColor="#f8fafc", labelFontSize=11))
     )
-    chart_pie_tipo = base_tipo.mark_arc(innerRadius=50, outerRadius=85).properties(height=180).configure_view(stroke=None).configure_background(fill='transparent')
+    chart_pie_tipo = base_tipo.mark_arc(innerRadius=50, outerRadius=85).properties(height=180).configure_view(stroke=None)
 
-    # --- LINHA 1 DE GRÁFICOS (DENTRO DOS CARDS CORRETAMENTE) ---
+    # --- LINHA 1 DE GRÁFICOS ---
     col_left, col_right = st.columns(2)
     
     with col_left:
@@ -211,7 +211,7 @@ if selected == "Dashboard":
 
     st.markdown("<div style='margin-bottom: 20px;'></div>", unsafe_allow_html=True)
 
-    # --- LINHA 2 DE GRÁFICOS (DENTRO DOS CARDS CORRETAMENTE) ---
+    # --- LINHA 2 DE GRÁFICOS ---
     col_l2, col_r2 = st.columns(2)
     
     with col_l2:
