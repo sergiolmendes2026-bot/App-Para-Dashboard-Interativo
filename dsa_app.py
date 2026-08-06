@@ -174,8 +174,10 @@ if selected == "Dashboard":
     df_funil["val_neg"] = df_funil["quantidade"] / -2
     df_funil["val_pos"] = df_funil["quantidade"] / 2
 
+    # Eixo Y exibe os nomes dos estágios perfeitamente alinhados à esquerda
     base_funil = alt.Chart(df_funil).encode(
-        y=alt.Y('estagio:N', sort=estagios_padrao, title=None, axis=alt.Axis(labels=False, ticks=False, domain=False))
+        y=alt.Y('estagio:N', sort=estagios_padrao, title=None, 
+                axis=alt.Axis(labels=True, labelColor='#ffffff', labelFontSize=12, ticks=False, domain=False))
     )
     
     bar_neg = base_funil.mark_bar(cornerRadiusBottomLeft=6, cornerRadiusTopLeft=6).encode(
@@ -189,18 +191,13 @@ if selected == "Dashboard":
         tooltip=['estagio', 'quantidade']
     )
 
-    # Nomes dos estágios alinhados à esquerda fora da barra
-    text_left = base_funil.mark_text(align='right', dx=-15, color='#ffffff', fontWeight='bold', fontSize=12).encode(
-        text='estagio:N'
-    )
-    
-    # Valores e porcentagens centralizados dentro da barra (com eixo x=0)
+    # Valores e porcentagens perfeitamente centralizados no eixo médio do funil (x=0)
     text_center = base_funil.mark_text(align='center', dx=0, color='#ffffff', fontWeight='bold', fontSize=12).encode(
         x=alt.value(0),
         text='rotulo:N'
     )
     
-    chart_funil = (bar_neg + bar_pos + text_left + text_center).properties(height=220).configure_view(stroke=None)
+    chart_funil = (bar_neg + bar_pos + text_center).properties(height=220).configure_view(stroke=None)
 
     df_vendas_mes = pd.DataFrame({
         "Mês": ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun"],
@@ -318,7 +315,7 @@ elif selected == "Clientes":
         df_exibicao = pd.DataFrame()
         df_exibicao["Cliente"] = df_clientes.apply(lambda row: f"{row['nome']} - {row.get('empresa', 'CRM')}" if pd.notnull(row.get('empresa')) and row.get('empresa') != "" else row['nome'], axis=1)
         df_exibicao["Tipo"] = df_clientes["regiao"] if "regiao" in df_clientes.columns else "Região Sul"
-        df_exibicao["Data"] = df_clientes["data"] if "data" in df_clientes.columns else str(date.today())
+        df_ex_ibicao["Data"] = df_clientes["data"] if "data" in df_clientes.columns else str(date.today())
         df_exibicao["Responsável"] = df_clientes["responsavel"] if "responsavel" in df_clientes.columns else "Equipe Comercial"
         df_exibicao["Status"] = df_clientes["status"] if "status" in df_clientes.columns else "Ativo"
         df_exibicao["Ações"] = "Gerenciar / WhatsApp"
