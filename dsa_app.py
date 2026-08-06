@@ -87,15 +87,13 @@ if selected == "Dashboard":
 
     st.divider()
 
-    # Linha 1 de Gráficos: Linha de Faturamento e Pizza por Região
+    # Linha 1 de Gráficos: Linha de Faturamento e Pizza por Região com %
     col_left, col_right = st.columns(2)
     
     with col_left:
         st.subheader("📈 Linha de Faturamento por Mês")
         if not df_vendas.empty and "valor" in df_vendas.columns:
-            # Simulando agrupamento por data/mês caso exista campo de data ou gerando tendência limpa
             df_vendas_line = df_vendas.copy()
-            # Se não houver coluna de data na venda, criamos uma base demonstrativa limpa
             if "data_venda" not in df_vendas_line.columns:
                 df_vendas_line["Mês"] = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun"][:len(df_vendas_line)] if len(df_vendas_line) <= 6 else "Atual"
                 df_vendas_grouped = df_vendas_line.groupby("Mês")["valor"].sum().reset_index()
@@ -112,18 +110,33 @@ if selected == "Dashboard":
             st.info("Insira vendas para visualizar a linha de faturamento.")
 
     with col_right:
-        st.subheader("🍕 Distribuição de Clientes por Região")
+        st.subheader("🍕 Distribuição de Clientes por Região (%)")
         if not df_clientes.empty and "regiao" in df_clientes.columns:
             df_regiao = df_clientes[df_clientes["regiao"] != ""].groupby("regiao").size().reset_index(name="quantidade")
             if not df_regiao.empty:
-                chart_pie = alt.Chart(df_regiao).mark_arc(innerRadius=50).encode(
+                # Calcula a porcentagem para exibir no gráfico
+                total_reg = df_regiao["quantidade"].sum()
+                df_regiao["porcentagem"] = df_regiao["quantidade"] / total_reg
+                df_regiao["rotulo"] = df_regiao["porcentagem"].apply(lambda p: f"{p*100:.1f}%")
+
+                # Base do gráfico de rosca (Donut Chart)
+                base = alt.Chart(df_regiao).encode(
                     theta=alt.Theta(field="quantidade", type="quantitative"),
-                    color=alt.Color(field="regiao", type="nominal", scale=alt.Scale(scheme="blues")),
-                    tooltip=["regiao", "quantidade"]
-                ).properties(height=280)
+                    color=alt.Color(field="regiao", type="nominal", scale=alt.Scale(scheme="blues"), legend=alt.Legend(title="Regiões"))
+                )
+
+                # Camada das fatias da rosca
+                pie = base.mark_arc(innerRadius=65, outerRadius=110)
+
+                # Camada dos textos com as porcentagens por cima das fatias
+                text = base.mark_text(radius=85, size=13, fontWeight="bold", color="white").encode(
+                    text=alt.Text(field="rotulo", type="nominal")
+                )
+
+                chart_pie = (pie + text).properties(height=280)
                 st.altair_chart(chart_pie, use_container_width=True)
             else:
-                st.info("Cadastre a região dos clientes para visualizar o gráfico de pizza.")
+                st.info("Cadastre a região dos clientes para visualizar o gráfico.")
         else:
             st.info("Nenhum dado de região disponível.")
 
