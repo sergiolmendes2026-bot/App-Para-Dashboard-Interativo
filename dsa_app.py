@@ -34,7 +34,7 @@ with st.sidebar:
             "plug-fill",
         ],
         menu_icon="cast",
-        default_index=1,
+        default_index=0,
         styles={
             "container": {"padding": "0!important", "background-color": "transparent"},
             "icon": {"color": "#E3B341", "font-size": "16px"},
@@ -91,17 +91,21 @@ if selected == "Dashboard":
         st.subheader("💰 Vendas por Produto / Serviço")
         if not df_vendas.empty and "produto_servico" in df_vendas.columns:
             df_vendas_grouped = df_vendas.groupby("produto_servico")["valor"].sum().reset_index()
-            st.dataframe(df_vendas_grouped, use_container_width=True)
+            # Transforma em gráfico de barras nativo com a cor do projeto
+            df_chart_vendas = df_vendas_grouped.set_index("produto_servico")
+            st.bar_chart(df_chart_vendas, color="#E3B341")
         else:
-            st.info("Nenhuma venda registrada para exibir.")
+            st.info("Nenhuma venda registrada para exibir o gráfico.")
 
     with col_right:
         st.subheader("📈 Oportunidades por Estágio")
         if not df_pipeline.empty and "estagio" in df_pipeline.columns:
             df_pipe_grouped = df_pipeline.groupby("estagio")["valor"].sum().reset_index()
-            st.dataframe(df_pipe_grouped, use_container_width=True)
+            # Transforma em gráfico de barras nativo com a cor do projeto
+            df_chart_pipe = df_pipe_grouped.set_index("estagio")
+            st.bar_chart(df_chart_pipe, color="#E3B341")
         else:
-            st.info("Nenhuma oportunidade no pipeline para exibir.")
+            st.info("Nenhuma oportunidade no pipeline para exibir o gráfico.")
 
     st.divider()
     st.subheader("👥 Clientes Cadastrados Recentemente")
