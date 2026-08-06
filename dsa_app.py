@@ -93,12 +93,11 @@ if selected == "Dashboard":
         if not df_vendas.empty and "produto_servico" in df_vendas.columns:
             df_vendas_grouped = df_vendas.groupby("produto_servico")["valor"].sum().reset_index()
             
-            # Gráfico de barras horizontais profissional com Altair
             chart_vendas = alt.Chart(df_vendas_grouped).mark_bar(color="#E3B341", cornerRadiusTopRight=4, cornerRadiusBottomRight=4).encode(
-                y=alt.Y('produto_servico:N', sort='-x', title=None, axis=alt.Axis(labelLimit=200)),
+                y=alt.Y('produto_servico:N', sort='-x', title=None),
                 x=alt.X('valor:Q', title="Valor (R$)"),
                 tooltip=['produto_servico', 'valor']
-            ).properties(height=280).configure_view(stroke=None).configure_background(fill='transparent')
+            ).properties(height=280)
             
             st.altair_chart(chart_vendas, use_container_width=True)
         else:
@@ -109,12 +108,11 @@ if selected == "Dashboard":
         if not df_pipeline.empty and "estagio" in df_pipeline.columns:
             df_pipe_grouped = df_pipeline.groupby("estagio")["valor"].sum().reset_index()
             
-            # Gráfico de barras horizontais profissional com Altair
             chart_pipe = alt.Chart(df_pipe_grouped).mark_bar(color="#E3B341", cornerRadiusTopRight=4, cornerRadiusBottomRight=4).encode(
-                y=alt.Y('estagio:N', sort='-x', title=None, axis=alt.Axis(labelLimit=200)),
+                y=alt.Y('estagio:N', sort='-x', title=None),
                 x=alt.X('valor:Q', title="Valor (R$)"),
                 tooltip=['estagio', 'valor']
-            ).properties(height=280).configure_view(stroke=None).configure_background(fill='transparent')
+            ).properties(height=280)
             
             st.altair_chart(chart_pipe, use_container_width=True)
         else:
