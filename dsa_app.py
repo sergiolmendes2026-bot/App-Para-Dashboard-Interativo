@@ -368,7 +368,12 @@ elif selected == "Clientes":
     
     if not df_clientes.empty:
         df_exibicao = pd.DataFrame()
-        df_exibicao["Cliente"] = df_clientes.apply(lambda row: f"{row['nome']} - {row.get('empresa', 'CRM')}" if pd.notnull(row.get('empresa')) and row.get('empresa'] != "" else row['nome'], axis=1)
+        df_exibicao["Cliente"] = df_clientes.apply(
+            lambda row: f"{row['nome']} - {row.get('empresa', 'CRM')}"
+            if pd.notnull(row.get('empresa')) and row.get('empresa') != ""
+            else row["nome"],
+            axis=1,
+        )
         df_exibicao["Tipo"] = df_clientes["regiao"] if "regiao" in df_clientes.columns else "Região Sul"
         df_exibicao["Data"] = df_clientes["data"] if "data" in df_clientes.columns else str(date.today())
         df_exibicao["Responsável"] = df_clientes["responsavel"] if "responsavel" in df_clientes.columns else "Equipe Comercial"
