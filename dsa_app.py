@@ -118,7 +118,6 @@ if selected == "Dashboard":
                 df_regiao["porcentagem"] = df_regiao["quantidade"] / total_reg
                 df_regiao["rotulo"] = df_regiao["porcentagem"].apply(lambda p: f"{p*100:.1f}%")
 
-                # Mapeamento fixo de cores corporativas para as 5 regiões do Brasil
                 regioes_lista = ["Norte", "Nordeste", "Centro-Oeste", "Sudeste", "Sul"]
                 cores_lista = ["#2563EB", "#EF4444", "#10B981", "#F59E0B", "#8B5CF6"]
 
@@ -232,31 +231,16 @@ elif selected == "Clientes":
                 st.warning("O campo 'Nome do Contato *' é obrigatório.")
 
     st.divider()
-    st.subheader("📋 Tabela de Clientes (Estilo CRM)")
+    st.subheader("📋 Tabela de Clientes e Contatos (CRM)")
     
     if not df_clientes.empty:
         tabela_crm = pd.DataFrame()
-        tabela_crm["Avatar"] = df_clientes["nome"].apply(lambda x: "".join([n[0].upper() for n in str(x).split()[:2]]))
-        tabela_crm["Nome"] = df_clientes["nome"]
-        tabela_crm["Empresa"] = df_clientes["empresa"] if "empresa" in df_clientes.columns else "-"
-        tabela_crm["Região"] = df_clientes["regiao"] if "regiao" in df_clientes.columns else "-"
+        tabela_crm["Cliente"] = df_clientes["nome"] + ((" - " + df_clientes["empresa"]) if "empresa" in df_clientes.columns and df_clientes["empresa"].any() else "")
+        tabela_crm["Tipo"] = df_clientes["regiao"].apply(lambda r: f"Região {r}" if r else "Geral")
+        tabela_crm["Data"] = df_clientes["data_cadastro"] if "data_cadastro" in df_clientes.columns else str(date.today())
+        tabela_crm["Responsável"] = "Equipe Comercial"
         tabela_crm["Status"] = df_clientes["status"] if "status" in df_clientes.columns else "Ativo"
-            
-        if not df_interacoes.empty and "cliente" in df_interacoes.columns:
-            ultimas = df_interacoes.groupby("cliente")["tipo"].last().reset_index()
-            ultimas.columns = ["Nome", "Última Interação"]
-            tabela_crm = tabela_crm.merge(ultimas, on="Nome", how="left")
-            tabela_crm["Última Interação"] = tabela_crm["Última Interação"].fillna("Nenhuma")
-        else:
-            tabela_crm["Última Interação"] = "Nenhuma"
-            
-        if not df_vendas.empty and "cliente" in df_vendas.columns and "valor" in df_vendas.columns:
-            vendas_soma = df_vendas.groupby("cliente")["valor"].sum().reset_index()
-            vendas_soma.columns = ["Nome", "Valor Total"]
-            tabela_crm = tabela_crm.merge(vendas_soma, on="Nome", how="left")
-            tabela_crm["Valor Total"] = tabela_crm["Valor Total"].fillna(0.0).apply(lambda v: f"R$ {v:,.2f}")
-        else:
-            tabela_crm["Valor Total"] = "R$ 0,00"
+        tabela_crm["Ações"] = "Gerenciar / WhatsApp"
 
         st.dataframe(tabela_crm, use_container_width=True, hide_index=True)
         
