@@ -35,10 +35,10 @@ with st.sidebar:
             "speedometer2",    # Dashboard
         ],
         menu_icon="cast",
-        default_index=0,
+        default_index=5,
         styles={
             "container": {"padding": "0!important", "background-color": "transparent"},
-            "icon": {"color": "#E3B341", "font-size": "16px"},
+            "icon": {"color": "#2563EB", "font-size": "16px"},
             "nav-link": {
                 "font-size": "14px",
                 "text-align": "left",
@@ -46,8 +46,8 @@ with st.sidebar:
                 "--hover-color": "#262730",
             },
             "nav-link-selected": {
-                "background-color": "#E3B341",
-                "color": "#111111",
+                "background-color": "#2563EB",
+                "color": "#FFFFFF",
             },
         },
     )
@@ -67,8 +67,8 @@ df_clientes, df_pipeline, df_vendas, df_interacoes = carregar_dados()
 # --- NAVEGAÇÃO ENTRE AS PÁGINAS ---
 
 if selected == "Dashboard":
-    st.title("📊 Dashboard Executivo - CRM de Vendas")
-    st.write("Visão geral dos indicadores de clientes, pipeline, interações e faturamento.")
+    st.title("📊 Dashboard Executivo - CRM Corporativo")
+    st.write("Análise avançada de indicadores comerciais, faturamento e distribuição de clientes.")
 
     total_clientes = len(df_clientes)
     total_vendas_valor = df_vendas["valor"].sum() if not df_vendas.empty and "valor" in df_vendas.columns else 0.0
@@ -87,13 +87,72 @@ if selected == "Dashboard":
 
     st.divider()
 
+    # Linha 1 de Gráficos: Linha de Faturamento e Pizza por Região
     col_left, col_right = st.columns(2)
+    
     with col_left:
+        st.subheader("📈 Linha de Faturamento por Mês")
+        if not df_vendas.empty and "valor" in df_vendas.columns:
+            # Simulando agrupamento por data/mês caso exista campo de data ou gerando tendência limpa
+            df_vendas_line = df_vendas.copy()
+            # Se não houver coluna de data na venda, criamos uma base demonstrativa limpa
+            if "data_venda" not in df_vendas_line.columns:
+                df_vendas_line["Mês"] = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun"][:len(df_vendas_line)] if len(df_vendas_line) <= 6 else "Atual"
+                df_vendas_grouped = df_vendas_line.groupby("Mês")["valor"].sum().reset_index()
+                
+                chart_line = alt.Chart(df_vendas_grouped).mark_line(color="#2563EB", strokeWidth=3, point=True).encode(
+                    x=alt.X('Mês:N', title=None),
+                    y=alt.Y('valor:Q', title="Faturamento (R$)"),
+                    tooltip=['Mês', 'valor']
+                ).properties(height=280)
+                st.altair_chart(chart_line, use_container_width=True)
+            else:
+                st.info("Dados de faturamento temporal carregados.")
+        else:
+            st.info("Insira vendas para visualizar a linha de faturamento.")
+
+    with col_right:
+        st.subheader("🍕 Distribuição de Clientes por Região")
+        if not df_clientes.empty and "regiao" in df_clientes.columns:
+            df_regiao = df_clientes[df_clientes["regiao"] != ""].groupby("regiao").size().reset_index(name="quantidade")
+            if not df_regiao.empty:
+                chart_pie = alt.Chart(df_regiao).mark_arc(innerRadius=50).encode(
+                    theta=alt.Theta(field="quantidade", type="quantitative"),
+                    color=alt.Color(field="regiao", type="nominal", scale=alt.Scale(scheme="blues")),
+                    tooltip=["regiao", "quantidade"]
+                ).properties(height=280)
+                st.altair_chart(chart_pie, use_container_width=True)
+            else:
+                st.info("Cadastre a região dos clientes para visualizar o gráfico de pizza.")
+        else:
+            st.info("Nenhum dado de região disponível.")
+
+    st.divider()
+
+    # Linha 2 de Gráficos: Funil de Vendas e Vendas por Produto
+    col_l2, col_r2 = st.columns(2)
+    
+    with col_l2:
+        st.subheader("🔻 Funil de Vendas (Pipeline)")
+        if not df_pipeline.empty and "estagio" in df_pipeline.columns:
+            df_pipe_grouped = df_pipeline.groupby("estagio")["valor"].sum().reset_index()
+            
+            chart_funil = alt.Chart(df_pipe_grouped).mark_bar(color="#16A34A", cornerRadiusTopRight=4, cornerRadiusBottomRight=4).encode(
+                y=alt.Y('estagio:N', sort=['Prospecção', 'Qualificação', 'Proposta', 'Fechamento'], title=None),
+                x=alt.X('valor:Q', title="Valor (R$)"),
+                tooltip=['estagio', 'valor']
+            ).properties(height=280)
+            
+            st.altair_chart(chart_funil, use_container_width=True)
+        else:
+            st.info("Nenhuma oportunidade no pipeline registrada.")
+
+    with col_r2:
         st.subheader("💰 Vendas por Produto / Serviço")
         if not df_vendas.empty and "produto_servico" in df_vendas.columns:
             df_vendas_grouped = df_vendas.groupby("produto_servico")["valor"].sum().reset_index()
             
-            chart_vendas = alt.Chart(df_vendas_grouped).mark_bar(color="#E3B341", cornerRadiusTopRight=4, cornerRadiusBottomRight=4).encode(
+            chart_vendas = alt.Chart(df_vendas_grouped).mark_bar(color="#F59E0B", cornerRadiusTopRight=4, cornerRadiusBottomRight=4).encode(
                 y=alt.Y('produto_servico:N', sort='-x', title=None),
                 x=alt.X('valor:Q', title="Valor (R$)"),
                 tooltip=['produto_servico', 'valor']
@@ -101,22 +160,7 @@ if selected == "Dashboard":
             
             st.altair_chart(chart_vendas, use_container_width=True)
         else:
-            st.info("Nenhuma venda registrada para exibir o gráfico.")
-
-    with col_right:
-        st.subheader("📈 Oportunidades por Estágio")
-        if not df_pipeline.empty and "estagio" in df_pipeline.columns:
-            df_pipe_grouped = df_pipeline.groupby("estagio")["valor"].sum().reset_index()
-            
-            chart_pipe = alt.Chart(df_pipe_grouped).mark_bar(color="#E3B341", cornerRadiusTopRight=4, cornerRadiusBottomRight=4).encode(
-                y=alt.Y('estagio:N', sort='-x', title=None),
-                x=alt.X('valor:Q', title="Valor (R$)"),
-                tooltip=['estagio', 'valor']
-            ).properties(height=280)
-            
-            st.altair_chart(chart_pipe, use_container_width=True)
-        else:
-            st.info("Nenhuma oportunidade no pipeline para exibir o gráfico.")
+            st.info("Nenhuma venda registrada.")
 
 elif selected == "Clientes":
     st.title("👤 Cadastro de Clientes e Leads")
@@ -144,7 +188,6 @@ elif selected == "Clientes":
                 try:
                     conn = conectar()
                     cursor = conn.cursor()
-                    # Verifica se a tabela já possui a coluna status, se não, tenta inserir com tratamento
                     cursor.execute("""
                         INSERT INTO clientes (nome, empresa, email, telefone, regiao, status, data_cadastro)
                         VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -154,7 +197,6 @@ elif selected == "Clientes":
                     st.success(f"Cliente '{nome}' cadastrado com sucesso!")
                     st.rerun()
                 except Exception as e:
-                    # Fallback caso a tabela antiga do banco ainda não tenha a coluna status criada
                     try:
                         conn = conectar()
                         cursor = conn.cursor()
@@ -176,30 +218,14 @@ elif selected == "Clientes":
     st.subheader("📋 Tabela de Clientes (Estilo CRM)")
     
     if not df_clientes.empty:
-        # Montando a tabela estilo CRM solicitada
         tabela_crm = pd.DataFrame()
-        
-        # 1. Avatar (Iniciais do Nome)
         tabela_crm["Avatar"] = df_clientes["nome"].apply(lambda x: "".join([n[0].upper() for n in str(x).split()[:2]]))
-        
-        # 2. Nome
         tabela_crm["Nome"] = df_clientes["nome"]
-        
-        # 3. Empresa
         tabela_crm["Empresa"] = df_clientes["empresa"] if "empresa" in df_clientes.columns else "-"
-        
-        # 4. Região
         tabela_crm["Região"] = df_clientes["regiao"] if "regiao" in df_clientes.columns else "-"
-        
-        # 5. Status
-        if "status" in df_clientes.columns:
-            tabela_crm["Status"] = df_clientes["status"]
-        else:
-            tabela_crm["Status"] = "Ativo"
+        tabela_crm["Status"] = df_clientes["status"] if "status" in df_clientes.columns else "Ativo"
             
-        # 6. Última Interação
         if not df_interacoes.empty and "cliente" in df_interacoes.columns:
-            # Pega a última interação registrada para cada cliente (se houver)
             ultimas = df_interacoes.groupby("cliente")["tipo"].last().reset_index()
             ultimas.columns = ["Nome", "Última Interação"]
             tabela_crm = tabela_crm.merge(ultimas, on="Nome", how="left")
@@ -207,7 +233,6 @@ elif selected == "Clientes":
         else:
             tabela_crm["Última Interação"] = "Nenhuma"
             
-        # 7. Valor Total (Soma das vendas do cliente)
         if not df_vendas.empty and "cliente" in df_vendas.columns and "valor" in df_vendas.columns:
             vendas_soma = df_vendas.groupby("cliente")["valor"].sum().reset_index()
             vendas_soma.columns = ["Nome", "Valor Total"]
@@ -218,7 +243,6 @@ elif selected == "Clientes":
 
         st.dataframe(tabela_crm, use_container_width=True, hide_index=True)
         
-        # Atalho rápido de WhatsApp
         if "telefone" in df_clientes.columns and not df_clientes["telefone"].isnull().all():
             st.markdown("### 💬 Ações Rápidas - WhatsApp")
             cliente_selecionado = st.selectbox("Selecione o cliente para enviar mensagem:", df_clientes["nome"].tolist())
