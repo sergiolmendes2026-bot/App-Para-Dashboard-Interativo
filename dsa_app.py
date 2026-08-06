@@ -157,37 +157,51 @@ if selected == "Dashboard":
 
     st.markdown("<div style='margin-bottom: 25px;'></div>", unsafe_allow_html=True)
 
-    # --- 1. FUNIL DE VENDAS (PLOTLY - TEXTO ÚNICO EXATO) ---
-    etapas = ['Prospecção', 'Qualificação', 'Proposta', 'Negociação', 'Fechamento']
-    valores = [500, 340, 170, 85, 42]
-    cores_funil = ["#2563EB", "#3b82f6", "#60a5fa", "#38bdf8", "#7dd3fc"]
+    # --- 1. FUNIL DE VENDAS CENTRALIZADO (PLOTLY BARRAS EMPILHADAS) ---
+    etapas = ['Fechamento', 'Negociação', 'Proposta', 'Qualificação', 'Prospecção']
+    valores = [42, 85, 170, 340, 500]
+    textos = ["42 (8%)", "85 (17%)", "170 (34%)", "340 (68%)", "500 (100%)"]
+    
+    max_val = max(valores)
+    # Calcula a barra invisível (offset) para centralizar visualmente cada barra
+    offsets = [(max_val - v) / 2 for v in valores]
 
-    fig_funil = go.Figure(go.Funnel(
+    fig_funil = go.Figure()
+
+    # Barra invisível para empurrar a barra principal para o centro
+    fig_funil.add_trace(go.Bar(
+        y=etapas,
+        x=offsets,
+        orientation='h',
+        marker=dict(color='rgba(0,0,0,0)'),
+        hoverinfo='skip',
+        showlegend=False
+    ))
+
+    # Barra principal colorida com o texto do lado direito
+    fig_funil.add_trace(go.Bar(
         y=etapas,
         x=valores,
-        text=[
-            "500 (100%)",
-            "340 (68%)",
-            "170 (34%)",
-            "85 (17%)",
-            "42 (8%)"
-        ],
-        textposition="outside",
-        textfont=dict(color="white", size=13),
-        marker=dict(color=cores_funil),
-        connector=dict(visible=False)
+        orientation='h',
+        text=textos,
+        textposition='outside',
+        textfont=dict(color='white', size=13),
+        marker=dict(color=["#7dd3fc", "#38bdf8", "#60a5fa", "#3b82f6", "#2563EB"]),
+        hoverinfo='skip',
+        showlegend=False
     ))
 
     fig_funil.update_layout(
-        margin=dict(l=10, r=10, t=10, b=10),
+        barmode='stack',
+        margin=dict(l=10, r=60, t=10, b=10),
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
         height=220,
+        xaxis=dict(visible=False, range=[0, max_val * 1.35]),
         yaxis=dict(
             tickfont=dict(color="white", size=13),
             automargin=True
-        ),
-        xaxis=dict(visible=False)
+        )
     )
 
     # --- 2. VENDAS POR MÊS (PLOTLY - ORDEM CORRETA GARANTIDA) ---
