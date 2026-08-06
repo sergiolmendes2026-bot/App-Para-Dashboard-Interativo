@@ -157,7 +157,7 @@ if selected == "Dashboard":
 
     st.markdown("<div style='margin-bottom: 25px;'></div>", unsafe_allow_html=True)
 
-    # --- 1. FUNIL DE VENDAS (PLOTLY) ---
+    # --- 1. FUNIL DE VENDAS (PLOTLY - TEXTOS FORA DAS BARRAS) ---
     etapas = ['Prospecção', 'Qualificação', 'Proposta', 'Negociação', 'Fechamento']
     valores = [500, 340, 170, 85, 42]
     percentuais = [100, 68, 34, 17, 8]
@@ -167,8 +167,7 @@ if selected == "Dashboard":
         y=etapas,
         x=valores,
         text=[f"{v} ({p}%)" for v, p in zip(valores, percentuais)],
-        textposition="inside",
-        insidetextanchor="middle",
+        textposition="outside",  # <-- Alterado para deixar os textos para fora
         textfont=dict(color="white", size=13),
         marker=dict(color=cores_funil),
         connector=dict(visible=False)
@@ -359,7 +358,7 @@ elif selected == "Clientes":
     else:
         st.info("Nenhum cliente cadastrado no banco de dados.")
 
-    # --- SEÇÃO DE AÇÕES RÁPIDAS - WHATSAPP (EXATAMENTE COMO NA SUA IMAGEM) ---
+    # --- SEÇÃO DE AÇÕES RÁPIDAS - WHATSAPP ---
     st.markdown("<div style='margin-top: 40px;'></div>", unsafe_allow_html=True)
     st.markdown("### 💬 Ações Rápidas - WhatsApp")
     st.markdown("<p style='color: #94a3b8; font-size: 14px;'>Selecione o cliente para enviar mensagem:</p>", unsafe_allow_html=True)
