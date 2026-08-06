@@ -2,11 +2,28 @@ import pandas as pd
 import sqlite3
 import streamlit as st
 import altair as alt
-from datetime import date, datetime
-from database import conectar, inicializar_banco
+from datetime import date
 from streamlit_option_menu import option_menu
 
 # Garante que o banco e as tabelas estejam criados
+def inicializar_banco():
+    conn = sqlite3.connect("crm.db")
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS clientes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT, 
+            nome TEXT, 
+            empresa TEXT, 
+            email TEXT, 
+            telefone TEXT, 
+            regiao TEXT, 
+            status TEXT, 
+            data TEXT, 
+            responsavel TEXT
+        )
+    """)
+    conn.commit()
+    conn.close()
+
 inicializar_banco()
 
 st.set_page_config(
@@ -68,6 +85,9 @@ with st.sidebar:
     )
 
 # --- FUNÇÃO PARA CARREGAR DADOS DE FORMA SEGURA ---
+def conectar():
+    return sqlite3.connect("crm.db")
+
 def carregar_dados():
     conn = conectar()
     tabelas = [row[0] for row in conn.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()]
@@ -137,7 +157,7 @@ if selected == "Dashboard":
 
     st.markdown("<div style='margin-bottom: 25px;'></div>", unsafe_allow_html=True)
 
-    # --- DEFINIÇÃO DOS GRÁFICOS ALTAIR (FUNIL SIMÉTRICO CENTRALIZADO COM RÓTULOS) ---
+    # --- DEFINIÇÃO DOS GRÁFICOS ALTAIR (FUNIL SIMÉTRICO CENTRALIZADO) ---
     estagios_padrao = ['Prospecção', 'Qualificação', 'Proposta', 'Negociação', 'Fechamento']
     valores_padrao = [500, 340, 170, 85, 42]
     porcentagens = ["100%", "68%", "34%", "17%", "8%"]
@@ -169,16 +189,18 @@ if selected == "Dashboard":
         tooltip=['estagio', 'quantidade']
     )
 
-    # Rótulos internos/externos para os nomes dos estágios (à esquerda) e valores com % (à direita)
-    text_left = base_funil.mark_text(align='left', dx=-230, color='#ffffff', fontWeight='bold', fontSize=12).encode(
+    # Nomes dos estágios alinhados à esquerda fora da barra
+    text_left = base_funil.mark_text(align='right', dx=-15, color='#ffffff', fontWeight='bold', fontSize=12).encode(
         text='estagio:N'
     )
     
-    text_right = base_funil.mark_text(align='right', dx=230, color='#ffffff', fontWeight='bold', fontSize=12).encode(
+    # Valores e porcentagens centralizados dentro da barra (com eixo x=0)
+    text_center = base_funil.mark_text(align='center', dx=0, color='#ffffff', fontWeight='bold', fontSize=12).encode(
+        x=alt.value(0),
         text='rotulo:N'
     )
     
-    chart_funil = (bar_neg + bar_pos + text_left + text_right).properties(height=220).configure_view(stroke=None)
+    chart_funil = (bar_neg + bar_pos + text_left + text_center).properties(height=220).configure_view(stroke=None)
 
     df_vendas_mes = pd.DataFrame({
         "Mês": ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun"],
@@ -279,19 +301,6 @@ elif selected == "Clientes":
             if nome_contato:
                 conn = conectar()
                 conn.execute("""
-                    CREATE TABLE IF NOT EXISTS clientes (
-                        id INTEGER PRIMARY KEY AUTOINCREMENT, 
-                        nome TEXT, 
-                        empresa TEXT, 
-                        email TEXT, 
-                        telefone TEXT, 
-                        regiao TEXT, 
-                        status TEXT, 
-                        data TEXT, 
-                        responsavel TEXT
-                    )
-                """)
-                conn.execute("""
                     INSERT INTO clientes (nome, empresa, email, telefone, regiao, status, data, responsavel) 
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 """, (nome_contato, nome_empresa, email_cli, telefone_cli, regiao_cli, status_cli, data_cad, "Equipe Comercial"))
@@ -317,16 +326,6 @@ elif selected == "Clientes":
         st.dataframe(df_exibicao, use_container_width=True, hide_index=True)
     else:
         st.info("Nenhum cliente cadastrado no banco de dados.")
-
-    st.markdown("<div style='margin-top: 30px;'></div>", unsafe_allow_html=True)
-    st.markdown("### 💬 Ações Rápidas - WhatsApp")
-    st.markdown("<p style='color: #94a3b8; font-size: 13px;'>Selecione o cliente para enviar mensagem:</p>", unsafe_allow_html=True)
-    
-    lista_nomes = df_clientes["nome"].tolist() if not df_clientes.empty and "nome" in df_clientes.columns else ["Nenhum cliente disponível"]
-    cliente_selecionado = st.selectbox("Selecione o cliente", lista_nomes, label_visibility="collapsed")
-    
-    if st.button("🟢 Falar no WhatsApp"):
-        st.success(f"Iniciando conversa via WhatsApp com: **{cliente_selecionado}**")
 
 elif selected == "Pipeline":
     st.markdown("### 📊 Pipeline de Vendas")
