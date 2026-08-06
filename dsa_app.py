@@ -13,7 +13,7 @@ st.set_page_config(
     page_title="Dashboard CRM de Vendas", page_icon="📊", layout="wide"
 )
 
-# --- BARRA LATERAL COM MENU E ORDEM CORRETA DE ÍCONES ---
+# --- BARRA LATERAL COM MENU E ÍCONES ---
 with st.sidebar:
     st.markdown("### 🚀 dsa app")
     selected = option_menu(
@@ -35,7 +35,7 @@ with st.sidebar:
             "speedometer2",    # Dashboard
         ],
         menu_icon="cast",
-        default_index=5,
+        default_index=0,
         styles={
             "container": {"padding": "0!important", "background-color": "transparent"},
             "icon": {"color": "#E3B341", "font-size": "16px"},
@@ -118,14 +118,6 @@ if selected == "Dashboard":
         else:
             st.info("Nenhuma oportunidade no pipeline para exibir o gráfico.")
 
-    st.divider()
-    st.subheader("👥 Clientes Cadastrados Recentemente")
-    if not df_clientes.empty:
-        colunas_exibir = [col for col in ["nome", "empresa", "email", "telefone", "regiao", "data_cadastro"] if col in df_clientes.columns]
-        st.dataframe(df_clientes[colunas_exibir], use_container_width=True)
-    else:
-        st.info("Nenhum cliente cadastrado ainda.")
-
 elif selected == "Clientes":
     st.title("👤 Cadastro de Clientes e Leads")
     st.write("Adicione novos clientes para alimentar o seu CRM e a sua operação comercial.")
@@ -141,6 +133,7 @@ elif selected == "Clientes":
         with col_b:
             telefone = st.text_input("Telefone / WhatsApp")
             regiao = st.selectbox("Região", ["Selecione...", "Norte", "Nordeste", "Centro-Oeste", "Sudeste", "Sul"])
+            status_cliente = st.selectbox("Status do Cliente", ["Ativo", "Lead", "Inativo", "Fechado"])
             data_cadastro = st.date_input("Data de Cadastro", value=date.today())
             
         btn_salvar_cliente = st.form_submit_button("Salvar Cliente")
@@ -151,24 +144,81 @@ elif selected == "Clientes":
                 try:
                     conn = conectar()
                     cursor = conn.cursor()
+                    # Verifica se a tabela já possui a coluna status, se não, tenta inserir com tratamento
                     cursor.execute("""
-                        INSERT INTO clientes (nome, empresa, email, telefone, regiao, data_cadastro)
-                        VALUES (?, ?, ?, ?, ?, ?)
-                    """, (nome, empresa, email, telefone, regiao_valida, str(data_cadastro)))
+                        INSERT INTO clientes (nome, empresa, email, telefone, regiao, status, data_cadastro)
+                        VALUES (?, ?, ?, ?, ?, ?, ?)
+                    """, (nome, empresa, email, telefone, regiao_valida, status_cliente, str(data_cadastro)))
                     conn.commit()
                     conn.close()
                     st.success(f"Cliente '{nome}' cadastrado com sucesso!")
                     st.rerun()
                 except Exception as e:
-                    st.error(f"Erro ao salvar no banco de dados: {e}")
+                    # Fallback caso a tabela antiga do banco ainda não tenha a coluna status criada
+                    try:
+                        conn = conectar()
+                        cursor = conn.cursor()
+                        cursor.execute("ALTER TABLE clientes ADD COLUMN status TEXT;")
+                        cursor.execute("""
+                            INSERT INTO clientes (nome, empresa, email, telefone, regiao, status, data_cadastro)
+                            VALUES (?, ?, ?, ?, ?, ?, ?)
+                        """, (nome, empresa, email, telefone, regiao_valida, status_cliente, str(data_cadastro)))
+                        conn.commit()
+                        conn.close()
+                        st.success(f"Cliente '{nome}' cadastrado com sucesso!")
+                        st.rerun()
+                    except Exception as err:
+                        st.error(f"Erro ao salvar no banco de dados: {err}")
             else:
                 st.warning("O campo 'Nome do Contato *' é obrigatório.")
 
     st.divider()
-    st.subheader("Base de Clientes Cadastrados")
+    st.subheader("📋 Tabela de Clientes (Estilo CRM)")
+    
     if not df_clientes.empty:
-        st.dataframe(df_clientes, use_container_width=True)
+        # Montando a tabela estilo CRM solicitada
+        tabela_crm = pd.DataFrame()
         
+        # 1. Avatar (Iniciais do Nome)
+        tabela_crm["Avatar"] = df_clientes["nome"].apply(lambda x: "".join([n[0].upper() for n in str(x).split()[:2]]))
+        
+        # 2. Nome
+        tabela_crm["Nome"] = df_clientes["nome"]
+        
+        # 3. Empresa
+        tabela_crm["Empresa"] = df_clientes["empresa"] if "empresa" in df_clientes.columns else "-"
+        
+        # 4. Região
+        tabela_crm["Região"] = df_clientes["regiao"] if "regiao" in df_clientes.columns else "-"
+        
+        # 5. Status
+        if "status" in df_clientes.columns:
+            tabela_crm["Status"] = df_clientes["status"]
+        else:
+            tabela_crm["Status"] = "Ativo"
+            
+        # 6. Última Interação
+        if not df_interacoes.empty and "cliente" in df_interacoes.columns:
+            # Pega a última interação registrada para cada cliente (se houver)
+            ultimas = df_interacoes.groupby("cliente")["tipo"].last().reset_index()
+            ultimas.columns = ["Nome", "Última Interação"]
+            tabela_crm = tabela_crm.merge(ultimas, on="Nome", how="left")
+            tabela_crm["Última Interação"] = tabela_crm["Última Interação"].fillna("Nenhuma")
+        else:
+            tabela_crm["Última Interação"] = "Nenhuma"
+            
+        # 7. Valor Total (Soma das vendas do cliente)
+        if not df_vendas.empty and "cliente" in df_vendas.columns and "valor" in df_vendas.columns:
+            vendas_soma = df_vendas.groupby("cliente")["valor"].sum().reset_index()
+            vendas_soma.columns = ["Nome", "Valor Total"]
+            tabela_crm = tabela_crm.merge(vendas_soma, on="Nome", how="left")
+            tabela_crm["Valor Total"] = tabela_crm["Valor Total"].fillna(0.0).apply(lambda v: f"R$ {v:,.2f}")
+        else:
+            tabela_crm["Valor Total"] = "R$ 0,00"
+
+        st.dataframe(tabela_crm, use_container_width=True, hide_index=True)
+        
+        # Atalho rápido de WhatsApp
         if "telefone" in df_clientes.columns and not df_clientes["telefone"].isnull().all():
             st.markdown("### 💬 Ações Rápidas - WhatsApp")
             cliente_selecionado = st.selectbox("Selecione o cliente para enviar mensagem:", df_clientes["nome"].tolist())
