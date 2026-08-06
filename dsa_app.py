@@ -1,6 +1,7 @@
 import pandas as pd
 import sqlite3
 import streamlit as st
+from datetime import date
 from database import conectar, inicializar_banco
 from streamlit_option_menu import option_menu
 
@@ -33,7 +34,7 @@ with st.sidebar:
             "plug-fill",
         ],
         menu_icon="cast",
-        default_index=5,
+        default_index=1,
         styles={
             "container": {"padding": "0!important", "background-color": "transparent"},
             "icon": {"color": "#E3B341", "font-size": "16px"},
@@ -111,31 +112,34 @@ if selected == "Dashboard":
         st.info("Nenhum cliente cadastrado ainda.")
 
 elif selected == "Cadastro de Clientes":
-    st.title("👥 Cadastro de Clientes")
-    st.write("Gerencie e adicione novos registros de clientes ao seu CRM.")
+    st.title("👤 Cadastro de Clientes e Leads")
+    st.write("Adicione novos clientes para alimentar o seu CRM e a sua operação comercial.")
 
     with st.form("form_cad_cliente", clear_on_submit=True):
-        st.subheader("Adicionar Novo Cliente")
         col_a, col_b = st.columns(2)
+        
         with col_a:
-            nome = st.text_input("Nome do Cliente *")
-            empresa = st.text_input("Empresa")
+            nome = st.text_input("Nome do Contato *")
+            empresa = st.text_input("Nome da Empresa")
             email = st.text_input("E-mail")
+            
         with col_b:
-            telefone = st.text_input("Telefone / WhatsApp (ex: 11999999999)")
-            regiao = st.text_input("Região / Cidade")
+            telefone = st.text_input("Telefone / WhatsApp")
+            regiao = st.selectbox("Região", ["Selecione...", "Norte", "Nordeste", "Centro-Oeste", "Sudeste", "Sul"])
+            data_cadastro = st.date_input("Data de Cadastro", value=date.today())
             
         btn_salvar_cliente = st.form_submit_button("Salvar Cliente")
         
         if btn_salvar_cliente:
             if nome:
+                regiao_valida = regiao if regiao != "Selecione..." else ""
                 try:
                     conn = conectar()
                     cursor = conn.cursor()
                     cursor.execute("""
-                        INSERT INTO clientes (nome, empresa, email, telefone, regiao)
-                        VALUES (?, ?, ?, ?, ?)
-                    """, (nome, empresa, email, telefone, regiao))
+                        INSERT INTO clientes (nome, empresa, email, telefone, regiao, data_cadastro)
+                        VALUES (?, ?, ?, ?, ?, ?)
+                    """, (nome, empresa, email, telefone, regiao_valida, str(data_cadastro)))
                     conn.commit()
                     conn.close()
                     st.success(f"Cliente '{nome}' cadastrado com sucesso!")
@@ -143,7 +147,7 @@ elif selected == "Cadastro de Clientes":
                 except Exception as e:
                     st.error(f"Erro ao salvar no banco de dados: {e}")
             else:
-                st.warning("O campo 'Nome do Cliente' é obrigatório.")
+                st.warning("O campo 'Nome do Contato *' é obrigatório.")
 
     st.divider()
     st.subheader("Base de Clientes Cadastrados")
