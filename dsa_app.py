@@ -243,18 +243,89 @@ elif selected == "Clientes":
             df_filtrado = df_filtrado[df_filtrado["nome"].str.contains(termo_pesquisa, case=False, na=False)]
 
         tabela_crm = pd.DataFrame()
+        tabela_crm["ID"] = df_filtrado["id"] if "id" in df_filtrado.columns else range(1, len(df_filtrado)+1)
         tabela_crm["Cliente"] = df_filtrado["nome"]
         tabela_crm["Tipo"] = df_filtrado["regiao"].apply(lambda r: f"Região {r}" if r else "Geral")
         tabela_crm["Data"] = df_filtrado["data_cadastro"] if "data_cadastro" in df_filtrado.columns else str(date.today())
         tabela_crm["Responsável"] = "Equipe Comercial"
         tabela_crm["Status"] = df_filtrado["status"] if "status" in df_filtrado.columns else "Ativo"
-        tabela_crm["Ações"] = "Gerenciar / WhatsApp"
+        tabela_crm["Ações"] = "👁️ Visualizar | ✏️ Editar | 🗑️ Excluir"
 
         st.dataframe(tabela_crm, use_container_width=True, hide_index=True)
+
+        # --- SEÇÃO CRUD COMPLETO (Visualizar, Editar, Excluir) ---
+        st.divider()
+        st.subheader("⚙️ Gerenciamento de Registros (CRUD)")
+        
+        col_crud1, col_crud2 = st.columns(2)
+        with col_crud1:
+            cliente_sel_crud = st.selectbox("Selecione o Cliente para Gerenciar:", df_clientes["nome"].tolist())
+        with col_crud2:
+            acao_crud = st.radio("Escolha a Ação:", ["Visualizar", "Editar", "Excluir"], horizontal=True)
+
+        cliente_dados = df_clientes[df_clientes["nome"] == cliente_sel_crud].iloc[0]
+        cliente_id = cliente_dados["id"] if "id" in cliente_dados else None
+
+        if acao_crud == "Visualizar":
+            st.markdown(f"**Detalhes do Cliente: {cliente_sel_crud}**")
+            c_v1, c_v2, c_v3 = st.columns(3)
+            with c_v1:
+                st.text(f"Empresa: {cliente_dados.get('empresa', 'N/A')}")
+                st.text(f"E-mail: {cliente_dados.get('email', 'N/A')}")
+            with c_v2:
+                st.text(f"Telefone: {cliente_dados.get('telefone', 'N/A')}")
+                st.text(f"Região: {cliente_dados.get('regiao', 'N/A')}")
+            with c_v3:
+                st.text(f"Status: {cliente_dados.get('status', 'N/A')}")
+                st.text(f"Data Cadastro: {cliente_dados.get('data_cadastro', 'N/A')}")
+
+        elif acao_crud == "Editar":
+            with st.form("form_editar_cliente"):
+                st.markdown(f"**Editando dados de: {cliente_sel_crud}**")
+                novo_nome = st.text_input("Nome do Contato", value=cliente_dados.get("nome", ""))
+                nova_empresa = st.text_input("Nome da Empresa", value=cliente_dados.get("empresa", ""))
+                novo_email = st.text_input("E-mail", value=cliente_dados.get("email", ""))
+                novo_tel = st.text_input("Telefone / WhatsApp", value=cliente_dados.get("telefone", ""))
+                
+                regioes_disponiveis = ["", "Norte", "Nordeste", "Centro-Oeste", "Sudeste", "Sul"]
+                reg_atual = cliente_dados.get("regiao", "")
+                idx_reg = regioes_disponiveis.index(reg_atual) if reg_atual in regioes_disponiveis else 0
+                nova_regiao = st.selectbox("Região", regioes_disponiveis, index=idx_reg)
+                
+                btn_atualizar = st.form_submit_button("Salvar Alterações")
+                if btn_atualizar:
+                    try:
+                        conn = conectar()
+                        cursor = conn.cursor()
+                        cursor.execute("""
+                            UPDATE clientes 
+                            SET nome = ?, empresa = ?, email = ?, telefone = ?, regiao = ?
+                            WHERE id = ?
+                        """, (novo_nome, nova_empresa, novo_email, novo_tel, nova_regiao, cliente_id))
+                        conn.commit()
+                        conn.close()
+                        st.success("Cliente atualizado com sucesso!")
+                        st.rerun()
+                    except Exception as e:
+                        st.error(f"Erro ao atualizar cliente: {e}")
+
+        elif acao_crud == "Excluir":
+            st.warning(f"Tem certeza que deseja excluir o cliente **{cliente_sel_crud}** permanentemente do banco de dados?")
+            if st.button("Confirmar Exclusão", type="primary"):
+                try:
+                    conn = conectar()
+                    cursor = conn.cursor()
+                    cursor.execute("DELETE FROM clientes WHERE id = ?", (cliente_id,))
+                    conn.commit()
+                    conn.close()
+                    st.success(f"Cliente '{cliente_sel_crud}' excluído com sucesso!")
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"Erro ao excluir cliente: {e}")
         
         if "telefone" in df_clientes.columns and not df_clientes["telefone"].isnull().all():
             st.markdown("### 💬 Ações Rápidas - WhatsApp")
-            cliente_selecionado = st.selectbox("Selecione o cliente para enviar mensagem:", df_clientes["nome"].tolist())
+            cliente_selecionado = st.selectbox("Selecione o cliente para enviar mensagem:", df_clientes["nome"].tolist(), key="select_wa")
             fone_cliente = df_clientes.loc[df_clientes["nome"] == cliente_selecionado, "telefone"].values[0]
             
             if fone_cliente:
