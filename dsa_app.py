@@ -87,7 +87,7 @@ if selected == "Dashboard":
 
     st.divider()
 
-    # Linha 1 de Gráficos: Linha de Faturamento e Pizza por Região com %
+    # Linha 1 de Gráficos: Linha de Faturamento e Pizza por Região com Cores Personalizadas e Porcentagem
     col_left, col_right = st.columns(2)
     
     with col_left:
@@ -114,21 +114,25 @@ if selected == "Dashboard":
         if not df_clientes.empty and "regiao" in df_clientes.columns:
             df_regiao = df_clientes[df_clientes["regiao"] != ""].groupby("regiao").size().reset_index(name="quantidade")
             if not df_regiao.empty:
-                # Calcula a porcentagem para exibir no gráfico
                 total_reg = df_regiao["quantidade"].sum()
                 df_regiao["porcentagem"] = df_regiao["quantidade"] / total_reg
                 df_regiao["rotulo"] = df_regiao["porcentagem"].apply(lambda p: f"{p*100:.1f}%")
 
-                # Base do gráfico de rosca (Donut Chart)
+                # Mapeamento fixo de cores corporativas para as 5 regiões do Brasil
+                regioes_lista = ["Norte", "Nordeste", "Centro-Oeste", "Sudeste", "Sul"]
+                cores_lista = ["#2563EB", "#EF4444", "#10B981", "#F59E0B", "#8B5CF6"]
+
                 base = alt.Chart(df_regiao).encode(
                     theta=alt.Theta(field="quantidade", type="quantitative"),
-                    color=alt.Color(field="regiao", type="nominal", scale=alt.Scale(scheme="blues"), legend=alt.Legend(title="Regiões"))
+                    color=alt.Color(
+                        field="regiao", 
+                        type="nominal", 
+                        scale=alt.Scale(domain=regioes_lista, range=cores_lista), 
+                        legend=alt.Legend(title="Regiões")
+                    )
                 )
 
-                # Camada das fatias da rosca
                 pie = base.mark_arc(innerRadius=65, outerRadius=110)
-
-                # Camada dos textos com as porcentagens por cima das fatias
                 text = base.mark_text(radius=85, size=13, fontWeight="bold", color="white").encode(
                     text=alt.Text(field="rotulo", type="nominal")
                 )
