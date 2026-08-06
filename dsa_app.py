@@ -2,6 +2,7 @@ import pandas as pd
 import sqlite3
 import streamlit as st
 import altair as alt
+import plotly.graph_objects as go
 from datetime import date
 from streamlit_option_menu import option_menu
 
@@ -157,51 +158,36 @@ if selected == "Dashboard":
 
     st.markdown("<div style='margin-bottom: 25px;'></div>", unsafe_allow_html=True)
 
-    # --- DEFINIÇÃO DOS GRÁFICOS ALTAIR (FUNIL SIMÉTRICO CENTRALIZADO) ---
-    estagios_padrao = ['Prospecção', 'Qualificação', 'Proposta', 'Negociação', 'Fechamento']
-    valores_padrao = [500, 340, 170, 85, 42]
-    porcentagens = ["100%", "68%", "34%", "17%", "8%"]
+    # --- DEFINIÇÃO DO FUNIL DE VENDAS COM PLOTLY ---
+    etapas = ['Prospecção', 'Qualificação', 'Proposta', 'Negociação', 'Fechamento']
+    valores = [500, 340, 170, 85, 42]
+    percentuais = [100, 68, 34, 17, 8]
     cores_funil = ["#2563EB", "#3b82f6", "#60a5fa", "#38bdf8", "#7dd3fc"]
-    
-    df_funil = pd.DataFrame({
-        "estagio": estagios_padrao, 
-        "quantidade": valores_padrao,
-        "rotulo": [f"{val} ({pct})" for val, pct in zip(valores_padrao, porcentagens)],
-        "cor": cores_funil
-    })
-    
-    # Simula o efeito de centralização do funil dividindo a barra em metades negativas e positivas
-    df_funil["val_neg"] = df_funil["quantidade"] / -2
-    df_funil["val_pos"] = df_funil["quantidade"] / 2
 
-    base_funil = alt.Chart(df_funil).encode(
-        y=alt.Y('estagio:N', sort=estagios_padrao, title=None, axis=alt.Axis(labels=False, ticks=False, domain=False))
-    )
-    
-    bar_neg = base_funil.mark_bar(cornerRadiusBottomLeft=6, cornerRadiusTopLeft=6).encode(
-        x=alt.X('val_neg:Q', title=None, axis=alt.Axis(labels=False, ticks=False, grid=False, domain=False)),
-        color=alt.Color('estagio:N', scale=alt.Scale(domain=estagios_padrao, range=cores_funil), legend=None)
-    )
-    
-    bar_pos = base_funil.mark_bar(cornerRadiusBottomRight=6, cornerRadiusTopRight=6).encode(
-        x=alt.X('val_pos:Q', title=None, axis=alt.Axis(labels=False, ticks=False, grid=False, domain=False)),
-        color=alt.Color('estagio:N', scale=alt.Scale(domain=estagios_padrao, range=cores_funil), legend=None),
-        tooltip=['estagio', 'quantidade']
+    fig_funil = go.Figure(go.Funnel(
+        y=etapas,
+        x=valores,
+        text=[f"{v} ({p}%)" for v, p in zip(valores, percentuais)],
+        textposition="inside",
+        insidetextanchor="middle",
+        textfont=dict(color="white", size=13),
+        marker=dict(color=cores_funil),
+        connector=dict(visible=False)
+    ))
+
+    fig_funil.update_layout(
+        margin=dict(l=10, r=10, t=10, b=10),
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        height=220,
+        yaxis=dict(
+            tickfont=dict(color="white", size=13),
+            automargin=True
+        ),
+        xaxis=dict(visible=False)
     )
 
-    # 1. Nomes dos estágios posicionados de forma limpa à esquerda da barra
-    text_left = base_funil.mark_text(align='right', dx=-15, color='#ffffff', fontWeight='bold', fontSize=12).encode(
-        text='estagio:N'
-    )
-    
-    # 2. Valores e porcentagens centralizados no eixo médio do funil (x=0)
-    text_center = base_funil.mark_text(align='center', dx=0, color='#ffffff', fontWeight='bold', fontSize=12).encode(
-        x=alt.value(0),
-        text='rotulo:N'
-    )
-    
-    chart_funil = (bar_neg + bar_pos + text_left + text_center).properties(height=220).configure_view(stroke=None)
-
+    # --- GRÁFICO DE LINHA (VENDAS POR MÊS) ---
     df_vendas_mes = pd.DataFrame({
         "Mês": ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun"],
         "valor": [80000, 85000, 140000, 75000, 210000, 290000]
@@ -213,6 +199,7 @@ if selected == "Dashboard":
         tooltip=['Mês', 'valor']
     ).properties(height=220).configure_view(stroke=None)
 
+    # --- GRÁFICOS DE PIZZA ---
     df_reg = pd.DataFrame({
         "regiao": ["Sudeste (45%)", "Sul (25%)", "Nordeste (15%)", "Centro-Oeste (10%)", "Norte (5%)"],
         "porcentagem": [45, 25, 15, 10, 5]
@@ -245,7 +232,7 @@ if selected == "Dashboard":
             <div style="background-color: #1e293b; padding: 20px; border-radius: 12px; border: 1px solid #334155;">
                 <div style="color: #ffffff; font-size: 16px; font-weight: 600; margin-bottom: 15px;">Funil de Vendas</div>
         """, unsafe_allow_html=True)
-        st.altair_chart(chart_funil, use_container_width=True)
+        st.plotly_chart(fig_funil, use_container_width=True, config={'displayModeBar': False})
         st.markdown("</div>", unsafe_allow_html=True)
 
     with col_right:
