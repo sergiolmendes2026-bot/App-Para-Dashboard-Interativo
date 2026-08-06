@@ -234,12 +234,20 @@ elif selected == "Clientes":
     st.subheader("📋 Tabela de Clientes e Contatos (CRM)")
     
     if not df_clientes.empty:
+        # Barra de Pesquisa acima da tabela
+        termo_pesquisa = st.text_input("🔍 Pesquisar cliente", placeholder="Digite o nome do cliente...")
+
+        # Filtrando o DataFrame de acordo com a pesquisa
+        df_filtrado = df_clientes.copy()
+        if termo_pesquisa:
+            df_filtrado = df_filtrado[df_filtrado["nome"].str.contains(termo_pesquisa, case=False, na=False)]
+
         tabela_crm = pd.DataFrame()
-        tabela_crm["Cliente"] = df_clientes["nome"] + ((" - " + df_clientes["empresa"]) if "empresa" in df_clientes.columns and df_clientes["empresa"].any() else "")
-        tabela_crm["Tipo"] = df_clientes["regiao"].apply(lambda r: f"Região {r}" if r else "Geral")
-        tabela_crm["Data"] = df_clientes["data_cadastro"] if "data_cadastro" in df_clientes.columns else str(date.today())
+        tabela_crm["Cliente"] = df_filtrado["nome"]
+        tabela_crm["Tipo"] = df_filtrado["regiao"].apply(lambda r: f"Região {r}" if r else "Geral")
+        tabela_crm["Data"] = df_filtrado["data_cadastro"] if "data_cadastro" in df_filtrado.columns else str(date.today())
         tabela_crm["Responsável"] = "Equipe Comercial"
-        tabela_crm["Status"] = df_clientes["status"] if "status" in df_clientes.columns else "Ativo"
+        tabela_crm["Status"] = df_filtrado["status"] if "status" in df_filtrado.columns else "Ativo"
         tabela_crm["Ações"] = "Gerenciar / WhatsApp"
 
         st.dataframe(tabela_crm, use_container_width=True, hide_index=True)
