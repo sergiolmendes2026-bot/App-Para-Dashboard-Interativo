@@ -2,7 +2,7 @@ import pandas as pd
 import sqlite3
 import streamlit as st
 import altair as alt
-from datetime import date
+from datetime import date, datetime
 from database import conectar, inicializar_banco
 from streamlit_option_menu import option_menu
 
@@ -389,7 +389,7 @@ elif selected == "Pipeline":
 
 elif selected == "Interações":
     st.title("💬 Histórico de Interações")
-    st.write("Acompanhe e registre os contatos realizados com os clientes.")
+    st.write("Acompanhe e registre os contatos realizados com os clientes com data e hora automáticas.")
 
     with st.form("form_interacao", clear_on_submit=True):
         st.subheader("Registrar Nova Interação")
@@ -402,19 +402,33 @@ elif selected == "Interações":
 
         if btn_salvar_int:
             if clientes_nomes:
+                data_hora_atual = datetime.now().strftime("%d/%m/%Y %H:%M")
                 try:
                     conn = conectar()
                     cursor = conn.cursor()
                     cursor.execute("""
-                        INSERT INTO interacoes (cliente, tipo, descricao)
-                        VALUES (?, ?, ?)
-                    """, (cliente_int, tipo_contato, descricao_int))
+                        INSERT INTO interacoes (cliente, tipo, descricao, data_hora)
+                        VALUES (?, ?, ?, ?)
+                    """, (cliente_int, tipo_contato, descricao_int, data_hora_atual))
                     conn.commit()
                     conn.close()
                     st.success("Interação registrada com sucesso!")
                     st.rerun()
                 except Exception as e:
-                    st.error(f"Erro ao salvar interação: {e}")
+                    try:
+                        conn = conectar()
+                        cursor = conn.cursor()
+                        cursor.execute("ALTER TABLE interacoes ADD COLUMN data_hora TEXT;")
+                        cursor.execute("""
+                            INSERT INTO interacoes (cliente, tipo, descricao, data_hora)
+                            VALUES (?, ?, ?, ?)
+                        """, (cliente_int, tipo_contato, descricao_int, data_hora_atual))
+                        conn.commit()
+                        conn.close()
+                        st.success("Interação registrada com sucesso!")
+                        st.rerun()
+                    except Exception as err:
+                        st.error(f"Erro ao salvar interação: {err}")
             else:
                 st.warning("Cadastre um cliente antes de registrar interações.")
 
