@@ -137,7 +137,7 @@ if selected == "Dashboard":
 
     st.markdown("<div style='margin-bottom: 25px;'></div>", unsafe_allow_html=True)
 
-    # --- DEFINIÇÃO DOS GRÁFICOS ALTAIR (SEM ERROS DE ATRIBUTO) ---
+    # --- DEFINIÇÃO DOS GRÁFICOS ALTAIR (FUNIL REAL CENTRALIZADO) ---
     estagios_padrao = ['Prospecção', 'Qualificação', 'Proposta', 'Negociação', 'Fechamento']
     valores_padrao = [1250, 850, 420, 210, 120]
     cores_funil = ["#2563EB", "#3b82f6", "#60a5fa", "#38bdf8", "#7dd3fc"]
@@ -147,13 +147,25 @@ if selected == "Dashboard":
         "quantidade": valores_padrao,
         "cor": cores_funil
     })
+    # Criamos valores simétricos para centralizar as barras simulando um funil real
+    df_funil["val_neg"] = df_funil["quantidade"] / -2
+    df_funil["val_pos"] = df_funil["quantidade"] / 2
 
-    chart_funil = alt.Chart(df_funil).mark_bar(cornerRadiusTopRight=4, cornerRadiusBottomRight=4).encode(
-        y=alt.Y('estagio:N', sort=estagios_padrao, title=None, axis=alt.Axis(labelColor="#f8fafc", labelFontSize=12)),
-        x=alt.X('quantidade:Q', title=None, axis=alt.Axis(labels=False, ticks=False, domain=False)),
+    base_funil = alt.Chart(df_funil).encode(
+        y=alt.Y('estagio:N', sort=estagios_padrao, title=None, axis=alt.Axis(labelColor="#f8fafc", labelFontSize=12, domain=False, ticks=False))
+    )
+    
+    bar_neg = base_funil.mark_bar(cornerRadiusBottomLeft=4, cornerRadiusTopLeft=4).encode(
+        x=alt.X('val_neg:Q', title=None, axis=alt.Axis(labels=False, ticks=False, grid=False, domain=False)),
+        color=alt.Color('estagio:N', scale=alt.Scale(domain=estagios_padrao, range=cores_funil), legend=None)
+    )
+    bar_pos = base_funil.mark_bar(cornerRadiusBottomRight=4, cornerRadiusTopRight=4).encode(
+        x=alt.X('val_pos:Q', title=None, axis=alt.Axis(labels=False, ticks=False, grid=False, domain=False)),
         color=alt.Color('estagio:N', scale=alt.Scale(domain=estagios_padrao, range=cores_funil), legend=None),
         tooltip=['estagio', 'quantidade']
-    ).properties(height=220).configure_view(stroke=None)
+    )
+    
+    chart_funil = (bar_neg + bar_pos).properties(height=220).configure_view(stroke=None)
 
     df_vendas_mes = pd.DataFrame({
         "Mês": ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun"],
@@ -161,8 +173,8 @@ if selected == "Dashboard":
     })
 
     chart_line = alt.Chart(df_vendas_mes).mark_line(color="#38bdf8", strokeWidth=3, point=alt.MarkConfig(color="#38bdf8", size=80)).encode(
-        x=alt.X('Mês:N', title=None, axis=alt.Axis(labelColor="#94a3b8", labelFontSize=12)),
-        y=alt.Y('valor:Q', title=None, axis=alt.Axis(labelColor="#94a3b8", gridColor="#334155", labelFontSize=12)),
+        x=alt.X('Mês:N', title=None, axis=alt.Axis(labelColor="#94a3b8", labelFontSize=12, domain=False, ticks=False)),
+        y=alt.Y('valor:Q', title=None, axis=alt.Axis(labelColor="#94a3b8", gridColor="#334155", labelFontSize=12, domain=False)),
         tooltip=['Mês', 'valor']
     ).properties(height=220).configure_view(stroke=None)
 
