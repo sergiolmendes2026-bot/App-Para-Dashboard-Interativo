@@ -359,6 +359,17 @@ elif selected == "Clientes":
     else:
         st.info("Nenhum cliente cadastrado no banco de dados.")
 
+    # --- SEÇÃO DE AÇÕES RÁPIDAS - WHATSAPP (EXATAMENTE COMO NA SUA IMAGEM) ---
+    st.markdown("<div style='margin-top: 40px;'></div>", unsafe_allow_html=True)
+    st.markdown("### 💬 Ações Rápidas - WhatsApp")
+    st.markdown("<p style='color: #94a3b8; font-size: 14px;'>Selecione o cliente para enviar mensagem:</p>", unsafe_allow_html=True)
+
+    lista_nomes_clientes = df_clientes["nome"].tolist() if not df_clientes.empty else ["Nenhum cliente cadastrado"]
+    cliente_selecionado = st.selectbox("Cliente WhatsApp", lista_nomes_clientes, label_visibility="collapsed")
+
+    if st.button("Falar no WhatsApp"):
+        st.success(f"Abrindo canal com: {cliente_selecionado}")
+
 elif selected == "Pipeline":
     st.markdown("### 📊 Pipeline de Vendas")
     st.info("Módulo de Pipeline comercial.")
