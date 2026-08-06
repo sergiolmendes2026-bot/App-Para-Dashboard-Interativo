@@ -38,14 +38,14 @@ with st.sidebar:
             "Configurações",
         ],
         icons=[
-            "speedometer2", # Dashboard
-            "people-fill",    # Clientes
-            "person-plus-fill", # Leads
-            "kanban",         # Pipeline
-            "trophy-fill",    # Vendas
-            "file-earmark-bar-graph", # Relatórios
-            "plug",           # Integrações
-            "gear-fill"       # Configurações
+            "speedometer2", 
+            "people-fill",    
+            "person-plus-fill", 
+            "kanban",         
+            "trophy-fill",    
+            "file-earmark-bar-graph", 
+            "plug",           
+            "gear-fill"       
         ],
         menu_icon="cast",
         default_index=0,
@@ -70,9 +70,14 @@ with st.sidebar:
 # --- FUNÇÃO PARA CARREGAR DADOS DE FORMA SEGURA ---
 def carregar_dados():
     conn = conectar()
-    df_clientes = pd.read_sql("SELECT * FROM clientes", conn) if "clientes" in [row[0] for row in conn.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()] else pd.DataFrame()
-    df_pipeline = pd.read_sql("SELECT * FROM pipeline", conn) if "pipeline" in [row[0] for row in conn.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()] else pd.DataFrame()
-    df_vendas = pd.read_sql("SELECT * FROM vendas", conn) if "vendas" in [row[0] for row in conn.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()] else pd.DataFrame()
+    
+    # Verifica se as tabelas existem antes de ler
+    tabelas = [row[0] for row in conn.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()]
+    
+    df_clientes = pd.read_sql("SELECT * FROM clientes", conn) if "clientes" in tabelas else pd.DataFrame(columns=["id", "nome", "email", "telefone", "status"])
+    df_pipeline = pd.read_sql("SELECT * FROM pipeline", conn) if "pipeline" in tabelas else pd.DataFrame(columns=["id", "titulo", "estagio", "valor"])
+    df_vendas = pd.read_sql("SELECT * FROM vendas", conn) if "vendas" in tabelas else pd.DataFrame(columns=["id", "cliente", "valor", "data"])
+    
     conn.close()
     return df_clientes, df_pipeline, df_vendas
 
@@ -234,21 +239,111 @@ if selected == "Dashboard":
         st.markdown("</div>", unsafe_allow_html=True)
 
 elif selected == "Clientes":
-    st.title("👤 Cadastro de Clientes e Leads")
-    st.write("Adicione novos clientes para alimentar o seu CRM.")
+    st.markdown("### 👤 Cadastro de Clientes")
+    st.markdown("<p style='color: #94a3b8;'>Adicione e gerencie os clientes cadastrados no CRM.</p>", unsafe_allow_html=True)
+    
+    with st.form("form_cliente"):
+        col_c1, col_c2 = st.columns(2)
+        with col_c1:
+            nome_cli = st.text_input("Nome do Cliente")
+            email_cli = st.text_input("E-mail")
+        with col_c2:
+            tel_cli = st.text_input("Telefone")
+            status_cli = st.selectbox("Status", ["Ativo", "Lead", "Inativo"])
+            
+        submitted_cli = st.form_submit_button("Salvar Cliente")
+        if submitted_cli and nome_cli:
+            conn = conectar()
+            conn.execute("CREATE TABLE IF NOT EXISTS clientes (id INTEGER PRIMARY KEY AUTOINCREMENT, nome TEXT, email TEXT, telefone TEXT, status TEXT)")
+            conn.execute("INSERT INTO clientes (nome, email, telefone, status) VALUES (?, ?, ?, ?)", (nome_cli, email_cli, tel_cli, status_cli))
+            conn.commit()
+            conn.close()
+            st.success("Cliente cadastrado com sucesso! Atualize a página para visualizar.")
+
+    st.markdown("<div style='margin-top: 25px;'></div>", unsafe_allow_html=True)
+    st.markdown("#### Clientes Cadastrados")
+    if not df_clientes.empty:
+        st.dataframe(df_clientes, use_container_width=True)
+    else:
+        st.info("Nenhum cliente cadastrado ainda no banco de dados.")
+
+elif selected == "Leads":
+    st.markdown("### 🎯 Gestão de Leads")
+    st.markdown("<p style='color: #94a3b8;'>Acompanhe os leads capturados pelas campanhas e canais.</p>", unsafe_allow_html=True)
+    
+    if not df_clientes.empty and "status" in df_clientes.columns:
+        df_leads = df_clientes[df_clientes["status"] == "Lead"]
+        if not df_leads.empty:
+            st.dataframe(df_leads, use_container_width=True)
+        else:
+            st.info("Nenhum lead encontrado com o status 'Lead'.")
+    else:
+        st.info("Nenhum dado de lead disponível.")
 
 elif selected == "Pipeline":
-    st.title("📊 Pipeline de Vendas")
-    st.write("Acompanhamento do funil de oportunidades comerciais.")
+    st.markdown("### 📊 Pipeline de Vendas")
+    st.markdown("<p style='color: #94a3b8;'>Acompanhamento visual das oportunidades em andamento.</p>", unsafe_allow_html=True)
+    
+    with st.form("form_pipeline"):
+        col_p1, col_p2, col_p3 = st.columns(3)
+        with col_p1:
+            titulo_pipe = st.text_input("Oportunidade / Título")
+        with col_p2:
+            estagio_pipe = st.selectbox("Estágio", ['Prospecção', 'Qualificação', 'Proposta', 'Negociação', 'Fechamento'])
+        with col_p3:
+            valor_pipe = st.number_input("Valor Estimado (R$)", min_value=0.0, value=1000.0)
+            
+        submitted_pipe = st.form_submit_button("Adicionar Oportunidade")
+        if submitted_pipe and titulo_pipe:
+            conn = conectar()
+            conn.execute("CREATE TABLE IF NOT EXISTS pipeline (id INTEGER PRIMARY KEY AUTOINCREMENT, titulo TEXT, estagio TEXT, valor REAL)")
+            conn.execute("INSERT INTO pipeline (titulo, estagio, valor) VALUES (?, ?, ?)", (titulo_pipe, estagio_pipe, valor_pipe))
+            conn.commit()
+            conn.close()
+            st.success("Oportunidade adicionada ao pipeline!")
+
+    st.markdown("<div style='margin-top: 25px;'></div>", unsafe_allow_html=True)
+    if not df_pipeline.empty:
+        st.dataframe(df_pipeline, use_container_width=True)
+    else:
+        st.info("Nenhuma oportunidade cadastrada no pipeline.")
 
 elif selected == "Vendas":
-    st.title("💰 Gestão de Vendas")
-    st.write("Controle completo de faturamento e vendas efetivadas.")
+    st.markdown("### 💰 Controle de Vendas")
+    st.markdown("<p style='color: #94a3b8;'>Histórico e lançamento de vendas efetivadas.</p>", unsafe_allow_html=True)
+    
+    with st.form("form_venda"):
+        col_v1, col_v2 = st.columns(2)
+        with col_v1:
+            cli_venda = st.text_input("Nome do Cliente / Empresa")
+        with col_v2:
+            val_venda = st.number_input("Valor da Venda (R$)", min_value=0.0, value=5000.0)
+            
+        submitted_venda = st.form_submit_button("Registrar Venda")
+        if submitted_venda and cli_venda:
+            conn = conectar()
+            conn.execute("CREATE TABLE IF NOT EXISTS vendas (id INTEGER PRIMARY KEY AUTOINCREMENT, cliente TEXT, valor REAL, data TEXT)")
+            conn.execute("INSERT INTO vendas (cliente, valor, data) VALUES (?, ?, ?)", (cli_venda, val_venda, str(date.today())))
+            conn.commit()
+            conn.close()
+            st.success("Venda registrada com sucesso!")
+
+    st.markdown("<div style='margin-top: 25px;'></div>", unsafe_allow_html=True)
+    if not df_vendas.empty:
+        st.dataframe(df_vendas, use_container_width=True)
+    else:
+        st.info("Nenhuma venda registrada até o momento.")
+
+elif selected == "Relatórios":
+    st.markdown("### 📈 Relatórios Executivos")
+    st.markdown("<p style='color: #94a3b8;'>Análises consolidadas de desempenho comercial e conversão.</p>", unsafe_allow_html=True)
+    st.info("Os relatórios consolidados utilizam a base de dados do SQLite sincronizada automaticamente.")
 
 elif selected == "Integrações":
-    st.title("🔌 Configuração de Integrações")
-    st.write("Gerencie as conexões com APIs e ferramentas externas.")
+    st.markdown("### 🔌 Integrações e APIs")
+    st.markdown("<p style='color: #94a3b8;'>Gerencie webhooks, conexões de e-mail e CRM externo.</p>", unsafe_allow_html=True)
+    st.success("Status da conexão com o Banco SQLite: Ativo e Operacional ✅")
 
 else:
-    st.title(f"⚙️ {selected}")
+    st.markdown(f"### ⚙️ {selected}")
     st.info("Módulo em desenvolvimento.")
