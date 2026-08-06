@@ -5,7 +5,7 @@ import plotly.graph_objects as go
 from datetime import date
 from streamlit_option_menu import option_menu
 
-# Garante que o banco e as tabelas estejam criados
+# Garante que o banco e todas as tabelas estejam criados
 def inicializar_banco():
     conn = sqlite3.connect("crm.db")
     conn.execute("""
@@ -19,6 +19,22 @@ def inicializar_banco():
             status TEXT, 
             data TEXT, 
             responsavel TEXT
+        )
+    """)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS pipeline (
+            id INTEGER PRIMARY KEY AUTOINCREMENT, 
+            titulo TEXT, 
+            estagio TEXT, 
+            valor REAL
+        )
+    """)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS vendas (
+            id INTEGER PRIMARY KEY AUTOINCREMENT, 
+            cliente TEXT, 
+            valor REAL, 
+            data TEXT
         )
     """)
     conn.commit()
@@ -92,11 +108,7 @@ def carregar_dados():
     conn = conectar()
     tabelas = [row[0] for row in conn.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()]
     
-    if "clientes" in tabelas:
-        df_clientes = pd.read_sql("SELECT * FROM clientes", conn)
-    else:
-        df_clientes = pd.DataFrame(columns=["id", "nome", "empresa", "email", "telefone", "regiao", "status", "data", "responsavel"])
-        
+    df_clientes = pd.read_sql("SELECT * FROM clientes", conn) if "clientes" in tabelas else pd.DataFrame(columns=["id", "nome", "empresa", "email", "telefone", "regiao", "status", "data", "responsavel"])
     df_pipeline = pd.read_sql("SELECT * FROM pipeline", conn) if "pipeline" in tabelas else pd.DataFrame(columns=["id", "titulo", "estagio", "valor"])
     df_vendas = pd.read_sql("SELECT * FROM vendas", conn) if "vendas" in tabelas else pd.DataFrame(columns=["id", "cliente", "valor", "data"])
     
@@ -163,12 +175,10 @@ if selected == "Dashboard":
     textos = ["42 (8%)", "85 (17%)", "170 (34%)", "340 (68%)", "500 (100%)"]
     
     max_val = max(valores)
-    # Calcula a barra invisível (offset) para centralizar visualmente cada barra
     offsets = [(max_val - v) / 2 for v in valores]
 
     fig_funil = go.Figure()
 
-    # Barra invisível para empurrar a barra principal para o centro
     fig_funil.add_trace(go.Bar(
         y=etapas,
         x=offsets,
@@ -178,7 +188,6 @@ if selected == "Dashboard":
         showlegend=False
     ))
 
-    # Barra principal colorida com o texto do lado direito
     fig_funil.add_trace(go.Bar(
         y=etapas,
         x=valores,
@@ -204,7 +213,7 @@ if selected == "Dashboard":
         )
     )
 
-    # --- 2. VENDAS POR MÊS (PLOTLY - ORDEM CORRETA GARANTIDA) ---
+    # --- 2. VENDAS POR MÊS ---
     meses_ordem = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun"]
     valores_mes = [80000, 85000, 140000, 75000, 210000, 290000]
 
@@ -235,7 +244,7 @@ if selected == "Dashboard":
         )
     )
 
-    # --- 3. VENDAS POR REGIÃO (PLOTLY) ---
+    # --- 3. VENDAS POR REGIÃO ---
     labels_regiao = ["Sudeste", "Sul", "Nordeste", "Centro-Oeste", "Norte"]
     values_regiao = [45, 25, 15, 10, 5]
     cores_regiao = ["#2563EB", "#3b82f6", "#10b981", "#f59e0b", "#ef4444"]
@@ -261,7 +270,7 @@ if selected == "Dashboard":
         )
     )
 
-    # --- 4. TIPOS DE CLIENTES (PLOTLY) ---
+    # --- 4. TIPOS DE CLIENTES ---
     labels_tipo = ["Clientes", "Leads", "Inativos"]
     values_tipo = [68, 22, 10]
     cores_tipo = ["#2563EB", "#0ea5e9", "#10b981"]
@@ -287,9 +296,7 @@ if selected == "Dashboard":
         )
     )
 
-    # --- LINHA 1 DE GRÁFICOS ---
     col_left, col_right = st.columns(2)
-    
     with col_left:
         st.markdown("""
             <div style="background-color: #1e293b; padding: 20px; border-radius: 12px; border: 1px solid #334155;">
@@ -308,9 +315,7 @@ if selected == "Dashboard":
 
     st.markdown("<div style='margin-bottom: 20px;'></div>", unsafe_allow_html=True)
 
-    # --- LINHA 2 DE GRÁFICOS ---
     col_l2, col_r2 = st.columns(2)
-    
     with col_l2:
         st.markdown("""
             <div style="background-color: #1e293b; padding: 20px; border-radius: 12px; border: 1px solid #334155;">
@@ -333,12 +338,10 @@ elif selected == "Clientes":
     
     with st.form("form_cliente_completo", clear_on_submit=True):
         col_c1, col_c2 = st.columns(2)
-        
         with col_c1:
             nome_contato = st.text_input("Nome do Contato *")
             nome_empresa = st.text_input("Nome da Empresa")
             email_cli = st.text_input("E-mail")
-            
         with col_c2:
             telefone_cli = st.text_input("Telefone / WhatsApp")
             regiao_cli = st.selectbox("Região", ["Selecione...", "Região Sul", "Região Sudeste", "Região Nordeste", "Região Centro-Oeste", "Região Norte"])
@@ -346,7 +349,6 @@ elif selected == "Clientes":
             data_cad = st.text_input("Data de Cadastro", value=str(date.today()))
             
         submitted_cli = st.form_submit_button("Salvar Cliente")
-        
         if submitted_cli:
             if nome_contato:
                 conn = conectar()
@@ -366,7 +368,7 @@ elif selected == "Clientes":
     
     if not df_clientes.empty:
         df_exibicao = pd.DataFrame()
-        df_exibicao["Cliente"] = df_clientes.apply(lambda row: f"{row['nome']} - {row.get('empresa', 'CRM')}" if pd.notnull(row.get('empresa')) and row.get('empresa') != "" else row['nome'], axis=1)
+        df_exibicao["Cliente"] = df_clientes.apply(lambda row: f"{row['nome']} - {row.get('empresa', 'CRM')}" if pd.notnull(row.get('empresa')) and row.get('empresa'] != "" else row['nome'], axis=1)
         df_exibicao["Tipo"] = df_clientes["regiao"] if "regiao" in df_clientes.columns else "Região Sul"
         df_exibicao["Data"] = df_clientes["data"] if "data" in df_clientes.columns else str(date.today())
         df_exibicao["Responsável"] = df_clientes["responsavel"] if "responsavel" in df_clientes.columns else "Equipe Comercial"
@@ -377,25 +379,184 @@ elif selected == "Clientes":
     else:
         st.info("Nenhum cliente cadastrado no banco de dados.")
 
-    # --- SEÇÃO DE AÇÕES RÁPIDAS - WHATSAPP ---
-    st.markdown("<div style='margin-top: 40px;'></div>", unsafe_allow_html=True)
-    st.markdown("### 💬 Ações Rápidas - WhatsApp")
-    st.markdown("<p style='color: #94a3b8; font-size: 14px;'>Selecione o cliente para enviar mensagem:</p>", unsafe_allow_html=True)
+elif selected == "Leads":
+    st.markdown("### 🎯 Gestão de Leads")
+    st.markdown("<p style='color: #94a3b8; font-size: 14px; margin-bottom: 20px;'>Gerenciamento focado em prospecção e qualificação de novos contatos.</p>", unsafe_allow_html=True)
+    
+    with st.form("form_novo_lead", clear_on_submit=True):
+        col_l1, col_l2 = st.columns(2)
+        with col_l1:
+            lead_nome = st.text_input("Nome do Lead *")
+            lead_empresa = st.text_input("Empresa do Lead")
+        with col_l2:
+            lead_email = st.text_input("E-mail do Lead")
+            lead_tel = st.text_input("WhatsApp / Telefone")
+        
+        btn_lead = st.form_submit_button("Cadastrar Lead")
+        if btn_lead:
+            if lead_nome:
+                conn = conectar()
+                conn.execute("""
+                    INSERT INTO clientes (nome, empresa, email, telefone, regiao, status, data, responsavel) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """, (lead_nome, lead_empresa, lead_email, lead_tel, "Região Sudeste", "Lead", str(date.today()), "Prospecção"))
+                conn.commit()
+                conn.close()
+                st.success("Lead cadastrado com sucesso!")
+                st.rerun()
+            else:
+                st.error("Informe pelo menos o nome do lead.")
 
-    lista_nomes_clientes = df_clientes["nome"].tolist() if not df_clientes.empty else ["Nenhum cliente cadastrado"]
-    cliente_selecionado = st.selectbox("Cliente WhatsApp", lista_nomes_clientes, label_visibility="collapsed")
-
-    if st.button("Falar no WhatsApp"):
-        st.success(f"Abrindo canal com: {cliente_selecionado}")
+    st.markdown("<div style='margin-top: 25px;'></div>", unsafe_allow_html=True)
+    st.markdown("### 🔍 Lista de Leads Atuais")
+    df_leads_only = df_clientes[df_clientes["status"] == "Lead"] if not df_clientes.empty and "status" in df_clientes.columns else pd.DataFrame()
+    if not df_leads_only.empty:
+        st.dataframe(df_leads_only[["nome", "empresa", "email", "telefone", "data"]], use_container_width=True, hide_index=True)
+    else:
+        st.info("Nenhum lead cadastrado no momento.")
 
 elif selected == "Pipeline":
-    st.markdown("### 📊 Pipeline de Vendas")
-    st.info("Módulo de Pipeline comercial.")
+    st.markdown("### 📊 Pipeline Comercial")
+    st.markdown("<p style='color: #94a3b8; font-size: 14px; margin-bottom: 20px;'>Acompanhamento de negócios por etapas do funil.</p>", unsafe_allow_html=True)
+
+    with st.form("form_pipeline", clear_on_submit=True):
+        col_p1, col_p2, col_p3 = st.columns(3)
+        with col_p1:
+            p_titulo = st.text_input("Título do Negócio *")
+        with col_p2:
+            p_estagio = st.selectbox("Estágio", ["Prospecção", "Qualificação", "Proposta", "Negociação", "Fechamento"])
+        with col_p3:
+            p_valor = st.number_input("Valor Estimado (R$)", min_value=0.0, step=100.0)
+            
+        btn_pipe = st.form_submit_button("Adicionar Negócio")
+        if btn_pipe:
+            if p_titulo:
+                conn = conectar()
+                conn.execute("INSERT INTO pipeline (titulo, estagio, valor) VALUES (?, ?, ?)", (p_titulo, p_estagio, p_valor))
+                conn.commit()
+                conn.close()
+                st.success("Negócio adicionado ao pipeline!")
+                st.rerun()
+            else:
+                st.error("Informe o título do negócio.")
+
+    st.markdown("<div style='margin-top: 25px;'></div>", unsafe_allow_html=True)
+    estagios = ["Prospecção", "Qualificação", "Proposta", "Negociação", "Fechamento"]
+    cols = st.columns(len(estagios))
+    
+    for i, estagio in enumerate(estagios):
+        with cols[i]:
+            st.markdown(f"<div style='background-color: #1e293b; padding: 10px; border-radius: 8px; text-align: center; font-weight: bold; color: #60a5fa;'>{estagio}</div>", unsafe_allow_html=True)
+            subset = df_pipeline[df_pipeline["estagio"] == estagio] if not df_pipeline.empty and "estagio" in df_pipeline.columns else pd.DataFrame()
+            if not subset.empty:
+                for _, row in subset.iterrows():
+                    st.markdown(f"""
+                        <div style="background-color: #0f172a; padding: 10px; border-radius: 6px; margin-top: 10px; border: 1px solid #334155;">
+                            <div style="font-size: 13px; font-weight: bold; color: #ffffff;">{row['titulo']}</div>
+                            <div style="font-size: 12px; color: #10b981; margin-top: 4px;">R$ {row['valor']:,.2f}</div>
+                        </div>
+                    """, unsafe_allow_html=True)
+            else:
+                st.markdown("<div style='color: #64748b; font-size: 12px; text-align: center; margin-top: 10px;'>Vazio</div>", unsafe_allow_html=True)
 
 elif selected == "Vendas":
-    st.markdown("### 💰 Controle de Vendas")
-    st.info("Módulo de Gestão de Vendas.")
+    st.markdown("### 💰 Controle de Vendas Fechadas")
+    st.markdown("<p style='color: #94a3b8; font-size: 14px; margin-bottom: 20px;'>Registre e acompanhe as conversões e faturamento.</p>", unsafe_allow_html=True)
+
+    with st.form("form_venda", clear_on_submit=True):
+        col_v1, col_v2, col_v3 = st.columns(3)
+        with col_v1:
+            v_cliente = st.text_input("Nome do Cliente *")
+        with col_v2:
+            v_valor = st.number_input("Valor da Venda (R$)", min_value=0.0, step=100.0)
+        with col_v3:
+            v_data = st.text_input("Data da Venda", value=str(date.today()))
+            
+        btn_venda = st.form_submit_button("Registrar Venda")
+        if btn_venda:
+            if v_cliente and v_valor > 0:
+                conn = conectar()
+                conn.execute("INSERT INTO vendas (cliente, valor, data) VALUES (?, ?, ?)", (v_cliente, v_valor, v_data))
+                conn.commit()
+                conn.close()
+                st.success("Venda registrada com sucesso!")
+                st.rerun()
+            else:
+                st.error("Preencha o cliente e um valor válido.")
+
+    st.markdown("<div style='margin-top: 25px;'></div>", unsafe_allow_html=True)
+    st.markdown("### 📜 Histórico de Vendas")
+    if not df_vendas.empty:
+        st.dataframe(df_vendas[["cliente", "valor", "data"]], use_container_width=True, hide_index=True)
+    else:
+        st.info("Nenhuma venda registrada ainda.")
+
+elif selected == "Relatórios":
+    st.markdown("### 📈 Relatórios e Exportação")
+    st.markdown("<p style='color: #94a3b8; font-size: 14px; margin-bottom: 20px;'>Baixe relatórios consolidados do seu CRM em formato CSV.</p>", unsafe_allow_html=True)
+    
+    col_r1, col_r2 = st.columns(2)
+    with col_r1:
+        st.markdown("""
+            <div style="background-color: #1e293b; padding: 20px; border-radius: 12px; border: 1px solid #334155;">
+                <div style="color: #ffffff; font-size: 16px; font-weight: 600; margin-bottom: 10px;">Relatório de Clientes</div>
+                <div style="color: #94a3b8; font-size: 13px; margin-bottom: 15px;">Exportar todos os clientes e leads cadastrados.</div>
+        """, unsafe_allow_html=True)
+        if not df_clientes.empty:
+            csv_clientes = df_clientes.to_csv(index=False).encode('utf-8')
+            st.download_button("Baixar CSV de Clientes", data=csv_clientes, file_name="clientes_crm.csv", mime="text/csv")
+        else:
+            st.info("Sem dados para exportar.")
+        st.markdown("</div>", unsafe_allow_html=True)
+
+    with col_r2:
+        st.markdown("""
+            <div style="background-color: #1e293b; padding: 20px; border-radius: 12px; border: 1px solid #334155;">
+                <div style="color: #ffffff; font-size: 16px; font-weight: 600; margin-bottom: 10px;">Relatório de Vendas</div>
+                <div style="color: #94a3b8; font-size: 13px; margin-bottom: 15px;">Exportar histórico de faturamento e vendas.</div>
+        """, unsafe_allow_html=True)
+        if not df_vendas.empty:
+            csv_vendas = df_vendas.to_csv(index=False).encode('utf-8')
+            st.download_button("Baixar CSV de Vendas", data=csv_vendas, file_name="vendas_crm.csv", mime="text/csv")
+        else:
+            st.info("Sem dados para exportar.")
+        st.markdown("</div>", unsafe_allow_html=True)
+
+elif selected == "Integrações":
+    st.markdown("### 🔌 Integrações e Conexões")
+    st.markdown("<p style='color: #94a3b8; font-size: 14px; margin-bottom: 20px;'>Conecte seu CRM com ferramentas externas de atendimento e automação.</p>", unsafe_allow_html=True)
+
+    col_i1, col_i2 = st.columns(2)
+    with col_i1:
+        st.markdown("""
+            <div style="background-color: #1e293b; padding: 20px; border-radius: 12px; border: 1px solid #334155;">
+                <div style="color: #ffffff; font-size: 16px; font-weight: 600; margin-bottom: 10px;">💬 WhatsApp API</div>
+                <div style="color: #94a3b8; font-size: 13px; margin-bottom: 15px;">Envie mensagens automáticas e dispare campanhas.</div>
+        """, unsafe_allow_html=True)
+        st.toggle("Ativar Integração WhatsApp", value=True)
+        st.markdown("</div>", unsafe_allow_html=True)
+
+    with col_i2:
+        st.markdown("""
+            <div style="background-color: #1e293b; padding: 20px; border-radius: 12px; border: 1px solid #334155;">
+                <div style="color: #ffffff; font-size: 16px; font-weight: 600; margin-bottom: 10px;">🌐 Webhooks / API Key</div>
+                <div style="color: #94a3b8; font-size: 13px; margin-bottom: 15px;">Integre leads de landing pages diretamente.</div>
+        """, unsafe_allow_html=True)
+        st.text_input("Chave de API", value="crm_live_sec_99812736", type="password")
+        st.markdown("</div>", unsafe_allow_html=True)
 
 else:
-    st.markdown(f"### ⚙️ {selected}")
-    st.info("Módulo em desenvolvimento.")
+    st.markdown("### ⚙️ Configurações do Sistema")
+    st.markdown("<p style='color: #94a3b8; font-size: 14px; margin-bottom: 20px;'>Gerencie as preferências da sua conta e banco de dados.</p>", unsafe_allow_html=True)
+    
+    with st.container():
+        st.markdown("""
+            <div style="background-color: #1e293b; padding: 20px; border-radius: 12px; border: 1px solid #334155;">
+                <div style="color: #ffffff; font-size: 16px; font-weight: 600; margin-bottom: 15px;">Preferências Gerais</div>
+        """, unsafe_allow_html=True)
+        st.text_input("Nome da Organização", value="Comercial Alpha LTDA")
+        st.text_input("E-mail do Administrador", value="admin@crm.com")
+        st.selectbox("Moeda Padrão", ["Real (R$)", "Dólar ($)", "Euro (€)"])
+        if st.button("Salvar Configurações"):
+            st.success("Configurações salvas com sucesso!")
+        st.markdown("</div>", unsafe_allow_html=True)
