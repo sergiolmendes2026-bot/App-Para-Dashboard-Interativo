@@ -116,7 +116,7 @@ with st.sidebar:
             "gear-fill"       
         ],
         menu_icon="cast",
-        default_index=5,
+        default_index=0,
         styles={
             "container": {"padding": "0!important", "background-color": "transparent"},
             "icon": {"color": "#60a5fa", "font-size": "15px"},
@@ -168,6 +168,56 @@ if selected == "Dashboard":
     k2.metric("Valor do Pipeline", f"R$ {valor_pipeline:,.2f}")
     k3.metric("Receita Realizada", f"R$ {receita_realizada:,.2f}")
     k4.metric("Ticket Médio", f"R$ {ticket_medio:,.2f}")
+
+    st.markdown("<div style='margin-top: 35px;'></div>", unsafe_allow_html=True)
+
+    # Gráficos do Dashboard
+    col_g1, col_g2 = st.columns(2)
+
+    with col_g1:
+        st.markdown("#### 📈 Vendas por Data / Período")
+        if not df_vendas.empty and "data" in df_vendas.columns and "valor" in df_vendas.columns:
+            df_vendas_grouped = df_vendas.groupby("data")["valor"].sum().reset_index()
+            fig_vendas = px.line(
+                df_vendas_grouped, 
+                x="data", 
+                y="valor", 
+                markers=True,
+                labels={"data": "Data", "valor": "Valor (R$)"}
+            )
+            fig_vendas.update_layout(
+                paper_bgcolor="rgba(0,0,0,0)",
+                plot_bgcolor="rgba(0,0,0,0)",
+                font=dict(color="#ffffff"),
+                xaxis=dict(showgrid=False),
+                yaxis=dict(showgrid=True, gridcolor="#1e293b")
+            )
+            st.plotly_chart(fig_vendas, use_container_width=True)
+        else:
+            st.info("Nenhum dado de vendas suficiente para exibir o gráfico.")
+
+    with col_g2:
+        st.markdown("#### 📊 Pipeline por Estágio")
+        if not df_pipeline.empty and "estagio" in df_pipeline.columns and "valor" in df_pipeline.columns:
+            df_pipe_grouped = df_pipeline.groupby("estagio")["valor"].sum().reset_index()
+            fig_pipe = px.bar(
+                df_pipe_grouped, 
+                x="estagio", 
+                y="valor", 
+                color="estagio",
+                labels={"estagio": "Estágio", "valor": "Valor Total (R$)"}
+            )
+            fig_pipe.update_layout(
+                paper_bgcolor="rgba(0,0,0,0)",
+                plot_bgcolor="rgba(0,0,0,0)",
+                font=dict(color="#ffffff"),
+                showlegend=False,
+                xaxis=dict(showgrid=False),
+                yaxis=dict(showgrid=True, gridcolor="#1e293b")
+            )
+            st.plotly_chart(fig_pipe, use_container_width=True)
+        else:
+            st.info("Nenhum dado no pipeline para exibir o gráfico.")
 
 elif selected == "Clientes":
     st.markdown("### 👤 Cadastro Completo de Clientes e Leads")
@@ -335,7 +385,6 @@ elif selected == "Relatórios":
     
     df_export = df_vendas if not df_vendas.empty else pd.DataFrame(columns=['cliente', 'valor', 'data', 'responsavel', 'status'])
 
-    # Geração dos dados em formato CSV (compatível com Excel abrindo diretamente com separador vírgula/ponto-e-vírgula)
     csv_data = df_export.to_csv(index=False).encode('utf-8')
     txt_data = df_export.to_string(index=False).encode('utf-8')
 
