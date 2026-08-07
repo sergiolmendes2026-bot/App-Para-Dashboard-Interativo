@@ -121,7 +121,7 @@ with st.sidebar:
             "gear-fill"       
         ],
         menu_icon="cast",
-        default_index=0,
+        default_index=4,
         styles={
             "container": {"padding": "0!important", "background-color": "transparent"},
             "icon": {"color": "#60a5fa", "font-size": "15px"},
@@ -167,9 +167,6 @@ if selected == "Dashboard":
     valor_pipeline = df_pipeline['valor'].sum() if not df_pipeline.empty and "valor" in df_pipeline.columns else 0.0
     receita_realizada = df_vendas['valor'].sum() if not df_vendas.empty and "valor" in df_vendas.columns else 0.0
     ticket_medio = df_vendas['valor'].mean() if not df_vendas.empty and "valor" in df_vendas.columns and len(df_vendas) > 0 else 0.0
-    
-    vendas_fechadas_count = len(df_clientes[df_clientes["status"] == "✅ Venda Fechada"]) if not df_clientes.empty and "status" in df_clientes.columns else 0
-    taxa_conversao = (vendas_fechadas_count / total_leads * 100) if total_leads > 0 else 0.0
 
     k1, k2, k3, k4 = st.columns(4)
     k1.metric("Total de Leads", f"{total_leads}")
@@ -177,42 +174,8 @@ if selected == "Dashboard":
     k3.metric("Receita Realizada", f"R$ {receita_realizada:,.2f}")
     k4.metric("Ticket Médio", f"R$ {ticket_medio:,.2f}")
 
-    st.markdown("<div style='margin-bottom: 25px;'></div>", unsafe_allow_html=True)
-    col_g1, col_g2 = st.columns(2)
-
-    with col_g1:
-        st.markdown("<div style='background-color: #1e293b; padding: 20px; border-radius: 12px; border: 1px solid #334155;'><div style='color: #ffffff; font-size: 16px; font-weight: 600; margin-bottom: 15px;'>Leads por Status</div>", unsafe_allow_html=True)
-        if not df_clientes.empty and "status" in df_clientes.columns:
-            status_df = df_clientes['status'].value_counts().reset_index()
-            status_df.columns = ['Status', 'Quantidade']
-            fig_status = px.bar(status_df, x='Quantidade', y='Status', orientation='h', color_discrete_sequence=['#2563EB'])
-            fig_status.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", height=250, margin=dict(l=10, r=10, t=10, b=10), font=dict(color="white"))
-            st.plotly_chart(fig_status, use_container_width=True, config={'displayModeBar': False})
-        else:
-            st.info("Sem dados de status.")
-        st.markdown("</div>", unsafe_allow_html=True)
-
-    with col_g2:
-        st.markdown("<div style='background-color: #1e293b; padding: 20px; border-radius: 12px; border: 1px solid #334155;'><div style='color: #ffffff; font-size: 16px; font-weight: 600; margin-bottom: 15px;'>Funil de Conversão (Pipeline)</div>", unsafe_allow_html=True)
-        etapas = ['Prospecção', 'Qualificação', 'Proposta', 'Negociação', 'Fechamento']
-        if not df_pipeline.empty and "estagio" in df_pipeline.columns:
-            contagem_estagios = df_pipeline['estagio'].value_counts()
-            valores_funil = [int(contagem_estagios.get(est, 0)) for est in etapas]
-        else:
-            valores_funil = [0, 0, 0, 0, 0]
-
-        fig_funil = go.Figure(go.Funnel(
-            y=etapas, x=valores_funil, textposition="inside", textinfo="value",
-            marker=dict(color=["#2563EB", "#3b82f6", "#60a5fa", "#38bdf8", "#7dd3fc"])
-        ))
-        fig_funil.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", height=250, margin=dict(l=10, r=10, t=10, b=10), font=dict(color="white"))
-        st.plotly_chart(fig_funil, use_container_width=True, config={'displayModeBar': False})
-        st.markdown("</div>", unsafe_allow_html=True)
-
 elif selected == "Clientes":
     st.markdown("### 👤 Cadastro Completo de Clientes e Leads")
-    st.markdown("<p style='color: #94a3b8; font-size: 14px; margin-bottom: 20px;'>Adicione novos contatos e categorize com todos os status e origens.</p>", unsafe_allow_html=True)
-    
     with st.form("form_cliente_completo", clear_on_submit=True):
         col_c1, col_c2 = st.columns(2)
         with col_c1:
@@ -261,8 +224,6 @@ elif selected == "Clientes":
 
 elif selected == "Leads":
     st.markdown("### 🎯 Gestão de Leads")
-    st.markdown("<p style='color: #94a3b8; font-size: 14px; margin-bottom: 20px;'>Filtro exclusivo focado em prospecção e novos contatos.</p>", unsafe_allow_html=True)
-    
     df_leads_only = df_clientes[df_clientes["status"].str.contains("Lead|Contato|Atendimento", case=False, na=False)] if not df_clientes.empty and "status" in df_clientes.columns else pd.DataFrame()
     if not df_leads_only.empty:
         colunas_mostrar = [c for c in ["nome", "empresa", "email", "telefone", "origem", "status", "data"] if c in df_leads_only.columns]
@@ -272,8 +233,6 @@ elif selected == "Leads":
 
 elif selected == "Pipeline":
     st.markdown("### 📊 Pipeline Comercial")
-    st.markdown("<p style='color: #94a3b8; font-size: 14px; margin-bottom: 20px;'>Acompanhamento de negócios por etapas do funil com campos robustos.</p>", unsafe_allow_html=True)
-
     with st.form("form_pipeline", clear_on_submit=True):
         col_p1, col_p2, col_p3 = st.columns(3)
         with col_p1:
@@ -308,29 +267,6 @@ elif selected == "Pipeline":
                 st.rerun()
             else:
                 st.error("Informe o título do negócio.")
-
-    st.markdown("<div style='margin-top: 25px;'></div>", unsafe_allow_html=True)
-    estagios = ["Prospecção", "Qualificação", "Proposta", "Negociação", "Fechamento"]
-    cols = st.columns(len(estagios))
-    
-    for i, estagio in enumerate(estagios):
-        with cols[i]:
-            st.markdown(f"<div style='background-color: #1e293b; padding: 10px; border-radius: 8px; text-align: center; font-weight: bold; color: #60a5fa;'>{estagio}</div>", unsafe_allow_html=True)
-            subset = df_pipeline[df_pipeline["estagio"] == estagio] if not df_pipeline.empty and "estagio" in df_pipeline.columns else pd.DataFrame()
-            if not subset.empty:
-                for _, row in subset.iterrows():
-                    empresa_txt = row['empresa'] if 'empresa' in row and row['empresa'] else 'N/A'
-                    contato_txt = row['contato'] if 'contato' in row and row['contato'] else 'N/A'
-                    st.markdown(f"""
-                        <div style="background-color: #0f172a; padding: 10px; border-radius: 6px; margin-top: 10px; border: 1px solid #334155; border-left: 4px solid #60a5fa;">
-                            <div style="font-size: 13px; font-weight: bold; color: #ffffff;">{row['titulo']}</div>
-                            <div style="font-size: 11px; color: #94a3b8; margin-top: 2px;">🏢 {empresa_txt}</div>
-                            <div style="font-size: 11px; color: #94a3b8;">👤 {contato_txt}</div>
-                            <div style="font-size: 12px; color: #10b981; font-weight: bold; margin-top: 4px;">R$ {row['valor']:,.2f}</div>
-                        </div>
-                    """, unsafe_allow_html=True)
-            else:
-                st.markdown("<div style='color: #64748b; font-size: 12px; text-align: center; margin-top: 10px;'>Vazio</div>", unsafe_allow_html=True)
 
 elif selected == "Vendas":
     st.markdown("### 💰 Controle de Vendas Fechadas")
@@ -384,46 +320,34 @@ elif selected == "Vendas":
     st.markdown("### 📜 Histórico de Vendas")
     
     if not df_vendas.empty:
+        # --- BARRA DE PESQUISA DE CLIENTE ---
+        pesquisa_cliente = st.text_input("🔍 Pesquisar cliente...", placeholder="Digite o nome do cliente...")
+        
         df_tabela_vendas = df_vendas[['cliente', 'valor', 'responsavel', 'data', 'status']].copy()
         df_tabela_vendas.columns = ['Cliente', 'Valor', 'Responsável', 'Data', 'Status']
+        
+        # Filtra a tabela se houver texto na pesquisa
+        if pesquisa_cliente:
+            df_tabela_vendas = df_tabela_vendas[df_tabela_vendas['Cliente'].str.contains(pesquisa_cliente, case=False, na=False)]
+            
         df_tabela_vendas['Valor'] = df_tabela_vendas['Valor'].apply(lambda x: f"R$ {x:,.3f}".replace(",", "X").replace(".", ",").replace("X", "."))
+        
         st.dataframe(df_tabela_vendas, use_container_width=True, hide_index=True)
     else:
         st.info("Nenhuma venda registrada ainda.")
 
 elif selected == "Relatórios":
     st.markdown("### 📈 Relatórios e Exportação")
-    st.markdown("<p style='color: #94a3b8; font-size: 14px; margin-bottom: 20px;'>Baixe relatórios consolidados do seu CRM em formato CSV.</p>", unsafe_allow_html=True)
-    
-    col_r1, col_r2 = st.columns(2)
-    with col_r1:
-        st.markdown("<div style='background-color: #1e293b; padding: 20px; border-radius: 12px; border: 1px solid #334155;'><div style='color: #ffffff; font-size: 16px; font-weight: 600; margin-bottom: 10px;'>Relatório de Clientes</div>", unsafe_allow_html=True)
-        if not df_clientes.empty:
-            csv_clientes = df_clientes.to_csv(index=False).encode('utf-8')
-            st.download_button("Baixar CSV de Clientes", data=csv_clientes, file_name="clientes_crm.csv", mime="text/csv")
-        else:
-            st.info("Sem dados.")
-        st.markdown("</div>", unsafe_allow_html=True)
-
-    with col_r2:
-        st.markdown("<div style='background-color: #1e293b; padding: 20px; border-radius: 12px; border: 1px solid #334155;'><div style='color: #ffffff; font-size: 16px; font-weight: 600; margin-bottom: 10px;'>Relatório de Vendas</div>", unsafe_allow_html=True)
-        if not df_vendas.empty:
-            csv_vendas = df_vendas.to_csv(index=False).encode('utf-8')
-            st.download_button("Baixar CSV de Vendas", data=csv_vendas, file_name="vendas_crm.csv", mime="text/csv")
-        else:
-            st.info("Sem dados.")
-        st.markdown("</div>", unsafe_allow_html=True)
+    if not df_vendas.empty:
+        csv_vendas = df_vendas.to_csv(index=False).encode('utf-8')
+        st.download_button("Baixar CSV de Vendas", data=csv_vendas, file_name="vendas_crm.csv", mime="text/csv")
+    else:
+        st.info("Sem dados para exportar.")
 
 elif selected == "Integrações":
     st.markdown("### 🔌 Integrações e Conexões")
-    st.markdown("<p style='color: #94a3b8; font-size: 14px; margin-bottom: 20px;'>Conecte seu CRM com ferramentas externas.</p>", unsafe_allow_html=True)
     st.toggle("Ativar Integração WhatsApp", value=True)
-    st.text_input("Chave de API", value="crm_live_sec_99812736", type="password")
 
 else:
     st.markdown("### ⚙️ Configurações do Sistema")
-    st.markdown("<p style='color: #94a3b8; font-size: 14px; margin-bottom: 20px;'>Gerencie as preferências da sua conta.</p>", unsafe_allow_html=True)
     st.text_input("Nome da Organização", value="Comercial Alpha LTDA")
-    st.text_input("E-mail do Administrador", value="admin@crm.com")
-    if st.button("Salvar Configurações"):
-        st.success("Salvo com sucesso!")
