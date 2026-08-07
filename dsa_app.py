@@ -3,7 +3,6 @@ import sqlite3
 import streamlit as st
 import plotly.express as px
 import plotly.graph_objects as go
-import io
 from datetime import date
 from streamlit_option_menu import option_menu
 
@@ -334,30 +333,24 @@ elif selected == "Relatórios":
     st.markdown("### 📈 Relatórios e Exportação")
     st.markdown("<p style='color: #94a3b8; font-size: 14px; margin-bottom: 20px;'>Botões como:</p>", unsafe_allow_html=True)
     
-    # Prepara os dados para exportação (mesmo se vazio gera planilha vazia ou com cabeçalho)
     df_export = df_vendas if not df_vendas.empty else pd.DataFrame(columns=['cliente', 'valor', 'data', 'responsavel', 'status'])
 
-    # Geração do Excel em memória
-    output_excel = io.BytesIO()
-    with pd.ExcelWriter(output_excel, engine='openpyxl') as writer:
-        df_export.to_excel(writer, index=False, sheet_name='Vendas')
-    excel_data = output_excel.getvalue()
-
-    # Geração do arquivo TXT/Relatório estruturado
-    pdf_data = df_export.to_string(index=False).encode('utf-8')
+    # Geração dos dados em formato CSV (compatível com Excel abrindo diretamente com separador vírgula/ponto-e-vírgula)
+    csv_data = df_export.to_csv(index=False).encode('utf-8')
+    txt_data = df_export.to_string(index=False).encode('utf-8')
 
     col_btn1, col_btn2 = st.columns(2)
     with col_btn1:
         st.download_button(
             label="📥 Exportar Excel",
-            data=excel_data,
-            file_name="vendas_crm.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            data=csv_data,
+            file_name="vendas_crm.csv",
+            mime="text/csv"
         )
     with col_btn2:
         st.download_button(
             label="📥 Exportar PDF",
-            data=pdf_data,
+            data=txt_data,
             file_name="relatorio_vendas.txt",
             mime="text/plain"
         )
