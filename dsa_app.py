@@ -334,33 +334,33 @@ elif selected == "Relatórios":
     st.markdown("### 📈 Relatórios e Exportação")
     st.markdown("<p style='color: #94a3b8; font-size: 14px; margin-bottom: 20px;'>Botões como:</p>", unsafe_allow_html=True)
     
-    if not df_vendas.empty:
-        # Geração do arquivo Excel em memória
-        output_excel = io.BytesIO()
-        with pd.ExcelWriter(output_excel, engine='openpyxl') as writer:
-            df_vendas.to_excel(writer, index=False, sheet_name='Vendas')
-        excel_data = output_excel.getvalue()
+    # Prepara os dados para exportação (mesmo se vazio gera planilha vazia ou com cabeçalho)
+    df_export = df_vendas if not df_vendas.empty else pd.DataFrame(columns=['cliente', 'valor', 'data', 'responsavel', 'status'])
 
-        # Geração do relatório em formato de texto estruturado para PDF/Txt
-        pdf_data = df_vendas.to_string(index=False).encode('utf-8')
+    # Geração do Excel em memória
+    output_excel = io.BytesIO()
+    with pd.ExcelWriter(output_excel, engine='openpyxl') as writer:
+        df_export.to_excel(writer, index=False, sheet_name='Vendas')
+    excel_data = output_excel.getvalue()
 
-        col_exp1, col_exp2 = st.columns(2)
-        with col_exp1:
-            st.download_button(
-                label="📥 Exportar Excel",
-                data=excel_data,
-                file_name="vendas_crm.xlsx",
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            )
-        with col_exp2:
-            st.download_button(
-                label="📥 Exportar PDF",
-                data=pdf_data,
-                file_name="relatorio_vendas.txt",
-                mime="text/plain"
-            )
-    else:
-        st.info("Sem dados para exportar.")
+    # Geração do arquivo TXT/Relatório estruturado
+    pdf_data = df_export.to_string(index=False).encode('utf-8')
+
+    col_btn1, col_btn2 = st.columns(2)
+    with col_btn1:
+        st.download_button(
+            label="📥 Exportar Excel",
+            data=excel_data,
+            file_name="vendas_crm.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+    with col_btn2:
+        st.download_button(
+            label="📥 Exportar PDF",
+            data=pdf_data,
+            file_name="relatorio_vendas.txt",
+            mime="text/plain"
+        )
 
 elif selected == "Integrações":
     st.markdown("### 🔌 Integrações e Conexões")
