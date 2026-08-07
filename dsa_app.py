@@ -118,6 +118,10 @@ def carregar_dados():
 
 df_clientes, df_pipeline, df_vendas = carregar_dados()
 
+# Normalização de regiões para evitar divergências de texto
+if not df_clientes.empty and "regiao" in df_clientes.columns:
+    df_clientes["regiao"] = df_clientes["regiao"].astype(str).str.replace("Região ", "", regex=False).str.strip()
+
 # --- NAVEGAÇÃO ENTRE AS PÁGINAS ---
 
 if selected == "Dashboard":
@@ -170,54 +174,29 @@ if selected == "Dashboard":
 
     st.markdown("<div style='margin-bottom: 25px;'></div>", unsafe_allow_html=True)
 
-    # --- 1. FUNIL DE VENDAS (Ordem correta e simétrico) ---
+    # --- 1. FUNIL DE VENDAS (Usando componente nativo go.Funnel para precisão total) ---
     etapas = ['Prospecção', 'Qualificação', 'Proposta', 'Negociação', 'Fechamento']
     if not df_pipeline.empty and "estagio" in df_pipeline.columns:
         contagem_estagios = df_pipeline['estagio'].value_counts()
-        valores = [int(contagem_estagios.get(est, 0)) for est in etapas]
+        valores_funil = [int(contagem_estagios.get(est, 0)) for est in etapas]
     else:
-        valores = [0, 0, 0, 0, 0]
-    
-    max_val = max(valores) if max(valores) > 0 else 1
-    offsets = [(max_val - v) / 2 for v in valores]
-    textos = [str(v) if v > 0 else "" for v in valores]
+        valores_funil = [0, 0, 0, 0, 0]
 
-    fig_funil = go.Figure()
-
-    fig_funil.add_trace(go.Bar(
+    fig_funil = go.Figure(go.Funnel(
         y=etapas,
-        x=offsets,
-        orientation='h',
-        marker=dict(color='rgba(0,0,0,0)'),
-        hoverinfo='skip',
-        showlegend=False
-    ))
-
-    fig_funil.add_trace(go.Bar(
-        y=etapas,
-        x=valores,
-        orientation='h',
-        text=textos,
-        textposition='inside',
-        textfont=dict(color='white', size=13, weight='bold'),
+        x=valores_funil,
+        textposition="inside",
+        textinfo="value",
         marker=dict(color=["#2563EB", "#3b82f6", "#60a5fa", "#38bdf8", "#7dd3fc"]),
-        hoverinfo='skip',
-        showlegend=False
+        connector=dict(line=dict(color="#334155", width=1))
     ))
 
     fig_funil.update_layout(
-        barmode='stack',
-        margin=dict(l=10, r=20, t=10, b=10),
+        margin=dict(l=10, r=10, t=10, b=10),
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
         height=220,
-        xaxis=dict(visible=False, range=[0, max_val * 1.2 if max_val > 1 else 2]),
-        yaxis=dict(
-            tickfont=dict(color="white", size=13),
-            automargin=True,
-            categoryarray=etapas,
-            autorange="reversed" # Mantém Prospecção no topo
-        )
+        font=dict(color="white")
     )
 
     # --- 2. VENDAS POR MÊS ---
@@ -263,31 +242,22 @@ if selected == "Dashboard":
         )
     )
 
-    # --- 3. VENDAS POR REGIÃO (Com todas as regiões do Brasil mapeadas) ---
+    # --- 3. VENDAS POR REGIÃO (Garantindo que todas as 5 regiões apareçam sempre) ---
     regioes_fixas = ["Sudeste", "Sul", "Nordeste", "Centro-Oeste", "Norte"]
-    if not df_clientes.empty and "regiao" in df_clientes.columns and df_clientes["regiao"].dropna().any():
-        regioes_contagem = df_clientes['regiao'].value_counts()
-        labels_regiao = [r for r in regioes_fixas if r in regioes_contagem.index]
-        # Adiciona outras se houver alguma fora do padrão
-        for r in regioes_contagem.index:
-            if r not in labels_regiao and r != "Selecione...":
-                labels_regiao.append(r)
-        values_regiao = [int(regioes_contagem[r]) for r in labels_regiao]
-        if not labels_regiao:
-            labels_regiao = ["Sem dados"]
-            values_regiao = [1]
+    if not df_clientes.empty and "regiao" in df_clientes.columns:
+        contagem_regiao = df_clientes['regiao'].value_counts()
+        values_regiao = [int(contagem_regiao.get(reg, 0)) for reg in regioes_fixas]
     else:
-        labels_regiao = regioes_fixas
         values_regiao = [0, 0, 0, 0, 0]
 
-    cores_regiao = ["#2563EB", "#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#334155"]
+    cores_regiao = ["#2563EB", "#3b82f6", "#10b981", "#f59e0b", "#ef4444"]
 
     fig_regiao = go.Figure(go.Pie(
-        labels=labels_regiao,
+        labels=regioes_fixas,
         values=values_regiao,
         hole=0.6,
         textinfo='none',
-        marker=dict(colors=cores_regiao[:len(labels_regiao)])
+        marker=dict(colors=cores_regiao)
     ))
     fig_regiao.update_layout(
         margin=dict(l=10, r=10, t=10, b=10),
@@ -303,7 +273,7 @@ if selected == "Dashboard":
         )
     )
 
-    # --- 4. TIPOS DE CLIENTES (Donut Perfeito) ---
+    # --- 4. TIPOS DE CLIENTES ---
     if not df_clientes.empty and "status" in df_clientes.columns and df_clientes["status"].dropna().any():
         status_contagem = df_clientes['status'].value_counts()
         labels_tipo = status_contagem.index.tolist()
