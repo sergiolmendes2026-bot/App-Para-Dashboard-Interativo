@@ -129,8 +129,8 @@ if selected == "Dashboard":
     st.markdown("<div style='margin-bottom: 20px;'></div>", unsafe_allow_html=True)
 
     total_clientes = len(df_clientes) if not df_clientes.empty else 0
-    leads_cadastrados = len(df_clientes[df_clientes["status"] == "Lead"]) if not df_clientes.empty and "status" in df_clientes.columns else 0
-    clientes_ativos = len(df_clientes[df_clientes["status"] == "Ativo"]) if not df_clientes.empty and "status" in df_clientes.columns else 0
+    leads_cadastrados = len(df_clientes[df_clientes["status"].str.contains("Lead|Atendimento|Contato", case=False, na=False)]) if not df_clientes.empty and "status" in df_clientes.columns else 0
+    clientes_ativos = len(df_clientes[df_clientes["status"].str.contains("Fechada|Fidelizado|Reativado", case=False, na=False)]) if not df_clientes.empty and "status" in df_clientes.columns else 0
     faturamento_mes = df_vendas["valor"].sum() if not df_vendas.empty and "valor" in df_vendas.columns else 0.0
 
     # 4 Cards Superiores (KPIs Estilizados)
@@ -148,7 +148,7 @@ if selected == "Dashboard":
     with col2:
         st.markdown(f"""
             <div style="background-color: #1e293b; padding: 20px; border-radius: 12px; border: 1px solid #334155;">
-                <div style="color: #94a3b8; font-size: 13px; font-weight: 500;">Leads Cadastrados</div>
+                <div style="color: #94a3b8; font-size: 13px; font-weight: 500;">Leads e Em Atendimento</div>
                 <div style="color: #ffffff; font-size: 28px; font-weight: bold; margin: 8px 0;">{leads_cadastrados:,}</div>
                 <div style="color: #10b981; font-size: 12px;">↑ Dinâmico <span style="color: #64748b;">vs base</span></div>
             </div>
@@ -157,7 +157,7 @@ if selected == "Dashboard":
     with col3:
         st.markdown(f"""
             <div style="background-color: #1e293b; padding: 20px; border-radius: 12px; border: 1px solid #334155;">
-                <div style="color: #94a3b8; font-size: 13px; font-weight: 500;">Clientes Ativos</div>
+                <div style="color: #94a3b8; font-size: 13px; font-weight: 500;">Clientes Convertidos</div>
                 <div style="color: #ffffff; font-size: 28px; font-weight: bold; margin: 8px 0;">{clientes_ativos:,}</div>
                 <div style="color: #10b981; font-size: 12px;">↑ Dinâmico <span style="color: #64748b;">vs base</span></div>
             </div>
@@ -174,7 +174,7 @@ if selected == "Dashboard":
 
     st.markdown("<div style='margin-bottom: 25px;'></div>", unsafe_allow_html=True)
 
-    # --- 1. FUNIL DE VENDAS (Usando componente nativo go.Funnel para precisão total) ---
+    # --- 1. FUNIL DE VENDAS ---
     etapas = ['Prospecção', 'Qualificação', 'Proposta', 'Negociação', 'Fechamento']
     if not df_pipeline.empty and "estagio" in df_pipeline.columns:
         contagem_estagios = df_pipeline['estagio'].value_counts()
@@ -242,7 +242,7 @@ if selected == "Dashboard":
         )
     )
 
-    # --- 3. VENDAS POR REGIÃO (Garantindo que todas as 5 regiões apareçam sempre) ---
+    # --- 3. VENDAS POR REGIÃO ---
     regioes_fixas = ["Sudeste", "Sul", "Nordeste", "Centro-Oeste", "Norte"]
     if not df_clientes.empty and "regiao" in df_clientes.columns:
         contagem_regiao = df_clientes['regiao'].value_counts()
@@ -273,16 +273,16 @@ if selected == "Dashboard":
         )
     )
 
-    # --- 4. TIPOS DE CLIENTES ---
+    # --- 4. TIPOS DE CLIENTES (STATUS) ---
     if not df_clientes.empty and "status" in df_clientes.columns and df_clientes["status"].dropna().any():
         status_contagem = df_clientes['status'].value_counts()
         labels_tipo = status_contagem.index.tolist()
         values_tipo = status_contagem.values.tolist()
     else:
-        labels_tipo = ["Ativo", "Lead", "Inativo"]
+        labels_tipo = ["Novo Lead", "Em Atendimento", "Venda Fechada"]
         values_tipo = [0, 0, 0]
 
-    cores_tipo = ["#2563EB", "#0ea5e9", "#10b981", "#334155"]
+    cores_tipo = ["#2563EB", "#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899", "#06b6d4"]
 
     fig_tipo = go.Figure(go.Pie(
         labels=labels_tipo,
@@ -298,7 +298,7 @@ if selected == "Dashboard":
         height=200,
         showlegend=True,
         legend=dict(
-            font=dict(color="#f8fafc", size=11),
+            font=dict(color="#f8fafc", size=10),
             orientation="v",
             x=1.0,
             y=0.5
@@ -336,7 +336,7 @@ if selected == "Dashboard":
     with col_r2:
         st.markdown("""
             <div style="background-color: #1e293b; padding: 20px; border-radius: 12px; border: 1px solid #334155;">
-                <div style="color: #ffffff; font-size: 16px; font-weight: 600; margin-bottom: 15px;">Tipos de Clientes</div>
+                <div style="color: #ffffff; font-size: 16px; font-weight: 600; margin-bottom: 15px;">Status / Tipos de Clientes</div>
         """, unsafe_allow_html=True)
         st.plotly_chart(fig_tipo, use_container_width=True, config={'displayModeBar': False})
         st.markdown("</div>", unsafe_allow_html=True)
@@ -354,7 +354,25 @@ elif selected == "Clientes":
         with col_c2:
             telefone_cli = st.text_input("Telefone / WhatsApp")
             regiao_cli = st.selectbox("Região", ["Selecione...", "Sudeste", "Sul", "Nordeste", "Centro-Oeste", "Norte"])
-            status_cli = st.selectbox("Status do Cliente", ["Ativo", "Lead", "Em Negociação", "Inativo", "Perdido", "VIP"])
+            
+            # Lista completa com todas as opções enviadas
+            status_opcoes = [
+                "🆕 Novo Lead",
+                "📞 Primeiro Contato",
+                "💬 Em Atendimento",
+                "📋 Proposta Enviada",
+                "⏳ Aguardando Resposta",
+                "🤝 Negociação",
+                "✅ Venda Fechada",
+                "❌ Venda Perdida",
+                "🔄 Pós-Venda",
+                "❤️ Cliente Fidelizado",
+                "📅 Follow-up Agendado",
+                "🚫 Sem Interesse",
+                "⏳ Em Espera",
+                "🔄 Reativado"
+            ]
+            status_cli = st.selectbox("Status do Cliente", status_opcoes)
             data_cad = st.text_input("Data de Cadastro", value=str(date.today()))
             
         submitted_cli = st.form_submit_button("Salvar Cliente")
@@ -383,10 +401,10 @@ elif selected == "Clientes":
             else row["nome"],
             axis=1,
         )
-        df_exibicao["Tipo"] = df_clientes["regiao"] if "regiao" in df_clientes.columns else "Sudeste"
+        df_exibicao["Tipo / Região"] = df_clientes["regiao"] if "regiao" in df_clientes.columns else "Sudeste"
         df_exibicao["Data"] = df_clientes["data"] if "data" in df_clientes.columns else str(date.today())
         df_exibicao["Responsável"] = df_clientes["responsavel"] if "responsavel" in df_clientes.columns else "Equipe Comercial"
-        df_exibicao["Status"] = df_clientes["status"] if "status" in df_clientes.columns else "Ativo"
+        df_exibicao["Status"] = df_clientes["status"] if "status" in df_clientes.columns else "🆕 Novo Lead"
         df_exibicao["Ações"] = "Gerenciar / WhatsApp"
         
         st.dataframe(df_exibicao, use_container_width=True, hide_index=True)
@@ -413,7 +431,7 @@ elif selected == "Leads":
                 conn.execute("""
                     INSERT INTO clientes (nome, empresa, email, telefone, regiao, status, data, responsavel) 
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                """, (lead_nome, lead_empresa, lead_email, lead_tel, "Sudeste", "Lead", str(date.today()), "Prospecção"))
+                """, (lead_nome, lead_empresa, lead_email, lead_tel, "Sudeste", "🆕 Novo Lead", str(date.today()), "Prospecção"))
                 conn.commit()
                 conn.close()
                 st.success("Lead cadastrado com sucesso!")
@@ -423,9 +441,9 @@ elif selected == "Leads":
 
     st.markdown("<div style='margin-top: 25px;'></div>", unsafe_allow_html=True)
     st.markdown("### 🔍 Lista de Leads Atuais")
-    df_leads_only = df_clientes[df_clientes["status"] == "Lead"] if not df_clientes.empty and "status" in df_clientes.columns else pd.DataFrame()
+    df_leads_only = df_clientes[df_clientes["status"].str.contains("Lead", case=False, na=False)] if not df_clientes.empty and "status" in df_clientes.columns else pd.DataFrame()
     if not df_leads_only.empty:
-        st.dataframe(df_leads_only[["nome", "empresa", "email", "telefone", "data"]], use_container_width=True, hide_index=True)
+        st.dataframe(df_leads_only[["nome", "empresa", "email", "telefone", "data", "status"]], use_container_width=True, hide_index=True)
     else:
         st.info("Nenhum lead cadastrado no momento.")
 
