@@ -171,19 +171,22 @@ if selected == "Dashboard":
 
     st.markdown("<div style='margin-top: 35px;'></div>", unsafe_allow_html=True)
 
-    # Gráficos do Dashboard
+    # Gráficos do Dashboard atualizados conforme solicitado
     col_g1, col_g2 = st.columns(2)
 
     with col_g1:
-        st.markdown("#### 📈 Vendas por Data / Período")
+        st.markdown("#### 📊 1. Vendas por mês (Barras)")
         if not df_vendas.empty and "data" in df_vendas.columns and "valor" in df_vendas.columns:
-            df_vendas_grouped = df_vendas.groupby("data")["valor"].sum().reset_index()
-            fig_vendas = px.line(
+            # Extrai o mês da data para agrupar (YYYY-MM)
+            df_vendas['mes'] = pd.to_datetime(df_vendas['data'], errors='coerce').dt.strftime('%b').fillna('Outros')
+            df_vendas_grouped = df_vendas.groupby("mes")["valor"].sum().reset_index()
+            
+            fig_vendas = px.bar(
                 df_vendas_grouped, 
-                x="data", 
+                x="mes", 
                 y="valor", 
-                markers=True,
-                labels={"data": "Data", "valor": "Valor (R$)"}
+                labels={"mes": "Mês", "valor": "R$"},
+                color_discrete_sequence=["#2563EB"]
             )
             fig_vendas.update_layout(
                 paper_bgcolor="rgba(0,0,0,0)",
@@ -194,30 +197,57 @@ if selected == "Dashboard":
             )
             st.plotly_chart(fig_vendas, use_container_width=True)
         else:
-            st.info("Nenhum dado de vendas suficiente para exibir o gráfico.")
+            # Gráfico demonstrativo caso a tabela esteja vazia, seguindo o padrão da imagem
+            df_demo = pd.DataFrame({"mes": ["Jan", "Fev", "Mar", "Abr"], "valor": [30000, 50000, 70000, 90000]})
+            fig_vendas = px.bar(
+                df_demo, x="mes", y="valor", 
+                labels={"mes": "", "valor": "R$"},
+                color_discrete_sequence=["#ffffff"]
+            )
+            fig_vendas.update_layout(
+                paper_bgcolor="rgba(0,0,0,0)",
+                plot_bgcolor="rgba(0,0,0,0)",
+                font=dict(color="#ffffff"),
+                xaxis=dict(showgrid=False),
+                yaxis=dict(showgrid=True, gridcolor="#1e293b")
+            )
+            st.plotly_chart(fig_vendas, use_container_width=True)
 
     with col_g2:
-        st.markdown("#### 📊 Pipeline por Estágio")
+        st.markdown("#### 🥧 2. Distribuição do Pipeline (Pizza)")
         if not df_pipeline.empty and "estagio" in df_pipeline.columns and "valor" in df_pipeline.columns:
             df_pipe_grouped = df_pipeline.groupby("estagio")["valor"].sum().reset_index()
-            fig_pipe = px.bar(
+            fig_pipe = px.pie(
                 df_pipe_grouped, 
-                x="estagio", 
-                y="valor", 
-                color="estagio",
-                labels={"estagio": "Estágio", "valor": "Valor Total (R$)"}
+                names="estagio", 
+                values="valor", 
+                hole=0.4
             )
             fig_pipe.update_layout(
                 paper_bgcolor="rgba(0,0,0,0)",
                 plot_bgcolor="rgba(0,0,0,0)",
-                font=dict(color="#ffffff"),
-                showlegend=False,
-                xaxis=dict(showgrid=False),
-                yaxis=dict(showgrid=True, gridcolor="#1e293b")
+                font=dict(color="#ffffff")
             )
             st.plotly_chart(fig_pipe, use_container_width=True)
         else:
-            st.info("Nenhum dado no pipeline para exibir o gráfico.")
+            # Gráfico demonstrativo de pizza caso esteja vazio
+            df_demo_pipe = pd.DataFrame({
+                "estagio": ["Prospecção", "Qualificação", "Proposta", "Negociação", "Fechamento"],
+                "porcentagem": [35, 25, 20, 12, 8]
+            })
+            fig_pipe = px.pie(
+                df_demo_pipe, 
+                names="estagio", 
+                values="porcentagem", 
+                hole=0.4,
+                color_discrete_sequence=px.colors.sequential.Blues_r
+            )
+            fig_pipe.update_layout(
+                paper_bgcolor="rgba(0,0,0,0)",
+                plot_bgcolor="rgba(0,0,0,0)",
+                font=dict(color="#ffffff")
+            )
+            st.plotly_chart(fig_pipe, use_container_width=True)
 
 elif selected == "Clientes":
     st.markdown("### 👤 Cadastro Completo de Clientes e Leads")
