@@ -194,7 +194,7 @@ if selected == "Dashboard":
             df_demo = pd.DataFrame({"mes": ["Jan", "Fev", "Mar", "Abr"], "valor": [30000, 50000, 70000, 90000]})
             fig_vendas = px.bar(
                 df_demo, x="mes", y="valor", labels={"mes": "", "valor": "R$"},
-                color_discrete_sequence=["#ffffff"]
+                color_discrete_sequence=["#3B82F6"]
             )
             fig_vendas.update_layout(
                 paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
@@ -203,10 +203,18 @@ if selected == "Dashboard":
             st.plotly_chart(fig_vendas, use_container_width=True)
 
     with col_g2:
-        st.markdown("#### 🥧 2. Distribuição do Pipeline (Pizza)")
+        st.markdown("#### 🥧 2. Pizza do Pipeline")
+        st.markdown("<p style='color: #94a3b8; font-size: 13px; margin-top: -10px;'>Cada etapa pode ter uma cor.</p>", unsafe_allow_html=True)
+        
+        # Paleta exata solicitada: Azul, Verde, Amarelo, Laranja, Rosa
+        cores_pipeline = ["#3B82F6", "#10B981", "#F59E0B", "#EF4444", "#BE185D"]
+
         if not df_pipeline.empty and "estagio" in df_pipeline.columns and "valor" in df_pipeline.columns:
             df_pipe_grouped = df_pipeline.groupby("estagio")["valor"].sum().reset_index()
-            fig_pipe = px.pie(df_pipe_grouped, names="estagio", values="valor", hole=0.4)
+            fig_pipe = px.pie(
+                df_pipe_grouped, names="estagio", values="valor", hole=0.4,
+                color_discrete_sequence=cores_pipeline
+            )
             fig_pipe.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font=dict(color="#ffffff"))
             st.plotly_chart(fig_pipe, use_container_width=True)
         else:
@@ -216,7 +224,7 @@ if selected == "Dashboard":
             })
             fig_pipe = px.pie(
                 df_demo_pipe, names="estagio", values="porcentagem", hole=0.4,
-                color_discrete_sequence=px.colors.sequential.Blues_r
+                color_discrete_sequence=cores_pipeline
             )
             fig_pipe.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font=dict(color="#ffffff"))
             st.plotly_chart(fig_pipe, use_container_width=True)
@@ -231,6 +239,7 @@ if selected == "Dashboard":
         if not df_vendas.empty and "data" in df_vendas.columns and "valor" in df_vendas.columns:
             df_vendas_line = df_vendas.groupby("data")["valor"].sum().reset_index()
             fig_linha = px.line(df_vendas_line, x="data", y="valor", markers=True, labels={"data": "", "valor": "Receita"})
+            fig_linha.update_traces(line_color="#3B82F6", marker=dict(size=8, color="#3B82F6"))
             fig_linha.update_layout(
                 paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
                 font=dict(color="#ffffff"), xaxis=dict(showgrid=False), yaxis=dict(showgrid=True, gridcolor="#1e293b")
@@ -241,7 +250,7 @@ if selected == "Dashboard":
             fig_linha = px.line(
                 df_demo_line, x="mes", y="receita", markers=True, labels={"mes": "", "receita": "Receita"}
             )
-            fig_linha.update_traces(line_color="#ffffff", marker=dict(size=8, color="#ffffff"))
+            fig_linha.update_traces(line_color="#3B82F6", marker=dict(size=8, color="#3B82F6"))
             fig_linha.update_layout(
                 paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
                 font=dict(color="#ffffff"), xaxis=dict(showgrid=False), yaxis=dict(showgrid=True, gridcolor="#1e293b")
@@ -252,7 +261,11 @@ if selected == "Dashboard":
         st.markdown("#### 📊 4. Vendas por vendedor")
         if not df_vendas.empty and "responsavel" in df_vendas.columns and "valor" in df_vendas.columns:
             df_vend_resp = df_vendas.groupby("responsavel")["valor"].sum().reset_index()
-            fig_vend = px.bar(df_vend_resp, x="valor", y="responsavel", orientation='h', labels={"valor": "", "responsavel": ""})
+            fig_vend = px.bar(
+                df_vend_resp, x="valor", y="responsavel", orientation='h', 
+                labels={"valor": "", "responsavel": ""},
+                color_discrete_sequence=["#3B82F6"]
+            )
             fig_vend.update_layout(
                 paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
                 font=dict(color="#ffffff"), xaxis=dict(showgrid=True, gridcolor="#1e293b"), yaxis=dict(showgrid=False, categoryorder="total ascending")
@@ -262,7 +275,7 @@ if selected == "Dashboard":
             df_demo_vend = pd.DataFrame({"vendedor": ["Ana", "João", "Maria", "Carlos"], "vendas": [15000, 28000, 42000, 65000]})
             fig_vend = px.bar(
                 df_demo_vend, x="vendas", y="vendedor", orientation='h', labels={"vendas": "", "vendedor": ""},
-                color_discrete_sequence=["#ffffff"]
+                color_discrete_sequence=["#3B82F6"]
             )
             fig_vend.update_layout(
                 paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
@@ -280,7 +293,7 @@ if selected == "Dashboard":
     })
     fig_funil = px.funnel(
         df_demo_funil, x="quantidade", y="etapa", labels={"quantidade": "Leads", "etapa": ""},
-        color_discrete_sequence=["#ffffff"]
+        color_discrete_sequence=["#3B82F6"]
     )
     fig_funil.update_layout(
         paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
