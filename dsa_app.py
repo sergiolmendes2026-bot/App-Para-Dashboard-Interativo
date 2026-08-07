@@ -170,22 +170,20 @@ if selected == "Dashboard":
 
     st.markdown("<div style='margin-bottom: 25px;'></div>", unsafe_allow_html=True)
 
-    # --- 1. FUNIL DE VENDAS PERFEITO (Alinhado em formato de pirâmide/funil) ---
+    # --- 1. FUNIL DE VENDAS (Ordem correta: Prospecção no topo) ---
     etapas = ['Prospecção', 'Qualificação', 'Proposta', 'Negociação', 'Fechamento']
     if not df_pipeline.empty and "estagio" in df_pipeline.columns:
         contagem_estagios = df_pipeline['estagio'].value_counts()
         valores = [int(contagem_estagios.get(est, 0)) for est in etapas]
     else:
-        valores = [5, 4, 3, 2, 1]  # Valores padrão estéticos se vazio
+        valores = [0, 0, 0, 0, 0]
     
     max_val = max(valores) if max(valores) > 0 else 1
-    # Centralização perfeita das barras para simular o formato de funil clássico
     offsets = [(max_val - v) / 2 for v in valores]
-    textos = [f"{v}" for v in valores]
+    textos = [str(v) if v > 0 else "" for v in valores]
 
     fig_funil = go.Figure()
 
-    # Barra invisível de espaçamento para centralizar
     fig_funil.add_trace(go.Bar(
         y=etapas,
         x=offsets,
@@ -195,7 +193,6 @@ if selected == "Dashboard":
         showlegend=False
     ))
 
-    # Barra principal colorida do funil
     fig_funil.add_trace(go.Bar(
         y=etapas,
         x=valores,
@@ -214,27 +211,34 @@ if selected == "Dashboard":
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
         height=220,
-        xaxis=dict(visible=False, range=[0, max_val * 1.2]),
+        xaxis=dict(visible=False, range=[0, max_val * 1.2 if max_val > 1 else 2]),
         yaxis=dict(
             tickfont=dict(color="white", size=13),
             automargin=True,
-            categoryarray=etapas
+            categoryarray=etapas,
+            autorange="reversed" # Mantém Prospecção no topo
         )
     )
 
-    # --- 2. VENDAS POR MÊS (Linha limpa e fluida) ---
-    meses_ordem = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun"]
+    # --- 2. VENDAS POR MÊS (Garantindo meses corretos e sem números aleatórios) ---
+    meses_base = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun"]
+    
     if not df_vendas.empty and "data" in df_vendas.columns and "valor" in df_vendas.columns:
         df_vendas['data_dt'] = pd.to_datetime(df_vendas['data'], errors='coerce')
-        df_vendas['mes'] = df_vendas['data_dt'].dt.strftime('%b')
-        vendas_mes = df_vendas.groupby('mes')['valor'].sum().reset_index()
-        vendas_mes['mes'] = pd.Categorical(vendas_mes['mes'], categories=["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"], ordered=True)
-        vendas_mes = vendas_mes.sort_values('mes')
-        x_vals = vendas_mes['mes'].astype(str).tolist()
+        df_vendas['mes_str'] = df_vendas['data_dt'].dt.strftime('%b')
+        
+        # Agrupa por mês se houver datas válidas
+        vendas_mes = df_vendas.groupby('mes_str')['valor'].sum().reset_index()
+        
+        # Cria um DataFrame padrão para garantir todos os meses de Jan a Jun
+        df_padrao = pd.DataFrame({"mes_str": meses_base})
+        vendas_mes = pd.merge(df_padrao, vendas_mes, on="mes_str", how="left").fillna(0)
+        
+        x_vals = vendas_mes['mes_str'].tolist()
         y_vals = vendas_mes['valor'].tolist()
     else:
-        x_vals = meses_ordem
-        y_vals = [80000, 90000, 140000, 75000, 210000, 290000] # Padrão estético limpo se vazio
+        x_vals = meses_base
+        y_vals = [0, 0, 0, 0, 0, 0]
 
     fig_line = go.Figure(go.Scatter(
         x=x_vals,
@@ -252,7 +256,9 @@ if selected == "Dashboard":
         xaxis=dict(
             tickfont=dict(color="#94a3b8", size=12),
             showgrid=False,
-            zeroline=False
+            zeroline=False,
+            categoryorder="array",
+            categoryarray=meses_base
         ),
         yaxis=dict(
             tickfont=dict(color="#94a3b8", size=12),
@@ -263,15 +269,15 @@ if selected == "Dashboard":
     )
 
     # --- 3. VENDAS POR REGIÃO (Donut Perfeito) ---
-    if not df_clientes.empty and "regiao" in df_clientes.columns:
+    if not df_clientes.empty and "regiao" in df_clientes.columns and df_clientes["regiao"].dropna().any():
         regioes_contagem = df_clientes['regiao'].value_counts()
         labels_regiao = regioes_contagem.index.tolist()
         values_regiao = regioes_contagem.values.tolist()
     else:
-        labels_regiao = ["Sudeste", "Sul", "Nordeste", "Centro-Oeste", "Norte"]
-        values_regiao = [45, 20, 15, 12, 8]
+        labels_regiao = ["Sem dados"]
+        values_regiao = [1]
 
-    cores_regiao = ["#2563EB", "#3b82f6", "#10b981", "#f59e0b", "#ef4444"]
+    cores_regiao = ["#2563EB", "#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#334155"]
 
     fig_regiao = go.Figure(go.Pie(
         labels=labels_regiao,
@@ -295,15 +301,15 @@ if selected == "Dashboard":
     )
 
     # --- 4. TIPOS DE CLIENTES (Donut Perfeito) ---
-    if not df_clientes.empty and "status" in df_clientes.columns:
+    if not df_clientes.empty and "status" in df_clientes.columns and df_clientes["status"].dropna().any():
         status_contagem = df_clientes['status'].value_counts()
         labels_tipo = status_contagem.index.tolist()
         values_tipo = status_contagem.values.tolist()
     else:
-        labels_tipo = ["Ativos", "Leads", "Inativos"]
-        values_tipo = [60, 25, 15]
+        labels_tipo = ["Sem dados"]
+        values_tipo = [1]
 
-    cores_tipo = ["#2563EB", "#0ea5e9", "#10b981"]
+    cores_tipo = ["#2563EB", "#0ea5e9", "#10b981", "#334155"]
 
     fig_tipo = go.Figure(go.Pie(
         labels=labels_tipo,
