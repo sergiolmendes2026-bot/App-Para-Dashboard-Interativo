@@ -354,7 +354,7 @@ elif selected == "Clientes":
         with col_c2:
             telefone_cli = st.text_input("Telefone / WhatsApp")
             regiao_cli = st.selectbox("Região", ["Selecione...", "Sudeste", "Sul", "Nordeste", "Centro-Oeste", "Norte"])
-            status_cli = st.selectbox("Status do Cliente", ["Ativo", "Lead", "Inativo"])
+            status_cli = st.selectbox("Status do Cliente", ["Ativo", "Lead", "Em Negociação", "Inativo", "Perdido", "VIP"])
             data_cad = st.text_input("Data de Cadastro", value=str(date.today()))
             
         submitted_cli = st.form_submit_button("Salvar Cliente")
