@@ -10,7 +10,6 @@ from streamlit_option_menu import option_menu
 def inicializar_banco():
     conn = sqlite3.connect("crm.db")
     
-    # Cria as tabelas se não existirem
     conn.execute("""
         CREATE TABLE IF NOT EXISTS clientes (
             id INTEGER PRIMARY KEY AUTOINCREMENT, 
@@ -52,10 +51,8 @@ def inicializar_banco():
         )
     """)
     
-    # Garante que colunas novas existam mesmo em bases antigas
     cursor = conn.cursor()
     
-    # Migração Clientes
     cursor.execute("PRAGMA table_info(clientes)")
     colunas_existentes_clientes = [col[1] for col in cursor.fetchall()]
     novas_colunas_clientes = {"origem": "TEXT", "motivo_perda": "TEXT", "data_fechamento": "TEXT", "responsavel": "TEXT"}
@@ -63,7 +60,6 @@ def inicializar_banco():
         if coluna not in colunas_existentes_clientes:
             conn.execute(f"ALTER TABLE clientes ADD COLUMN {coluna} {tipo}")
 
-    # Migração Pipeline
     cursor.execute("PRAGMA table_info(pipeline)")
     colunas_existentes_pipeline = [col[1] for col in cursor.fetchall()]
     novas_colunas_pipeline = {"empresa": "TEXT", "contato": "TEXT", "telefone": "TEXT", "email": "TEXT", "responsavel": "TEXT", "origem": "TEXT"}
@@ -71,7 +67,6 @@ def inicializar_banco():
         if coluna not in colunas_existentes_pipeline:
             conn.execute(f"ALTER TABLE pipeline ADD COLUMN {coluna} {tipo}")
 
-    # Migração Vendas
     cursor.execute("PRAGMA table_info(vendas)")
     colunas_existentes_vendas = [col[1] for col in cursor.fetchall()]
     if "status" not in colunas_existentes_vendas:
@@ -319,10 +314,10 @@ elif selected == "Vendas":
     st.markdown("<div style='margin-top: 25px;'></div>", unsafe_allow_html=True)
     st.markdown("### 📜 Histórico de Vendas")
     
+    # --- BARRA DE PESQUISA EXIBIDA SEMPRE ---
+    pesquisa_cliente = st.text_input("🔍 Pesquisar cliente...", placeholder="Digite o nome do cliente...")
+
     if not df_vendas.empty:
-        # --- BARRA DE PESQUISA DE CLIENTE ---
-        pesquisa_cliente = st.text_input("🔍 Pesquisar cliente...", placeholder="Digite o nome do cliente...")
-        
         df_tabela_vendas = df_vendas[['cliente', 'valor', 'responsavel', 'data', 'status']].copy()
         df_tabela_vendas.columns = ['Cliente', 'Valor', 'Responsável', 'Data', 'Status']
         
