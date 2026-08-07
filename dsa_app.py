@@ -170,7 +170,7 @@ if selected == "Dashboard":
 
     st.markdown("<div style='margin-bottom: 25px;'></div>", unsafe_allow_html=True)
 
-    # --- 1. FUNIL DE VENDAS (Ordem correta: Prospecção no topo) ---
+    # --- 1. FUNIL DE VENDAS (Ordem correta e simétrico) ---
     etapas = ['Prospecção', 'Qualificação', 'Proposta', 'Negociação', 'Fechamento']
     if not df_pipeline.empty and "estagio" in df_pipeline.columns:
         contagem_estagios = df_pipeline['estagio'].value_counts()
@@ -220,20 +220,15 @@ if selected == "Dashboard":
         )
     )
 
-    # --- 2. VENDAS POR MÊS (Garantindo meses corretos e sem números aleatórios) ---
+    # --- 2. VENDAS POR MÊS ---
     meses_base = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun"]
     
     if not df_vendas.empty and "data" in df_vendas.columns and "valor" in df_vendas.columns:
         df_vendas['data_dt'] = pd.to_datetime(df_vendas['data'], errors='coerce')
         df_vendas['mes_str'] = df_vendas['data_dt'].dt.strftime('%b')
-        
-        # Agrupa por mês se houver datas válidas
         vendas_mes = df_vendas.groupby('mes_str')['valor'].sum().reset_index()
-        
-        # Cria um DataFrame padrão para garantir todos os meses de Jan a Jun
         df_padrao = pd.DataFrame({"mes_str": meses_base})
         vendas_mes = pd.merge(df_padrao, vendas_mes, on="mes_str", how="left").fillna(0)
-        
         x_vals = vendas_mes['mes_str'].tolist()
         y_vals = vendas_mes['valor'].tolist()
     else:
@@ -268,14 +263,22 @@ if selected == "Dashboard":
         )
     )
 
-    # --- 3. VENDAS POR REGIÃO (Donut Perfeito) ---
+    # --- 3. VENDAS POR REGIÃO (Com todas as regiões do Brasil mapeadas) ---
+    regioes_fixas = ["Sudeste", "Sul", "Nordeste", "Centro-Oeste", "Norte"]
     if not df_clientes.empty and "regiao" in df_clientes.columns and df_clientes["regiao"].dropna().any():
         regioes_contagem = df_clientes['regiao'].value_counts()
-        labels_regiao = regioes_contagem.index.tolist()
-        values_regiao = regioes_contagem.values.tolist()
+        labels_regiao = [r for r in regioes_fixas if r in regioes_contagem.index]
+        # Adiciona outras se houver alguma fora do padrão
+        for r in regioes_contagem.index:
+            if r not in labels_regiao and r != "Selecione...":
+                labels_regiao.append(r)
+        values_regiao = [int(regioes_contagem[r]) for r in labels_regiao]
+        if not labels_regiao:
+            labels_regiao = ["Sem dados"]
+            values_regiao = [1]
     else:
-        labels_regiao = ["Sem dados"]
-        values_regiao = [1]
+        labels_regiao = regioes_fixas
+        values_regiao = [0, 0, 0, 0, 0]
 
     cores_regiao = ["#2563EB", "#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#334155"]
 
@@ -306,8 +309,8 @@ if selected == "Dashboard":
         labels_tipo = status_contagem.index.tolist()
         values_tipo = status_contagem.values.tolist()
     else:
-        labels_tipo = ["Sem dados"]
-        values_tipo = [1]
+        labels_tipo = ["Ativo", "Lead", "Inativo"]
+        values_tipo = [0, 0, 0]
 
     cores_tipo = ["#2563EB", "#0ea5e9", "#10b981", "#334155"]
 
