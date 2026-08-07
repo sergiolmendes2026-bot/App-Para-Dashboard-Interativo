@@ -3,6 +3,7 @@ import sqlite3
 import streamlit as st
 import plotly.express as px
 import plotly.graph_objects as go
+import io
 from datetime import date
 from streamlit_option_menu import option_menu
 
@@ -116,7 +117,7 @@ with st.sidebar:
             "gear-fill"       
         ],
         menu_icon="cast",
-        default_index=4,
+        default_index=5,
         styles={
             "container": {"padding": "0!important", "background-color": "transparent"},
             "icon": {"color": "#60a5fa", "font-size": "15px"},
@@ -314,14 +315,12 @@ elif selected == "Vendas":
     st.markdown("<div style='margin-top: 25px;'></div>", unsafe_allow_html=True)
     st.markdown("### 📜 Histórico de Vendas")
     
-    # --- BARRA DE PESQUISA EXIBIDA SEMPRE ---
     pesquisa_cliente = st.text_input("🔍 Pesquisar cliente...", placeholder="Digite o nome do cliente...")
 
     if not df_vendas.empty:
         df_tabela_vendas = df_vendas[['cliente', 'valor', 'responsavel', 'data', 'status']].copy()
         df_tabela_vendas.columns = ['Cliente', 'Valor', 'Responsável', 'Data', 'Status']
         
-        # Filtra a tabela se houver texto na pesquisa
         if pesquisa_cliente:
             df_tabela_vendas = df_tabela_vendas[df_tabela_vendas['Cliente'].str.contains(pesquisa_cliente, case=False, na=False)]
             
@@ -333,9 +332,33 @@ elif selected == "Vendas":
 
 elif selected == "Relatórios":
     st.markdown("### 📈 Relatórios e Exportação")
+    st.markdown("<p style='color: #94a3b8; font-size: 14px; margin-bottom: 20px;'>Botões como:</p>", unsafe_allow_html=True)
+    
     if not df_vendas.empty:
-        csv_vendas = df_vendas.to_csv(index=False).encode('utf-8')
-        st.download_button("Baixar CSV de Vendas", data=csv_vendas, file_name="vendas_crm.csv", mime="text/csv")
+        # Geração do arquivo Excel em memória
+        output_excel = io.BytesIO()
+        with pd.ExcelWriter(output_excel, engine='openpyxl') as writer:
+            df_vendas.to_excel(writer, index=False, sheet_name='Vendas')
+        excel_data = output_excel.getvalue()
+
+        # Geração do relatório em formato de texto estruturado para PDF/Txt
+        pdf_data = df_vendas.to_string(index=False).encode('utf-8')
+
+        col_exp1, col_exp2 = st.columns(2)
+        with col_exp1:
+            st.download_button(
+                label="📥 Exportar Excel",
+                data=excel_data,
+                file_name="vendas_crm.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            )
+        with col_exp2:
+            st.download_button(
+                label="📥 Exportar PDF",
+                data=pdf_data,
+                file_name="relatorio_vendas.txt",
+                mime="text/plain"
+            )
     else:
         st.info("Sem dados para exportar.")
 
