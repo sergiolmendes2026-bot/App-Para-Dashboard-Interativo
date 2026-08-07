@@ -32,7 +32,13 @@ def inicializar_banco():
             id INTEGER PRIMARY KEY AUTOINCREMENT, 
             titulo TEXT, 
             estagio TEXT, 
-            valor REAL
+            valor REAL,
+            empresa TEXT,
+            contato TEXT,
+            telefone TEXT,
+            email TEXT,
+            responsavel TEXT,
+            origem TEXT
         )
     """)
     conn.execute("""
@@ -48,18 +54,35 @@ def inicializar_banco():
     # Garante que colunas novas existam mesmo em bases antigas
     cursor = conn.cursor()
     cursor.execute("PRAGMA table_info(clientes)")
-    colunas_existentes = [col[1] for col in cursor.fetchall()]
+    colunas_existentes_clientes = [col[1] for col in cursor.fetchall()]
     
-    novas_colunas = {
+    novas_colunas_clientes = {
         "origem": "TEXT",
         "motivo_perda": "TEXT",
         "data_fechamento": "TEXT",
         "responsavel": "TEXT"
     }
     
-    for coluna, tipo in novas_colunas.items():
-        if coluna not in colunas_existentes:
+    for coluna, tipo in novas_colunas_clientes.items():
+        if coluna not in colunas_existentes_clientes:
             conn.execute(f"ALTER TABLE clientes ADD COLUMN {coluna} {tipo}")
+
+    # Garante que colunas novas existam na tabela pipeline
+    cursor.execute("PRAGMA table_info(pipeline)")
+    colunas_existentes_pipeline = [col[1] for col in cursor.fetchall()]
+    
+    novas_colunas_pipeline = {
+        "empresa": "TEXT",
+        "contato": "TEXT",
+        "telefone": "TEXT",
+        "email": "TEXT",
+        "responsavel": "TEXT",
+        "origem": "TEXT"
+    }
+    
+    for coluna, tipo in novas_colunas_pipeline.items():
+        if coluna not in colunas_existentes_pipeline:
+            conn.execute(f"ALTER TABLE pipeline ADD COLUMN {coluna} {tipo}")
             
     conn.commit()
     conn.close()
@@ -134,7 +157,7 @@ def carregar_dados():
     tabelas = [row[0] for row in conn.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()]
     
     df_clientes = pd.read_sql("SELECT * FROM clientes", conn) if "clientes" in tabelas else pd.DataFrame(columns=["id", "nome", "empresa", "email", "telefone", "regiao", "status", "origem", "motivo_perda", "data", "data_fechamento", "responsavel"])
-    df_pipeline = pd.read_sql("SELECT * FROM pipeline", conn) if "pipeline" in tabelas else pd.DataFrame(columns=["id", "titulo", "estagio", "valor"])
+    df_pipeline = pd.read_sql("SELECT * FROM pipeline", conn) if "pipeline" in tabelas else pd.DataFrame(columns=["id", "titulo", "estagio", "valor", "empresa", "contato", "telefone", "email", "responsavel", "origem"])
     df_vendas = pd.read_sql("SELECT * FROM vendas", conn) if "vendas" in tabelas else pd.DataFrame(columns=["id", "cliente", "valor", "data", "responsavel"])
     
     conn.close()
@@ -360,25 +383,39 @@ elif selected == "Leads":
 
 elif selected == "Pipeline":
     st.markdown("### 📊 Pipeline Comercial")
-    st.markdown("<p style='color: #94a3b8; font-size: 14px; margin-bottom: 20px;'>Acompanhamento de negócios por etapas do funil.</p>", unsafe_allow_html=True)
+    st.markdown("<p style='color: #94a3b8; font-size: 14px; margin-bottom: 20px;'>Acompanhamento de negócios por etapas do funil com novos campos robustos.</p>", unsafe_allow_html=True)
 
     with st.form("form_pipeline", clear_on_submit=True):
         col_p1, col_p2, col_p3 = st.columns(3)
         with col_p1:
             p_titulo = st.text_input("Título do Negócio *")
+            p_empresa = st.text_input("Empresa")
         with col_p2:
             p_estagio = st.selectbox("Estágio", ["Prospecção", "Qualificação", "Proposta", "Negociação", "Fechamento"])
+            p_contato = st.text_input("Contato")
         with col_p3:
             p_valor = st.number_input("Valor Estimado (R$)", min_value=0.0, step=100.0)
+            p_telefone = st.text_input("Telefone")
+            
+        col_p4, col_p5, col_p6 = st.columns(3)
+        with col_p4:
+            p_email = st.text_input("E-mail")
+        with col_p5:
+            p_responsavel = st.text_input("Responsável", value="Comercial")
+        with col_p6:
+            p_origem = st.selectbox("Origem do Lead", ["Indicação", "LinkedIn", "Google", "Outbound", "Instagram"])
             
         btn_pipe = st.form_submit_button("Adicionar Negócio ao Pipeline")
         if btn_pipe:
             if p_titulo:
                 conn = conectar()
-                conn.execute("INSERT INTO pipeline (titulo, estagio, valor) VALUES (?, ?, ?)", (p_titulo, p_estagio, p_valor))
+                conn.execute("""
+                    INSERT INTO pipeline (titulo, estagio, valor, empresa, contato, telefone, email, responsavel, origem) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, (p_titulo, p_estagio, p_valor, p_empresa, p_contato, p_telefone, p_email, p_responsavel, p_origem))
                 conn.commit()
                 conn.close()
-                st.success("Negócio adicionado!")
+                st.success("Negócio adicionado com sucesso!")
                 st.rerun()
             else:
                 st.error("Informe o título do negócio.")
@@ -393,10 +430,14 @@ elif selected == "Pipeline":
             subset = df_pipeline[df_pipeline["estagio"] == estagio] if not df_pipeline.empty and "estagio" in df_pipeline.columns else pd.DataFrame()
             if not subset.empty:
                 for _, row in subset.iterrows():
+                    empresa_txt = row['empresa'] if 'empresa' in row and row['empresa'] else 'N/A'
+                    contato_txt = row['contato'] if 'contato' in row and row['contato'] else 'N/A'
                     st.markdown(f"""
-                        <div style="background-color: #0f172a; padding: 10px; border-radius: 6px; margin-top: 10px; border: 1px solid #334155;">
+                        <div style="background-color: #0f172a; padding: 10px; border-radius: 6px; margin-top: 10px; border: 1px solid #334155; border-left: 4px solid #60a5fa;">
                             <div style="font-size: 13px; font-weight: bold; color: #ffffff;">{row['titulo']}</div>
-                            <div style="font-size: 12px; color: #10b981; margin-top: 4px;">R$ {row['valor']:,.2f}</div>
+                            <div style="font-size: 11px; color: #94a3b8; margin-top: 2px;">🏢 {empresa_txt}</div>
+                            <div style="font-size: 11px; color: #94a3b8;">👤 {contato_txt}</div>
+                            <div style="font-size: 12px; color: #10b981; font-weight: bold; margin-top: 4px;">R$ {row['valor']:,.2f}</div>
                         </div>
                     """, unsafe_allow_html=True)
             else:
