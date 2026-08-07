@@ -171,45 +171,34 @@ if selected == "Dashboard":
 
     st.markdown("<div style='margin-top: 35px;'></div>", unsafe_allow_html=True)
 
-    # Gráficos do Dashboard atualizados conforme solicitado
+    # Linha 1 de Gráficos (1 e 2)
     col_g1, col_g2 = st.columns(2)
 
     with col_g1:
         st.markdown("#### 📊 1. Vendas por mês (Barras)")
         if not df_vendas.empty and "data" in df_vendas.columns and "valor" in df_vendas.columns:
-            # Extrai o mês da data para agrupar (YYYY-MM)
             df_vendas['mes'] = pd.to_datetime(df_vendas['data'], errors='coerce').dt.strftime('%b').fillna('Outros')
             df_vendas_grouped = df_vendas.groupby("mes")["valor"].sum().reset_index()
             
             fig_vendas = px.bar(
-                df_vendas_grouped, 
-                x="mes", 
-                y="valor", 
-                labels={"mes": "Mês", "valor": "R$"},
+                df_vendas_grouped, x="mes", y="valor", 
+                labels={"mes": "", "valor": "R$"},
                 color_discrete_sequence=["#2563EB"]
             )
             fig_vendas.update_layout(
-                paper_bgcolor="rgba(0,0,0,0)",
-                plot_bgcolor="rgba(0,0,0,0)",
-                font=dict(color="#ffffff"),
-                xaxis=dict(showgrid=False),
-                yaxis=dict(showgrid=True, gridcolor="#1e293b")
+                paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+                font=dict(color="#ffffff"), xaxis=dict(showgrid=False), yaxis=dict(showgrid=True, gridcolor="#1e293b")
             )
             st.plotly_chart(fig_vendas, use_container_width=True)
         else:
-            # Gráfico demonstrativo caso a tabela esteja vazia, seguindo o padrão da imagem
             df_demo = pd.DataFrame({"mes": ["Jan", "Fev", "Mar", "Abr"], "valor": [30000, 50000, 70000, 90000]})
             fig_vendas = px.bar(
-                df_demo, x="mes", y="valor", 
-                labels={"mes": "", "valor": "R$"},
+                df_demo, x="mes", y="valor", labels={"mes": "", "valor": "R$"},
                 color_discrete_sequence=["#ffffff"]
             )
             fig_vendas.update_layout(
-                paper_bgcolor="rgba(0,0,0,0)",
-                plot_bgcolor="rgba(0,0,0,0)",
-                font=dict(color="#ffffff"),
-                xaxis=dict(showgrid=False),
-                yaxis=dict(showgrid=True, gridcolor="#1e293b")
+                paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+                font=dict(color="#ffffff"), xaxis=dict(showgrid=False), yaxis=dict(showgrid=True, gridcolor="#1e293b")
             )
             st.plotly_chart(fig_vendas, use_container_width=True)
 
@@ -217,37 +206,87 @@ if selected == "Dashboard":
         st.markdown("#### 🥧 2. Distribuição do Pipeline (Pizza)")
         if not df_pipeline.empty and "estagio" in df_pipeline.columns and "valor" in df_pipeline.columns:
             df_pipe_grouped = df_pipeline.groupby("estagio")["valor"].sum().reset_index()
-            fig_pipe = px.pie(
-                df_pipe_grouped, 
-                names="estagio", 
-                values="valor", 
-                hole=0.4
-            )
-            fig_pipe.update_layout(
-                paper_bgcolor="rgba(0,0,0,0)",
-                plot_bgcolor="rgba(0,0,0,0)",
-                font=dict(color="#ffffff")
-            )
+            fig_pipe = px.pie(df_pipe_grouped, names="estagio", values="valor", hole=0.4)
+            fig_pipe.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font=dict(color="#ffffff"))
             st.plotly_chart(fig_pipe, use_container_width=True)
         else:
-            # Gráfico demonstrativo de pizza caso esteja vazio
             df_demo_pipe = pd.DataFrame({
                 "estagio": ["Prospecção", "Qualificação", "Proposta", "Negociação", "Fechamento"],
                 "porcentagem": [35, 25, 20, 12, 8]
             })
             fig_pipe = px.pie(
-                df_demo_pipe, 
-                names="estagio", 
-                values="porcentagem", 
-                hole=0.4,
+                df_demo_pipe, names="estagio", values="porcentagem", hole=0.4,
                 color_discrete_sequence=px.colors.sequential.Blues_r
             )
-            fig_pipe.update_layout(
-                paper_bgcolor="rgba(0,0,0,0)",
-                plot_bgcolor="rgba(0,0,0,0)",
-                font=dict(color="#ffffff")
-            )
+            fig_pipe.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font=dict(color="#ffffff"))
             st.plotly_chart(fig_pipe, use_container_width=True)
+
+    st.markdown("<div style='margin-top: 25px;'></div>", unsafe_allow_html=True)
+
+    # Linha 2 de Gráficos (3 e 4)
+    col_g3, col_g4 = st.columns(2)
+
+    with col_g3:
+        st.markdown("#### 📈 3. Evolução do faturamento (Linha)")
+        if not df_vendas.empty and "data" in df_vendas.columns and "valor" in df_vendas.columns:
+            df_vendas_line = df_vendas.groupby("data")["valor"].sum().reset_index()
+            fig_linha = px.line(df_vendas_line, x="data", y="valor", markers=True, labels={"data": "", "valor": "Receita"})
+            fig_linha.update_layout(
+                paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+                font=dict(color="#ffffff"), xaxis=dict(showgrid=False), yaxis=dict(showgrid=True, gridcolor="#1e293b")
+            )
+            st.plotly_chart(fig_linha, use_container_width=True)
+        else:
+            df_demo_line = pd.DataFrame({"mes": ["Jan", "Fev", "Mar", "Abr"], "receita": [60000, 90000, 120000, 150000]})
+            fig_linha = px.line(
+                df_demo_line, x="mes", y="receita", markers=True, labels={"mes": "", "receita": "Receita"}
+            )
+            fig_linha.update_traces(line_color="#ffffff", marker=dict(size=8, color="#ffffff"))
+            fig_linha.update_layout(
+                paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+                font=dict(color="#ffffff"), xaxis=dict(showgrid=False), yaxis=dict(showgrid=True, gridcolor="#1e293b")
+            )
+            st.plotly_chart(fig_linha, use_container_width=True)
+
+    with col_g4:
+        st.markdown("#### 📊 4. Vendas por vendedor")
+        if not df_vendas.empty and "responsavel" in df_vendas.columns and "valor" in df_vendas.columns:
+            df_vend_resp = df_vendas.groupby("responsavel")["valor"].sum().reset_index()
+            fig_vend = px.bar(df_vend_resp, x="valor", y="responsavel", orientation='h', labels={"valor": "", "responsavel": ""})
+            fig_vend.update_layout(
+                paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+                font=dict(color="#ffffff"), xaxis=dict(showgrid=True, gridcolor="#1e293b"), yaxis=dict(showgrid=False, categoryorder="total ascending")
+            )
+            st.plotly_chart(fig_vend, use_container_width=True)
+        else:
+            df_demo_vend = pd.DataFrame({"vendedor": ["Ana", "João", "Maria", "Carlos"], "vendas": [15000, 28000, 42000, 65000]})
+            fig_vend = px.bar(
+                df_demo_vend, x="vendas", y="vendedor", orientation='h', labels={"vendas": "", "vendedor": ""},
+                color_discrete_sequence=["#ffffff"]
+            )
+            fig_vend.update_layout(
+                paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+                font=dict(color="#ffffff"), xaxis=dict(showgrid=True, gridcolor="#1e293b"), yaxis=dict(showgrid=False)
+            )
+            st.plotly_chart(fig_vend, use_container_width=True)
+
+    st.markdown("<div style='margin-top: 25px;'></div>", unsafe_allow_html=True)
+
+    # Linha 3 de Gráficos (5. Conversão do Funil)
+    st.markdown("#### 🎯 5. Conversão do Funil")
+    df_demo_funil = pd.DataFrame({
+        "etapa": ["Leads", "Qualificados", "Proposta", "Negociação", "Fechados"],
+        "quantidade": [152, 98, 60, 35, 22]
+    })
+    fig_funil = px.funnel(
+        df_demo_funil, x="quantidade", y="etapa", labels={"quantidade": "Leads", "etapa": ""},
+        color_discrete_sequence=["#ffffff"]
+    )
+    fig_funil.update_layout(
+        paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+        font=dict(color="#ffffff"), xaxis=dict(showgrid=False), yaxis=dict(showgrid=False)
+    )
+    st.plotly_chart(fig_funil, use_container_width=True)
 
 elif selected == "Clientes":
     st.markdown("### 👤 Cadastro Completo de Clientes e Leads")
@@ -411,7 +450,7 @@ elif selected == "Vendas":
 
 elif selected == "Relatórios":
     st.markdown("### 📈 Relatórios e Exportação")
-    st.markdown("<p style='color: #94a3b8; font-size: 14px; margin-bottom: 20px;'>Botões como:</p>", unsafe_allow_html=True)
+    st.markdown("<p style='color: #94a3b8; font-size: 14px; margin-bottom: 20px;'>Botões de exportação:</p>", unsafe_allow_html=True)
     
     df_export = df_vendas if not df_vendas.empty else pd.DataFrame(columns=['cliente', 'valor', 'data', 'responsavel', 'status'])
 
