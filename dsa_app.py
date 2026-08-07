@@ -6,9 +6,11 @@ import plotly.graph_objects as go
 from datetime import date
 from streamlit_option_menu import option_menu
 
-# --- GARANTE QUE O BANCO E AS TABELAS ESTEJAM CRIADOS COM OS NOVOS CAMPOS ---
+# --- INICIALIZAÇÃO E MIGRAÇÃO AUTOMÁTICA DO BANCO DE DADOS ---
 def inicializar_banco():
     conn = sqlite3.connect("crm.db")
+    
+    # Cria as tabelas se não existirem
     conn.execute("""
         CREATE TABLE IF NOT EXISTS clientes (
             id INTEGER PRIMARY KEY AUTOINCREMENT, 
@@ -42,6 +44,23 @@ def inicializar_banco():
             responsavel TEXT
         )
     """)
+    
+    # Garante que colunas novas existam mesmo em bases antigas
+    cursor = conn.cursor()
+    cursor.execute("PRAGMA table_info(clientes)")
+    colunas_existentes = [col[1] for col in cursor.fetchall()]
+    
+    novas_colunas = {
+        "origem": "TEXT",
+        "motivo_perda": "TEXT",
+        "data_fechamento": "TEXT",
+        "responsavel": "TEXT"
+    }
+    
+    for coluna, tipo in novas_colunas.items():
+        if coluna not in colunas_existentes:
+            conn.execute(f"ALTER TABLE clientes ADD COLUMN {coluna} {tipo}")
+            
     conn.commit()
     conn.close()
 
@@ -137,14 +156,12 @@ if selected == "Dashboard":
     total_leads = len(df_clientes)
     valor_pipeline = df_pipeline['valor'].sum() if not df_pipeline.empty and "valor" in df_pipeline.columns else 0.0
     receita_realizada = df_vendas['valor'].sum() if not df_vendas.empty and "valor" in df_vendas.columns else 0.0
-    receita_prevista = valor_pipeline # Estimativa baseada no pipeline aberto
+    receita_prevista = valor_pipeline 
     ticket_medio = df_vendas['valor'].mean() if not df_vendas.empty and "valor" in df_vendas.columns and len(df_vendas) > 0 else 0.0
     
-    # Clientes Convertidos (Venda Fechada)
     vendas_fechadas_count = len(df_clientes[df_clientes["status"] == "✅ Venda Fechada"]) if not df_clientes.empty and "status" in df_clientes.columns else 0
     taxa_conversao = (vendas_fechadas_count / total_leads * 100) if total_leads > 0 else 0.0
 
-    # Tempo Médio de Fechamento (em dias)
     tempo_medio_fechamento = 0
     if not df_clientes.empty and "data" in df_clientes.columns and "data_fechamento" in df_clientes.columns:
         df_fechados = df_clientes[(df_clientes["status"] == "✅ Venda Fechada") & (df_clientes["data_fechamento"].notnull()) & (df_clientes["data_fechamento"] != "")]
@@ -154,7 +171,7 @@ if selected == "Dashboard":
             diffs = (d_fim - d_ini).dt.days
             tempo_medio_fechamento = int(diffs.mean()) if not diffs.empty else 0
 
-    # --- LINHA 1 DE KPIS (CARDS SUPERIORES) ---
+    # --- LINHA 1 DE KPIS ---
     k1, k2, k3, k4 = st.columns(4)
     k1.metric("Total de Leads", f"{total_leads}")
     k2.metric("Valor do Pipeline", f"R$ {valor_pipeline:,.2f}")
@@ -245,7 +262,7 @@ if selected == "Dashboard":
 
     st.markdown("<div style='margin-bottom: 20px;'></div>", unsafe_allow_html=True)
 
-    # --- GRÁFICOS: LINHA 3 (Motivos de Perda & Clientes Inativos) ---
+    # --- GRÁFICOS: LINHA 3 ---
     col_g5, col_g6 = st.columns(2)
 
     with col_g5:
@@ -325,7 +342,8 @@ elif selected == "Clientes":
     st.markdown("<div style='margin-top: 35px;'></div>", unsafe_allow_html=True)
     st.markdown("### 📋 Base de Dados Geral (CRM)")
     if not df_clientes.empty:
-        st.dataframe(df_clientes[['nome', 'empresa', 'telefone', 'origem', 'status', 'responsavel', 'data']], use_container_width=True, hide_index=True)
+        colunas_mostrar = [c for c in ['nome', 'empresa', 'telefone', 'origem', 'status', 'responsavel', 'data'] if c in df_clientes.columns]
+        st.dataframe(df_clientes[colunas_mostrar], use_container_width=True, hide_index=True)
     else:
         st.info("Nenhum cliente cadastrado.")
 
@@ -335,7 +353,8 @@ elif selected == "Leads":
     
     df_leads_only = df_clientes[df_clientes["status"].str.contains("Lead|Contato|Atendimento", case=False, na=False)] if not df_clientes.empty and "status" in df_clientes.columns else pd.DataFrame()
     if not df_leads_only.empty:
-        st.dataframe(df_leads_only[["nome", "empresa", "email", "telefone", "origem", "status", "data"]], use_container_width=True, hide_index=True)
+        colunas_mostrar = [c for c in ["nome", "empresa", "email", "telefone", "origem", "status", "data"] if c in df_leads_only.columns]
+        st.dataframe(df_leads_only[colunas_mostrar], use_container_width=True, hide_index=True)
     else:
         st.info("Nenhum lead em aberto no momento.")
 
@@ -413,7 +432,8 @@ elif selected == "Vendas":
     st.markdown("<div style='margin-top: 25px;'></div>", unsafe_allow_html=True)
     st.markdown("### 📜 Histórico de Vendas")
     if not df_vendas.empty:
-        st.dataframe(df_vendas[["cliente", "valor", "responsavel", "data"]], use_container_width=True, hide_index=True)
+        colunas_mostrar_v = [c for c in ["cliente", "valor", "responsavel", "data"] if c in df_vendas.columns]
+        st.dataframe(df_vendas[colunas_mostrar_v], use_container_width=True, hide_index=True)
     else:
         st.info("Nenhuma venda registrada ainda.")
 
