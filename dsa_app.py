@@ -47,41 +47,35 @@ def inicializar_banco():
             cliente TEXT, 
             valor REAL, 
             data TEXT,
-            responsavel TEXT
+            responsavel TEXT,
+            status TEXT
         )
     """)
     
     # Garante que colunas novas existam mesmo em bases antigas
     cursor = conn.cursor()
+    
+    # Migração Clientes
     cursor.execute("PRAGMA table_info(clientes)")
     colunas_existentes_clientes = [col[1] for col in cursor.fetchall()]
-    
-    novas_colunas_clientes = {
-        "origem": "TEXT",
-        "motivo_perda": "TEXT",
-        "data_fechamento": "TEXT",
-        "responsavel": "TEXT"
-    }
-    
+    novas_colunas_clientes = {"origem": "TEXT", "motivo_perda": "TEXT", "data_fechamento": "TEXT", "responsavel": "TEXT"}
     for coluna, tipo in novas_colunas_clientes.items():
         if coluna not in colunas_existentes_clientes:
             conn.execute(f"ALTER TABLE clientes ADD COLUMN {coluna} {tipo}")
 
+    # Migração Pipeline
     cursor.execute("PRAGMA table_info(pipeline)")
     colunas_existentes_pipeline = [col[1] for col in cursor.fetchall()]
-    
-    novas_colunas_pipeline = {
-        "empresa": "TEXT",
-        "contato": "TEXT",
-        "telefone": "TEXT",
-        "email": "TEXT",
-        "responsavel": "TEXT",
-        "origem": "TEXT"
-    }
-    
+    novas_colunas_pipeline = {"empresa": "TEXT", "contato": "TEXT", "telefone": "TEXT", "email": "TEXT", "responsavel": "TEXT", "origem": "TEXT"}
     for coluna, tipo in novas_colunas_pipeline.items():
         if coluna not in colunas_existentes_pipeline:
             conn.execute(f"ALTER TABLE pipeline ADD COLUMN {coluna} {tipo}")
+
+    # Migração Vendas (Adiciona status se não existir)
+    cursor.execute("PRAGMA table_info(vendas)")
+    colunas_existentes_vendas = [col[1] for col in cursor.fetchall()]
+    if "status" not in colunas_existentes_vendas:
+        conn.execute("ALTER TABLE vendas ADD COLUMN status TEXT")
             
     conn.commit()
     conn.close()
@@ -127,7 +121,7 @@ with st.sidebar:
             "gear-fill"       
         ],
         menu_icon="cast",
-        default_index=4, # Já inicia na aba Vendas para facilitar seus testes se quiser
+        default_index=4, # Abre direto na aba Vendas para facilitar
         styles={
             "container": {"padding": "0!important", "background-color": "transparent"},
             "icon": {"color": "#60a5fa", "font-size": "15px"},
@@ -154,9 +148,9 @@ def carregar_dados():
     conn = conectar()
     tabelas = [row[0] for row in conn.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()]
     
-    df_clientes = pd.read_sql("SELECT * FROM clientes", conn) if "clientes" in tabelas else pd.DataFrame(columns=["id", "nome", "empresa", "email", "telefone", "regiao", "status", "origem", "motivo_perda", "data", "data_fechamento", "responsavel"])
-    df_pipeline = pd.read_sql("SELECT * FROM pipeline", conn) if "pipeline" in tabelas else pd.DataFrame(columns=["id", "titulo", "estagio", "valor", "empresa", "contato", "telefone", "email", "responsavel", "origem"])
-    df_vendas = pd.read_sql("SELECT * FROM vendas", conn) if "vendas" in tabelas else pd.DataFrame(columns=["id", "cliente", "valor", "data", "responsavel"])
+    df_clientes = pd.read_sql("SELECT * FROM clientes", conn) if "clientes" in tabelas else pd.DataFrame()
+    df_pipeline = pd.read_sql("SELECT * FROM pipeline", conn) if "pipeline" in tabelas else pd.DataFrame()
+    df_vendas = pd.read_sql("SELECT * FROM vendas", conn) if "vendas" in tabelas else pd.DataFrame()
     
     conn.close()
     return df_clientes, df_pipeline, df_vendas
@@ -167,24 +161,23 @@ df_clientes, df_pipeline, df_vendas = carregar_dados()
 
 if selected == "Dashboard":
     st.markdown("### 📊 Dashboard de Performance Comercial")
-    # (Mantido o restante do dashboard original do seu sistema)
     st.info("Dashboard carregado com sucesso.")
 
 elif selected == "Clientes":
     st.markdown("### 👤 Cadastro Completo de Clientes e Leads")
-    # ...
+    # ... (Conteúdo da página de Clientes)
 
 elif selected == "Leads":
     st.markdown("### 🎯 Gestão de Leads")
-    # ...
+    # ... (Conteúdo da página de Leads)
 
 elif selected == "Pipeline":
     st.markdown("### 📊 Pipeline Comercial")
-    # ...
+    # ... (Conteúdo da página de Pipeline)
 
 elif selected == "Vendas":
     st.markdown("### 💰 Controle de Vendas Fechadas")
-    st.markdown("<p style='color: #94a3b8; font-size: 14px; margin-bottom: 20px;'>Registre faturamentos e acompanhe os indicadores consolidados.</p>", unsafe_allow_html=True)
+    st.markdown("<p style='color: #94a3b8; font-size: 14px; margin-bottom: 20px;'>Registre faturamentos, acompanhe os indicadores e consulte o histórico em tabela.</p>", unsafe_allow_html=True)
 
     # --- CÁLCULOS DOS INDICADORES DE VENDAS ---
     faturamento_total = df_vendas['valor'].sum() if not df_vendas.empty and "valor" in df_vendas.columns else 0.0
@@ -197,7 +190,7 @@ elif selected == "Vendas":
         if not vendas_por_resp.empty:
             melhor_vendedor = vendas_por_resp.idxmax()
 
-    # --- EXIBIÇÃO DOS INDICADORES EM COLUNAS (ESTILO CARDS) ---
+    # --- EXIBIÇÃO DOS INDICADORES EM COLUNAS (CARDS) ---
     vk1, vk2, vk3, vk4 = st.columns(4)
     vk1.metric("💰 Faturamento Total", f"R$ {faturamento_total:,.2f}")
     vk2.metric("📦 Total de Vendas", f"{total_vendas_count}")
@@ -206,23 +199,26 @@ elif selected == "Vendas":
 
     st.markdown("<div style='margin-bottom: 30px;'></div>", unsafe_allow_html=True)
 
-    # --- FORMULÁRIO DE REGISTRO DE VENDAS ---
+    # --- FORMULÁRIO DE REGISTRO DE VENDAS (ATUALIZADO COM STATUS) ---
     with st.form("form_venda", clear_on_submit=True):
-        col_v1, col_v2, col_v3, col_v4 = st.columns(4)
+        col_v1, col_v2, col_v3, col_v4, col_v5 = st.columns(5)
         with col_v1:
-            v_cliente = st.text_input("Nome do Cliente *")
+            v_cliente = st.text_input("Cliente *")
         with col_v2:
-            v_valor = st.number_input("Valor da Venda (R$)", min_value=0.0, step=100.0)
+            v_valor = st.number_input("Valor (R$)", min_value=0.0, step=100.0)
         with col_v3:
             v_resp = st.text_input("Responsável", value="Comercial")
         with col_v4:
-            v_data = st.text_input("Data da Venda", value=str(date.today()))
+            v_data = st.text_input("Data", value=str(date.today()))
+        with col_v5:
+            v_status = st.selectbox("Status", ["Pago", "Pendente", "Cancelado"])
             
         btn_venda = st.form_submit_button("Registrar Venda")
         if btn_venda:
             if v_cliente and v_valor > 0:
                 conn = conectar()
-                conn.execute("INSERT INTO vendas (cliente, valor, data, responsavel) VALUES (?, ?, ?, ?)", (v_cliente, v_valor, v_data, v_resp))
+                conn.execute("INSERT INTO vendas (cliente, valor, data, responsavel, status) VALUES (?, ?, ?, ?, ?)", 
+                             (v_cliente, v_valor, v_data, v_resp, v_status))
                 conn.commit()
                 conn.close()
                 st.success("Venda registrada com sucesso!")
@@ -232,9 +228,16 @@ elif selected == "Vendas":
 
     st.markdown("<div style='margin-top: 25px;'></div>", unsafe_allow_html=True)
     st.markdown("### 📜 Histórico de Vendas")
+    
     if not df_vendas.empty:
-        colunas_mostrar_v = [c for c in ["cliente", "valor", "responsavel", "data"] if c in df_vendas.columns]
-        st.dataframe(df_vendas[colunas_mostrar_v], use_container_width=True, hide_index=True)
+        # Renomeia/organiza as colunas para exibição profissional idêntica à solicitada
+        df_tabela_vendas = df_vendas[['cliente', 'valor', 'responsavel', 'data', 'status']].copy()
+        df_tabela_vendas.columns = ['Cliente', 'Valor', 'Responsável', 'Data', 'Status']
+        
+        # Formata o campo de valor para exibição em moeda
+        df_tabela_vendas['Valor'] = df_tabela_vendas['Valor'].apply(lambda x: f"R$ {x:,.3f}".replace(",", "X").replace(".", ",").replace("X", "."))
+        
+        st.dataframe(df_tabela_vendas, use_container_width=True, hide_index=True)
     else:
         st.info("Nenhuma venda registrada ainda.")
 
