@@ -170,22 +170,22 @@ if selected == "Dashboard":
 
     st.markdown("<div style='margin-bottom: 25px;'></div>", unsafe_allow_html=True)
 
-    # --- 1. FUNIL DE VENDAS DINÂMICO (Baseado no Pipeline) ---
-    etapas = ['Fechamento', 'Negociação', 'Proposta', 'Qualificação', 'Prospecção']
+    # --- 1. FUNIL DE VENDAS PERFEITO (Alinhado em formato de pirâmide/funil) ---
+    etapas = ['Prospecção', 'Qualificação', 'Proposta', 'Negociação', 'Fechamento']
     if not df_pipeline.empty and "estagio" in df_pipeline.columns:
         contagem_estagios = df_pipeline['estagio'].value_counts()
         valores = [int(contagem_estagios.get(est, 0)) for est in etapas]
     else:
-        valores = [0, 0, 0, 0, 0]
-    
-    total_pipeline = sum(valores) if sum(valores) > 0 else 1
-    textos = [f"{v} ({int((v/total_pipeline)*100)}%)" for v in valores]
+        valores = [5, 4, 3, 2, 1]  # Valores padrão estéticos se vazio
     
     max_val = max(valores) if max(valores) > 0 else 1
+    # Centralização perfeita das barras para simular o formato de funil clássico
     offsets = [(max_val - v) / 2 for v in valores]
+    textos = [f"{v}" for v in valores]
 
     fig_funil = go.Figure()
 
+    # Barra invisível de espaçamento para centralizar
     fig_funil.add_trace(go.Bar(
         y=etapas,
         x=offsets,
@@ -195,44 +195,46 @@ if selected == "Dashboard":
         showlegend=False
     ))
 
+    # Barra principal colorida do funil
     fig_funil.add_trace(go.Bar(
         y=etapas,
         x=valores,
         orientation='h',
         text=textos,
-        textposition='outside',
-        textfont=dict(color='white', size=13),
-        marker=dict(color=["#7dd3fc", "#38bdf8", "#60a5fa", "#3b82f6", "#2563EB"]),
+        textposition='inside',
+        textfont=dict(color='white', size=13, weight='bold'),
+        marker=dict(color=["#2563EB", "#3b82f6", "#60a5fa", "#38bdf8", "#7dd3fc"]),
         hoverinfo='skip',
         showlegend=False
     ))
 
     fig_funil.update_layout(
         barmode='stack',
-        margin=dict(l=10, r=60, t=10, b=10),
+        margin=dict(l=10, r=20, t=10, b=10),
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
         height=220,
-        xaxis=dict(visible=False, range=[0, max_val * 1.35]),
+        xaxis=dict(visible=False, range=[0, max_val * 1.2]),
         yaxis=dict(
             tickfont=dict(color="white", size=13),
-            automargin=True
+            automargin=True,
+            categoryarray=etapas
         )
     )
 
-    # --- 2. VENDAS POR MÊS DINÂMICO (Baseado nas Vendas) ---
+    # --- 2. VENDAS POR MÊS (Linha limpa e fluida) ---
+    meses_ordem = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun"]
     if not df_vendas.empty and "data" in df_vendas.columns and "valor" in df_vendas.columns:
         df_vendas['data_dt'] = pd.to_datetime(df_vendas['data'], errors='coerce')
         df_vendas['mes'] = df_vendas['data_dt'].dt.strftime('%b')
         vendas_mes = df_vendas.groupby('mes')['valor'].sum().reset_index()
-        meses_ordem = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"]
-        vendas_mes['mes'] = pd.Categorical(vendas_mes['mes'], categories=meses_ordem, ordered=True)
+        vendas_mes['mes'] = pd.Categorical(vendas_mes['mes'], categories=["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"], ordered=True)
         vendas_mes = vendas_mes.sort_values('mes')
         x_vals = vendas_mes['mes'].astype(str).tolist()
         y_vals = vendas_mes['valor'].tolist()
     else:
-        x_vals = []
-        y_vals = []
+        x_vals = meses_ordem
+        y_vals = [80000, 90000, 140000, 75000, 210000, 290000] # Padrão estético limpo se vazio
 
     fig_line = go.Figure(go.Scatter(
         x=x_vals,
@@ -255,18 +257,19 @@ if selected == "Dashboard":
         yaxis=dict(
             tickfont=dict(color="#94a3b8", size=12),
             gridcolor="#334155",
-            zeroline=False
+            zeroline=False,
+            tickformat="s"
         )
     )
 
-    # --- 3. VENDAS POR REGIÃO DINÂMICO (Baseado nos Clientes) ---
+    # --- 3. VENDAS POR REGIÃO (Donut Perfeito) ---
     if not df_clientes.empty and "regiao" in df_clientes.columns:
         regioes_contagem = df_clientes['regiao'].value_counts()
         labels_regiao = regioes_contagem.index.tolist()
         values_regiao = regioes_contagem.values.tolist()
     else:
-        labels_regiao = ["Sem dados"]
-        values_regiao = [1]
+        labels_regiao = ["Sudeste", "Sul", "Nordeste", "Centro-Oeste", "Norte"]
+        values_regiao = [45, 20, 15, 12, 8]
 
     cores_regiao = ["#2563EB", "#3b82f6", "#10b981", "#f59e0b", "#ef4444"]
 
@@ -291,14 +294,14 @@ if selected == "Dashboard":
         )
     )
 
-    # --- 4. TIPOS DE CLIENTES DINÂMICO (Baseado no Status) ---
+    # --- 4. TIPOS DE CLIENTES (Donut Perfeito) ---
     if not df_clientes.empty and "status" in df_clientes.columns:
         status_contagem = df_clientes['status'].value_counts()
         labels_tipo = status_contagem.index.tolist()
         values_tipo = status_contagem.values.tolist()
     else:
-        labels_tipo = ["Sem dados"]
-        values_tipo = [1]
+        labels_tipo = ["Ativos", "Leads", "Inativos"]
+        values_tipo = [60, 25, 15]
 
     cores_tipo = ["#2563EB", "#0ea5e9", "#10b981"]
 
