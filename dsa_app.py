@@ -40,13 +40,11 @@ st.markdown(f"""
         [data-testid="stSidebar"] {{
             background-color: {sidebar_bg};
         }}
-        /* Botões principais dinâmicos */
         div.stButton > button:first-child {{
             background-color: {cor_hex} !important;
             color: white !important;
             border: none !important;
         }}
-        /* Estilização dos textos das opções selecionadas */
         h1, h2, h3, h4 {{
             color: {text_app};
         }}
@@ -159,7 +157,7 @@ with st.sidebar:
             "gear-fill"       
         ],
         menu_icon="cast",
-        default_index=7,
+        default_index=0,
         styles={
             "container": {"padding": "0!important", "background-color": "transparent"},
             "icon": {"color": cor_hex, "font-size": "15px"},
@@ -214,6 +212,7 @@ if selected == "Dashboard":
 
     st.markdown("<div style='margin-top: 35px;'></div>", unsafe_allow_html=True)
 
+    # GRÁFICOS 1 E 2
     col_g1, col_g2 = st.columns(2)
 
     with col_g1:
@@ -246,7 +245,6 @@ if selected == "Dashboard":
 
     with col_g2:
         st.markdown("#### 🥧 2. Pizza do Pipeline")
-        
         cores_pipeline = [cor_hex, "#10B981", "#F59E0B", "#EF4444", "#BE185D"]
 
         if not df_pipeline.empty and "estagio" in df_pipeline.columns and "valor" in df_pipeline.columns:
@@ -268,6 +266,76 @@ if selected == "Dashboard":
             )
             fig_pipe.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font=dict(color=text_app))
             st.plotly_chart(fig_pipe, use_container_width=True)
+
+    st.markdown("<div style='margin-top: 25px;'></div>", unsafe_allow_html=True)
+
+    # GRÁFICOS 3 E 4
+    col_g3, col_g4 = st.columns(2)
+
+    with col_g3:
+        st.markdown("#### 📈 3. Evolução do faturamento (Linha)")
+        if not df_vendas.empty and "data" in df_vendas.columns and "valor" in df_vendas.columns:
+            df_vendas_line = df_vendas.groupby("data")["valor"].sum().reset_index()
+            fig_linha = px.line(df_vendas_line, x="data", y="valor", markers=True, labels={"data": "", "valor": "Receita"})
+            fig_linha.update_traces(line_color=cor_hex, marker=dict(size=8, color=cor_hex))
+            fig_linha.update_layout(
+                paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+                font=dict(color=text_app), xaxis=dict(showgrid=False), yaxis=dict(showgrid=True, gridcolor="#1e293b")
+            )
+            st.plotly_chart(fig_linha, use_container_width=True)
+        else:
+            df_demo_line = pd.DataFrame({"mes": ["Jan", "Fev", "Mar", "Abr"], "receita": [60000, 90000, 120000, 150000]})
+            fig_linha = px.line(df_demo_line, x="mes", y="receita", markers=True, labels={"mes": "", "receita": "Receita"})
+            fig_linha.update_traces(line_color=cor_hex, marker=dict(size=8, color=cor_hex))
+            fig_linha.update_layout(
+                paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+                font=dict(color=text_app), xaxis=dict(showgrid=False), yaxis=dict(showgrid=True, gridcolor="#1e293b")
+            )
+            st.plotly_chart(fig_linha, use_container_width=True)
+
+    with col_g4:
+        st.markdown("#### 📊 4. Vendas por vendedor")
+        if not df_vendas.empty and "responsavel" in df_vendas.columns and "valor" in df_vendas.columns:
+            df_vend_resp = df_vendas.groupby("responsavel")["valor"].sum().reset_index()
+            fig_vend = px.bar(
+                df_vend_resp, x="valor", y="responsavel", orientation='h', 
+                labels={"valor": "", "responsavel": ""},
+                color_discrete_sequence=[cor_hex]
+            )
+            fig_vend.update_layout(
+                paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+                font=dict(color=text_app), xaxis=dict(showgrid=True, gridcolor="#1e293b"), yaxis=dict(showgrid=False, categoryorder="total ascending")
+            )
+            st.plotly_chart(fig_vend, use_container_width=True)
+        else:
+            df_demo_vend = pd.DataFrame({"vendedor": ["Ana", "João", "Maria", "Carlos"], "vendas": [15000, 28000, 42000, 65000]})
+            fig_vend = px.bar(
+                df_demo_vend, x="vendas", y="vendedor", orientation='h', labels={"vendas": "", "vendedor": ""},
+                color_discrete_sequence=[cor_hex]
+            )
+            fig_vend.update_layout(
+                paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+                font=dict(color=text_app), xaxis=dict(showgrid=True, gridcolor="#1e293b"), yaxis=dict(showgrid=False)
+            )
+            st.plotly_chart(fig_vend, use_container_width=True)
+
+    st.markdown("<div style='margin-top: 25px;'></div>", unsafe_allow_html=True)
+
+    # GRÁFICO 5
+    st.markdown("#### 🎯 5. Conversão do Funil")
+    df_demo_funil = pd.DataFrame({
+        "etapa": ["Leads", "Qualificados", "Proposta", "Negociação", "Fechados"],
+        "quantidade": [152, 98, 60, 35, 22]
+    })
+    fig_funil = px.funnel(
+        df_demo_funil, x="quantidade", y="etapa", labels={"quantidade": "Leads", "etapa": ""},
+        color_discrete_sequence=[cor_hex]
+    )
+    fig_funil.update_layout(
+        paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+        font=dict(color=text_app), xaxis=dict(showgrid=False), yaxis=dict(showgrid=False)
+    )
+    st.plotly_chart(fig_funil, use_container_width=True)
 
 elif selected == "Clientes":
     st.markdown("### 👤 Cadastro Completo de Clientes e Leads")
@@ -404,7 +472,6 @@ elif selected == "Configurações":
     st.markdown("### ⚙️ Configurações do Sistema")
     st.markdown("---")
     
-    # --- SEÇÃO DE APARÊNCIA FUNCIONAL ---
     st.markdown("#### 🎨 Aparência")
     col_ap1, col_ap2 = st.columns(2)
     with col_ap1:
@@ -414,7 +481,6 @@ elif selected == "Configurações":
 
     st.markdown("---")
 
-    # --- METAS COMERCIAIS ---
     st.markdown("#### 💰 Metas Comerciais")
     col_m1, col_m2 = st.columns(2)
     with col_m1:
