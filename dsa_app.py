@@ -6,6 +6,53 @@ import plotly.graph_objects as go
 from datetime import date
 from streamlit_option_menu import option_menu
 
+st.set_page_config(
+    page_title="CRM Comercial Profissional", page_icon="📊", layout="wide"
+)
+
+# --- INICIALIZAÇÃO DO ESTADO PARA APARÊNCIA ---
+if "tema_sistema" not in st.session_state:
+    st.session_state.tema_sistema = "🌙 Escuro"
+if "cor_principal_sistema" not in st.session_state:
+    st.session_state.cor_principal_sistema = "🔵 Azul"
+
+# Mapeamento de cores da interface
+mapa_cores = {
+    "🔵 Azul": "#2563EB",
+    "🟢 Verde": "#10B981",
+    "🟣 Roxo": "#7C3AED"
+}
+
+cor_hex = mapa_cores.get(st.session_state.cor_principal_sistema, "#2563EB")
+is_escuro = "Escuro" in st.session_state.tema_sistema
+
+bg_app = "#0e1117" if is_escuro else "#ffffff"
+text_app = "#ffffff" if is_escuro else "#1e293b"
+sidebar_bg = "#0b0f19" if is_escuro else "#f8fafc"
+
+# --- APLICAÇÃO DINÂMICA DE CSS (TEMA E COR PRINCIPAL) ---
+st.markdown(f"""
+    <style>
+        .stApp {{
+            background-color: {bg_app};
+            color: {text_app};
+        }}
+        [data-testid="stSidebar"] {{
+            background-color: {sidebar_bg};
+        }}
+        /* Botões principais dinâmicos */
+        div.stButton > button:first-child {{
+            background-color: {cor_hex} !important;
+            color: white !important;
+            border: none !important;
+        }}
+        /* Estilização dos textos das opções selecionadas */
+        h1, h2, h3, h4 {{
+            color: {text_app};
+        }}
+    </style>
+""", unsafe_allow_html=True)
+
 # --- INICIALIZAÇÃO E MIGRAÇÃO AUTOMÁTICA DO BANCO DE DADOS ---
 def inicializar_banco():
     conn = sqlite3.connect("crm.db")
@@ -77,17 +124,13 @@ def inicializar_banco():
 
 inicializar_banco()
 
-st.set_page_config(
-    page_title="CRM Comercial Profissional", page_icon="📊", layout="wide"
-)
-
 # --- BARRA LATERAL COM MENU E ÍCONES ---
 with st.sidebar:
-    st.markdown("""
+    st.markdown(f"""
         <div style="display: flex; align-items: center; gap: 10px; padding: 10px 0 20px 0;">
-            <div style="background-color: #2563EB; width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">📊</div>
+            <div style="background-color: {cor_hex}; width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">📊</div>
             <div>
-                <div style="font-weight: bold; font-size: 16px; color: #ffffff;">CRM</div>
+                <div style="font-weight: bold; font-size: 16px; color: {text_app};">CRM</div>
                 <div style="font-size: 11px; color: #94a3b8; letter-spacing: 1px;">COMERCIAL</div>
             </div>
         </div>
@@ -116,10 +159,10 @@ with st.sidebar:
             "gear-fill"       
         ],
         menu_icon="cast",
-        default_index=0,
+        default_index=7,
         styles={
             "container": {"padding": "0!important", "background-color": "transparent"},
-            "icon": {"color": "#60a5fa", "font-size": "15px"},
+            "icon": {"color": cor_hex, "font-size": "15px"},
             "nav-link": {
                 "font-size": "14px",
                 "text-align": "left",
@@ -128,7 +171,7 @@ with st.sidebar:
                 "--hover-color": "#1e293b",
             },
             "nav-link-selected": {
-                "background-color": "#2563EB",
+                "background-color": cor_hex,
                 "color": "#FFFFFF",
                 "font-weight": "600",
             },
@@ -182,30 +225,29 @@ if selected == "Dashboard":
             fig_vendas = px.bar(
                 df_vendas_grouped, x="mes", y="valor", 
                 labels={"mes": "", "valor": "R$"},
-                color_discrete_sequence=["#2563EB"]
+                color_discrete_sequence=[cor_hex]
             )
             fig_vendas.update_layout(
                 paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-                font=dict(color="#ffffff"), xaxis=dict(showgrid=False), yaxis=dict(showgrid=True, gridcolor="#1e293b")
+                font=dict(color=text_app), xaxis=dict(showgrid=False), yaxis=dict(showgrid=True, gridcolor="#1e293b")
             )
             st.plotly_chart(fig_vendas, use_container_width=True)
         else:
             df_demo = pd.DataFrame({"mes": ["Jan", "Fev", "Mar", "Abr"], "valor": [30000, 50000, 70000, 90000]})
             fig_vendas = px.bar(
                 df_demo, x="mes", y="valor", labels={"mes": "", "valor": "R$"},
-                color_discrete_sequence=["#3B82F6"]
+                color_discrete_sequence=[cor_hex]
             )
             fig_vendas.update_layout(
                 paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-                font=dict(color="#ffffff"), xaxis=dict(showgrid=False), yaxis=dict(showgrid=True, gridcolor="#1e293b")
+                font=dict(color=text_app), xaxis=dict(showgrid=False), yaxis=dict(showgrid=True, gridcolor="#1e293b")
             )
             st.plotly_chart(fig_vendas, use_container_width=True)
 
     with col_g2:
         st.markdown("#### 🥧 2. Pizza do Pipeline")
-        st.markdown("<p style='color: #94a3b8; font-size: 13px; margin-top: -10px;'>Cada etapa pode ter uma cor.</p>", unsafe_allow_html=True)
         
-        cores_pipeline = ["#3B82F6", "#10B981", "#F59E0B", "#EF4444", "#BE185D"]
+        cores_pipeline = [cor_hex, "#10B981", "#F59E0B", "#EF4444", "#BE185D"]
 
         if not df_pipeline.empty and "estagio" in df_pipeline.columns and "valor" in df_pipeline.columns:
             df_pipe_grouped = df_pipeline.groupby("estagio")["valor"].sum().reset_index()
@@ -213,7 +255,7 @@ if selected == "Dashboard":
                 df_pipe_grouped, names="estagio", values="valor", hole=0.4,
                 color_discrete_sequence=cores_pipeline
             )
-            fig_pipe.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font=dict(color="#ffffff"))
+            fig_pipe.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font=dict(color=text_app))
             st.plotly_chart(fig_pipe, use_container_width=True)
         else:
             df_demo_pipe = pd.DataFrame({
@@ -224,78 +266,8 @@ if selected == "Dashboard":
                 df_demo_pipe, names="estagio", values="porcentagem", hole=0.4,
                 color_discrete_sequence=cores_pipeline
             )
-            fig_pipe.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font=dict(color="#ffffff"))
+            fig_pipe.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font=dict(color=text_app))
             st.plotly_chart(fig_pipe, use_container_width=True)
-
-    st.markdown("<div style='margin-top: 25px;'></div>", unsafe_allow_html=True)
-
-    col_g3, col_g4 = st.columns(2)
-
-    with col_g3:
-        st.markdown("#### 📈 3. Evolução do faturamento (Linha)")
-        if not df_vendas.empty and "data" in df_vendas.columns and "valor" in df_vendas.columns:
-            df_vendas_line = df_vendas.groupby("data")["valor"].sum().reset_index()
-            fig_linha = px.line(df_vendas_line, x="data", y="valor", markers=True, labels={"data": "", "valor": "Receita"})
-            fig_linha.update_traces(line_color="#3B82F6", marker=dict(size=8, color="#3B82F6"))
-            fig_linha.update_layout(
-                paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-                font=dict(color="#ffffff"), xaxis=dict(showgrid=False), yaxis=dict(showgrid=True, gridcolor="#1e293b")
-            )
-            st.plotly_chart(fig_linha, use_container_width=True)
-        else:
-            df_demo_line = pd.DataFrame({"mes": ["Jan", "Fev", "Mar", "Abr"], "receita": [60000, 90000, 120000, 150000]})
-            fig_linha = px.line(
-                df_demo_line, x="mes", y="receita", markers=True, labels={"mes": "", "receita": "Receita"}
-            )
-            fig_linha.update_traces(line_color="#3B82F6", marker=dict(size=8, color="#3B82F6"))
-            fig_linha.update_layout(
-                paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-                font=dict(color="#ffffff"), xaxis=dict(showgrid=False), yaxis=dict(showgrid=True, gridcolor="#1e293b")
-            )
-            st.plotly_chart(fig_linha, use_container_width=True)
-
-    with col_g4:
-        st.markdown("#### 📊 4. Vendas por vendedor")
-        if not df_vendas.empty and "responsavel" in df_vendas.columns and "valor" in df_vendas.columns:
-            df_vend_resp = df_vendas.groupby("responsavel")["valor"].sum().reset_index()
-            fig_vend = px.bar(
-                df_vend_resp, x="valor", y="responsavel", orientation='h', 
-                labels={"valor": "", "responsavel": ""},
-                color_discrete_sequence=["#3B82F6"]
-            )
-            fig_vend.update_layout(
-                paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-                font=dict(color="#ffffff"), xaxis=dict(showgrid=True, gridcolor="#1e293b"), yaxis=dict(showgrid=False, categoryorder="total ascending")
-            )
-            st.plotly_chart(fig_vend, use_container_width=True)
-        else:
-            df_demo_vend = pd.DataFrame({"vendedor": ["Ana", "João", "Maria", "Carlos"], "vendas": [15000, 28000, 42000, 65000]})
-            fig_vend = px.bar(
-                df_demo_vend, x="vendas", y="vendedor", orientation='h', labels={"vendas": "", "vendedor": ""},
-                color_discrete_sequence=["#3B82F6"]
-            )
-            fig_vend.update_layout(
-                paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-                font=dict(color="#ffffff"), xaxis=dict(showgrid=True, gridcolor="#1e293b"), yaxis=dict(showgrid=False)
-            )
-            st.plotly_chart(fig_vend, use_container_width=True)
-
-    st.markdown("<div style='margin-top: 25px;'></div>", unsafe_allow_html=True)
-
-    st.markdown("#### 🎯 5. Conversão do Funil")
-    df_demo_funil = pd.DataFrame({
-        "etapa": ["Leads", "Qualificados", "Proposta", "Negociação", "Fechados"],
-        "quantidade": [152, 98, 60, 35, 22]
-    })
-    fig_funil = px.funnel(
-        df_demo_funil, x="quantidade", y="etapa", labels={"quantidade": "Leads", "etapa": ""},
-        color_discrete_sequence=["#3B82F6"]
-    )
-    fig_funil.update_layout(
-        paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-        font=dict(color="#ffffff"), xaxis=dict(showgrid=False), yaxis=dict(showgrid=False)
-    )
-    st.plotly_chart(fig_funil, use_container_width=True)
 
 elif selected == "Clientes":
     st.markdown("### 👤 Cadastro Completo de Clientes e Leads")
@@ -312,9 +284,7 @@ elif selected == "Clientes":
             status_opcoes = [
                 "🆕 Novo Lead", "📞 Primeiro Contato", "💬 Em Atendimento",
                 "📋 Proposta Enviada", "⏳ Aguardando Resposta", "🤝 Negociação",
-                "✅ Venda Fechada", "❌ Venda Perdida", "🔄 Pós-Venda",
-                "❤️ Cliente Fidelizado", "📅 Follow-up Agendado",
-                "🚫 Sem Interesse", "⏳ Em Espera", "🔄 Reativado"
+                "✅ Venda Fechada", "❌ Venda Perdida", "🔄 Pós-Venda"
             ]
             status_cli = st.selectbox("Status do Cliente", status_opcoes)
             motivo_cli = st.text_input("Motivo de Perda (Se aplicável)")
@@ -368,22 +338,14 @@ elif selected == "Pipeline":
             p_valor = st.number_input("Valor Estimado (R$)", min_value=0.0, step=100.0)
             p_telefone = st.text_input("Telefone")
             
-        col_p4, col_p5, col_p6 = st.columns(3)
-        with col_p4:
-            p_email = st.text_input("E-mail")
-        with col_p5:
-            p_responsavel = st.text_input("Responsável", value="Comercial")
-        with col_p6:
-            p_origem = st.selectbox("Origem do Lead", ["Indicação", "LinkedIn", "Google", "Outbound", "Instagram"])
-            
         btn_pipe = st.form_submit_button("Adicionar Negócio ao Pipeline")
         if btn_pipe:
             if p_titulo:
                 conn = conectar()
                 conn.execute("""
-                    INSERT INTO pipeline (titulo, estagio, valor, empresa, contato, telefone, email, responsavel, origem) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, (p_titulo, p_estagio, p_valor, p_empresa, p_contato, p_telefone, p_email, p_responsavel, p_origem))
+                    INSERT INTO pipeline (titulo, estagio, valor, empresa, contato, telefone, responsavel) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                """, (p_titulo, p_estagio, p_valor, p_empresa, p_contato, p_telefone, "Comercial"))
                 conn.commit()
                 conn.close()
                 st.success("Negócio adicionado com sucesso!")
@@ -393,28 +355,19 @@ elif selected == "Pipeline":
 
 elif selected == "Vendas":
     st.markdown("### 💰 Controle de Vendas Fechadas")
-    st.markdown("<p style='color: #94a3b8; font-size: 14px; margin-bottom: 20px;'>Registre faturamentos, acompanhe os indicadores e consulte o histórico em tabela.</p>", unsafe_allow_html=True)
-
     faturamento_total = df_vendas['valor'].sum() if not df_vendas.empty and "valor" in df_vendas.columns else 0.0
     total_vendas_count = len(df_vendas) if not df_vendas.empty else 0
     ticket_medio = df_vendas['valor'].mean() if not df_vendas.empty and total_vendas_count > 0 else 0.0
-    
-    melhor_vendedor = "N/A"
-    if not df_vendas.empty and "responsavel" in df_vendas.columns and total_vendas_count > 0:
-        vendas_por_resp = df_vendas.groupby('responsavel')['valor'].sum()
-        if not vendas_por_resp.empty:
-            melhor_vendedor = vendas_por_resp.idxmax()
 
-    vk1, vk2, vk3, vk4 = st.columns(4)
+    vk1, vk2, vk3 = st.columns(3)
     vk1.metric("💰 Faturamento Total", f"R$ {faturamento_total:,.2f}")
     vk2.metric("📦 Total de Vendas", f"{total_vendas_count}")
     vk3.metric("📈 Ticket Médio", f"R$ {ticket_medio:,.2f}")
-    vk4.metric("🏆 Melhor Vendedor", f"{melhor_vendedor}")
 
     st.markdown("<div style='margin-bottom: 30px;'></div>", unsafe_allow_html=True)
 
     with st.form("form_venda", clear_on_submit=True):
-        col_v1, col_v2, col_v3, col_v4, col_v5 = st.columns(5)
+        col_v1, col_v2, col_v3, col_v4 = st.columns(4)
         with col_v1:
             v_cliente = st.text_input("Cliente *")
         with col_v2:
@@ -423,15 +376,13 @@ elif selected == "Vendas":
             v_resp = st.text_input("Responsável", value="Comercial")
         with col_v4:
             v_data = st.text_input("Data", value=str(date.today()))
-        with col_v5:
-            v_status = st.selectbox("Status", ["Pago", "Pendente", "Cancelado"])
             
         btn_venda = st.form_submit_button("Registrar Venda")
         if btn_venda:
             if v_cliente and v_valor > 0:
                 conn = conectar()
                 conn.execute("INSERT INTO vendas (cliente, valor, data, responsavel, status) VALUES (?, ?, ?, ?, ?)", 
-                           (v_cliente, v_valor, v_data, v_resp, v_status))
+                           (v_cliente, v_valor, v_data, v_resp, "Pago"))
                 conn.commit()
                 conn.close()
                 st.success("Venda registrada com sucesso!")
@@ -439,48 +390,11 @@ elif selected == "Vendas":
             else:
                 st.error("Preencha o cliente e um valor válido.")
 
-    st.markdown("<div style='margin-top: 25px;'></div>", unsafe_allow_html=True)
-    st.markdown("### 📜 Histórico de Vendas")
-    
-    pesquisa_cliente = st.text_input("🔍 Pesquisar cliente...", placeholder="Digite o nome do cliente...")
-
-    if not df_vendas.empty:
-        df_tabela_vendas = df_vendas[['cliente', 'valor', 'responsavel', 'data', 'status']].copy()
-        df_tabela_vendas.columns = ['Cliente', 'Valor', 'Responsável', 'Data', 'Status']
-        
-        if pesquisa_cliente:
-            df_tabela_vendas = df_tabela_vendas[df_tabela_vendas['Cliente'].str.contains(pesquisa_cliente, case=False, na=False)]
-            
-        df_tabela_vendas['Valor'] = df_tabela_vendas['Valor'].apply(lambda x: f"R$ {x:,.3f}".replace(",", "X").replace(".", ",").replace("X", "."))
-        
-        st.dataframe(df_tabela_vendas, use_container_width=True, hide_index=True)
-    else:
-        st.info("Nenhuma venda registrada ainda.")
-
 elif selected == "Relatórios":
     st.markdown("### 📈 Relatórios e Exportação")
-    st.markdown("<p style='color: #94a3b8; font-size: 14px; margin-bottom: 20px;'>Botões de exportação:</p>", unsafe_allow_html=True)
-    
     df_export = df_vendas if not df_vendas.empty else pd.DataFrame(columns=['cliente', 'valor', 'data', 'responsavel', 'status'])
-
     csv_data = df_export.to_csv(index=False).encode('utf-8')
-    txt_data = df_export.to_string(index=False).encode('utf-8')
-
-    col_btn1, col_btn2 = st.columns(2)
-    with col_btn1:
-        st.download_button(
-            label="📥 Exportar Excel",
-            data=csv_data,
-            file_name="vendas_crm.csv",
-            mime="text/csv"
-        )
-    with col_btn2:
-        st.download_button(
-            label="📥 Exportar PDF",
-            data=txt_data,
-            file_name="relatorio_vendas.txt",
-            mime="text/plain"
-        )
+    st.download_button(label="📥 Exportar Dados para CSV", data=csv_data, file_name="vendas_crm.csv", mime="text/csv")
 
 elif selected == "Integrações":
     st.markdown("### 🔌 Integrações e Conexões")
@@ -490,7 +404,7 @@ elif selected == "Configurações":
     st.markdown("### ⚙️ Configurações do Sistema")
     st.markdown("---")
     
-    # --- NOVIDADE: APARÊNCIA ---
+    # --- SEÇÃO DE APARÊNCIA FUNCIONAL ---
     st.markdown("#### 🎨 Aparência")
     col_ap1, col_ap2 = st.columns(2)
     with col_ap1:
@@ -500,7 +414,7 @@ elif selected == "Configurações":
 
     st.markdown("---")
 
-    # --- NOVIDADE: METAS COMERCIAIS ---
+    # --- METAS COMERCIAIS ---
     st.markdown("#### 💰 Metas Comerciais")
     col_m1, col_m2 = st.columns(2)
     with col_m1:
@@ -518,18 +432,15 @@ elif selected == "Configurações":
     st.markdown("---")
 
     col_c1, col_c2 = st.columns(2)
-    
     with col_c1:
         st.subheader("🏢 Dados da Organização")
-        nome_org = st.text_input("Nome da Organização", value="Comercial Alpha LTDA")
-        cnpj_org = st.text_input("CNPJ")
-        email_org = st.text_input("E-mail de Suporte")
-        
+        st.text_input("Nome da Organização", value="Comercial Alpha LTDA")
+        st.text_input("CNPJ")
+        st.text_input("E-mail de Suporte")
     with col_c2:
         st.subheader("🛠 Preferências Gerais")
-        moeda_padrao = st.selectbox("Moeda Padrão", ["Real (BRL - R$)", "Dólar (USD - $)", "Euro (EUR - €)"])
-        fuso_horario = st.selectbox("Fuso Horário", ["(GMT-03:00) Horário de Brasília", "(GMT-02:00) Noronha", "(GMT-04:00) Manaus"])
-        telefone_org = st.text_input("Telefone Comercial")
+        st.selectbox("Moeda Padrão", ["Real (BRL - R$)", "Dólar (USD - $)", "Euro (EUR - €)"])
+        st.selectbox("Fuso Horário", ["(GMT-03:00) Horário de Brasília"])
 
     st.markdown("---")
     st.markdown("### 👥 Gestão de Equipe e Permissões")
@@ -539,10 +450,8 @@ elif selected == "Configurações":
 
     st.markdown("<div style='margin-top: 15px;'></div>", unsafe_allow_html=True)
     st.markdown("#### 🔒 Permissões")
-    st.markdown("<p style='color: #94a3b8; font-size: 13px; margin-top: -10px;'>Definir perfis de acesso para o sistema.</p>", unsafe_allow_html=True)
 
     col_p1, col_p2 = st.columns(2)
-    
     with col_p1:
         with st.container(border=True):
             st.markdown("**Administrador**")
@@ -564,3 +473,4 @@ elif selected == "Configurações":
     st.markdown("<div style='margin-top: 20px;'></div>", unsafe_allow_html=True)
     if st.button("Salvar Configurações"):
         st.success("Configurações, aparências, metas e permissões atualizadas com sucesso!")
+        st.rerun()
