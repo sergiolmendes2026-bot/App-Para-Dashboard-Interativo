@@ -4,17 +4,18 @@ import streamlit as st
 import plotly.express as px
 import plotly.graph_objects as go
 from datetime import date
-from streamlit_option_menu import option_menu
 
 st.set_page_config(
     page_title="CRM Comercial Profissional", page_icon="📊", layout="wide"
 )
 
-# --- INICIALIZAÇÃO DO ESTADO PARA APARÊNCIA ---
+# --- INICIALIZAÇÃO DO ESTADO PARA APARÊNCIA E NAVEGAÇÃO ---
 if "tema_sistema" not in st.session_state:
     st.session_state.tema_sistema = "🌙 Escuro"
 if "cor_principal_sistema" not in st.session_state:
     st.session_state.cor_principal_sistema = "🔵 Azul"
+if "selected" not in st.session_state:
+    st.session_state.selected = "Dashboard"
 
 # Mapeamento de cores da interface
 mapa_cores = {
@@ -30,7 +31,7 @@ bg_app = "#0e1117" if is_escuro else "#ffffff"
 text_app = "#ffffff" if is_escuro else "#1e293b"
 sidebar_bg = "#0b0f19" if is_escuro else "#f8fafc"
 
-# --- APLICAÇÃO DINÂMICA DE CSS (TEMA E COR PRINCIPAL) ---
+# --- APLICAÇÃO DINÂMICA DE CSS ---
 st.markdown(f"""
     <style>
         .stApp {{
@@ -47,6 +48,24 @@ st.markdown(f"""
         }}
         h1, h2, h3, h4 {{
             color: {text_app};
+        }}
+        /* Estilização personalizada para os botões da Sidebar */
+        [data-testid="stSidebar"] div.stButton > button {{
+            width: 100%;
+            text-align: left;
+            background-color: transparent !important;
+            color: #94a3b8 !important;
+            border: none !important;
+            border-radius: 10px !important;
+            padding: 10px 14px !important;
+            font-size: 14px !important;
+            font-weight: 500 !important;
+            box-shadow: none !important;
+            transition: all 0.2s ease-in-out;
+        }}
+        [data-testid="stSidebar"] div.stButton > button:hover {{
+            background-color: rgba(255, 255, 255, 0.05) !important;
+            color: #ffffff !important;
         }}
     </style>
 """, unsafe_allow_html=True)
@@ -122,10 +141,10 @@ def inicializar_banco():
 
 inicializar_banco()
 
-# --- BARRA LATERAL COM MENU E ÍCONES AJUSTADOS ---
+# --- BARRA LATERAL PERSONALIZADA ---
 with st.sidebar:
     st.markdown(f"""
-        <div style="display: flex; align-items: center; gap: 12px; padding: 10px 5px 25px 5px;">
+        <div style="display: flex; align-items: center; gap: 12px; padding: 10px 5px 20px 5px;">
             <div style="background-color: {cor_hex}; width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 16px;">📊</div>
             <div>
                 <div style="font-weight: bold; font-size: 16px; color: {text_app}; line-height: 1.2;">CRM</div>
@@ -134,51 +153,40 @@ with st.sidebar:
         </div>
     """, unsafe_allow_html=True)
 
-    selected = option_menu(
-        menu_title=None,
-        options=[
-            "Dashboard",
-            "Clientes",
-            "Leads",
-            "Pipeline",
-            "Vendas",
-            "Relatórios",
-            "Integrações",
-            "Configurações",
-        ],
-        icons=[
-            "speedometer2", 
-            "people-fill",    
-            "person-plus-fill", 
-            "kanban",         
-            "trophy-fill",    
-            "file-earmark-bar-graph", 
-            "plug",           
-            "gear-fill"       
-        ],
-        menu_icon="cast",
-        default_index=0,
-        styles={
-            "container": {"padding": "0!important", "background-color": "transparent"},
-            "icon": {"color": "#94a3b8", "font-size": "16px"},
-            "nav-link": {
-                "font-size": "14px",
-                "text-align": "left",
-                "margin": "6px 0px",
-                "padding": "10px 14px",
-                "color": "#94a3b8",
-                "border-radius": "10px",
-                "--hover-color": "rgba(255, 255, 255, 0.05)",
-            },
-            "nav-link-selected": {
-                "background-color": cor_hex,
-                "color": "#FFFFFF",
-                "font-weight": "600",
-                "border-radius": "10px",
-                "box-shadow": f"0 4px 12px {cor_hex}40",
-            },
-        },
-    )
+    menu_itens = [
+        ("Dashboard", "📊"),
+        ("Clientes", "👥"),
+        ("Leads", "👤"),
+        ("Pipeline", "📈"),
+        ("Vendas", "🏆"),
+        ("Relatórios", "📄"),
+        ("Integrações", "🔌"),
+        ("Configurações", "⚙️")
+    ]
+
+    for nome_pagina, icone in menu_itens:
+        is_ativo = st.session_state.selected == nome_pagina
+        # Se for o item ativo, aplicamos estilo visual destacado diretamente no botão
+        if is_ativo:
+            if st.button(f"{icone}  {nome_pagina}", key=f"btn_{nome_pagina}", use_container_width=True):
+                st.session_state.selected = nome_pagina
+            # Injeta estilo dinâmico de ativo por cima do botão correspondente
+            st.markdown(f"""
+                <style>
+                    div[data-testid="stSidebar"] button[kind="secondary"]:has(div:text-matches("{nome_pagina}", "i")) {{
+                        background-color: {cor_hex} !important;
+                        color: #ffffff !important;
+                        font-weight: 600 !important;
+                        box-shadow: 0 4px 12px {cor_hex}40 !important;
+                    }}
+                </style>
+            """, unsafe_allow_html=True)
+        else:
+            if st.button(f"{icone}  {nome_pagina}", key=f"btn_{nome_pagina}", use_container_width=True):
+                st.session_state.selected = nome_pagina
+                st.rerun()
+
+selected = st.session_state.selected
 
 def conectar():
     return sqlite3.connect("crm.db")
@@ -216,7 +224,6 @@ if selected == "Dashboard":
 
     st.markdown("<div style='margin-top: 35px;'></div>", unsafe_allow_html=True)
 
-    # GRÁFICOS 1 E 2
     col_g1, col_g2 = st.columns(2)
 
     with col_g1:
@@ -270,76 +277,6 @@ if selected == "Dashboard":
             )
             fig_pipe.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font=dict(color=text_app))
             st.plotly_chart(fig_pipe, use_container_width=True)
-
-    st.markdown("<div style='margin-top: 25px;'></div>", unsafe_allow_html=True)
-
-    # GRÁFICOS 3 E 4
-    col_g3, col_g4 = st.columns(2)
-
-    with col_g3:
-        st.markdown("#### 📈 3. Evolução do faturamento (Linha)")
-        if not df_vendas.empty and "data" in df_vendas.columns and "valor" in df_vendas.columns:
-            df_vendas_line = df_vendas.groupby("data")["valor"].sum().reset_index()
-            fig_linha = px.line(df_vendas_line, x="data", y="valor", markers=True, labels={"data": "", "valor": "Receita"})
-            fig_linha.update_traces(line_color=cor_hex, marker=dict(size=8, color=cor_hex))
-            fig_linha.update_layout(
-                paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-                font=dict(color=text_app), xaxis=dict(showgrid=False), yaxis=dict(showgrid=True, gridcolor="#1e293b")
-            )
-            st.plotly_chart(fig_linha, use_container_width=True)
-        else:
-            df_demo_line = pd.DataFrame({"mes": ["Jan", "Fev", "Mar", "Abr"], "receita": [60000, 90000, 120000, 150000]})
-            fig_linha = px.line(df_demo_line, x="mes", y="receita", markers=True, labels={"mes": "", "receita": "Receita"})
-            fig_linha.update_traces(line_color=cor_hex, marker=dict(size=8, color=cor_hex))
-            fig_linha.update_layout(
-                paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-                font=dict(color=text_app), xaxis=dict(showgrid=False), yaxis=dict(showgrid=True, gridcolor="#1e293b")
-            )
-            st.plotly_chart(fig_linha, use_container_width=True)
-
-    with col_g4:
-        st.markdown("#### 📊 4. Vendas por vendedor")
-        if not df_vendas.empty and "responsavel" in df_vendas.columns and "valor" in df_vendas.columns:
-            df_vend_resp = df_vendas.groupby("responsavel")["valor"].sum().reset_index()
-            fig_vend = px.bar(
-                df_vend_resp, x="valor", y="responsavel", orientation='h', 
-                labels={"valor": "", "responsavel": ""},
-                color_discrete_sequence=[cor_hex]
-            )
-            fig_vend.update_layout(
-                paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-                font=dict(color=text_app), xaxis=dict(showgrid=True, gridcolor="#1e293b"), yaxis=dict(showgrid=False, categoryorder="total ascending")
-            )
-            st.plotly_chart(fig_vend, use_container_width=True)
-        else:
-            df_demo_vend = pd.DataFrame({"vendedor": ["Ana", "João", "Maria", "Carlos"], "vendas": [15000, 28000, 42000, 65000]})
-            fig_vend = px.bar(
-                df_demo_vend, x="vendas", y="vendedor", orientation='h', labels={"vendas": "", "vendedor": ""},
-                color_discrete_sequence=[cor_hex]
-            )
-            fig_vend.update_layout(
-                paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-                font=dict(color=text_app), xaxis=dict(showgrid=True, gridcolor="#1e293b"), yaxis=dict(showgrid=False)
-            )
-            st.plotly_chart(fig_vend, use_container_width=True)
-
-    st.markdown("<div style='margin-top: 25px;'></div>", unsafe_allow_html=True)
-
-    # GRÁFICO 5
-    st.markdown("#### 🎯 5. Conversão do Funil")
-    df_demo_funil = pd.DataFrame({
-        "etapa": ["Leads", "Qualificados", "Proposta", "Negociação", "Fechados"],
-        "quantidade": [152, 98, 60, 35, 22]
-    })
-    fig_funil = px.funnel(
-        df_demo_funil, x="quantidade", y="etapa", labels={"quantidade": "Leads", "etapa": ""},
-        color_discrete_sequence=[cor_hex]
-    )
-    fig_funil.update_layout(
-        paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-        font=dict(color=text_app), xaxis=dict(showgrid=False), yaxis=dict(showgrid=False)
-    )
-    st.plotly_chart(fig_funil, use_container_width=True)
 
 elif selected == "Clientes":
     st.markdown("### 👤 Cadastro Completo de Clientes e Leads")
@@ -485,22 +422,6 @@ elif selected == "Configurações":
 
     st.markdown("---")
 
-    st.markdown("#### 💰 Metas Comerciais")
-    col_m1, col_m2 = st.columns(2)
-    with col_m1:
-        st.text_input("Meta mensal", value="R$ 150.000")
-    with col_m2:
-        st.text_input("Meta anual", value="R$ 1.800.000")
-
-    st.markdown("<p style='font-size: 14px; color: #94a3b8; margin-top: 10px; margin-bottom: 5px;'>Meta por vendedor</p>", unsafe_allow_html=True)
-    col_mv1, col_mv2 = st.columns(2)
-    with col_mv1:
-        st.text_input("Vendedor", value="João", key="vendedor_meta_1", label_visibility="collapsed")
-    with col_mv2:
-        st.text_input("Valor da meta", value="R$ 30.000", key="valor_meta_1", label_visibility="collapsed")
-
-    st.markdown("---")
-
     col_c1, col_c2 = st.columns(2)
     with col_c1:
         st.subheader("🏢 Dados da Organização")
@@ -513,34 +434,6 @@ elif selected == "Configurações":
         st.selectbox("Fuso Horário", ["(GMT-03:00) Horário de Brasília"])
 
     st.markdown("---")
-    st.markdown("### 👥 Gestão de Equipe e Permissões")
-    
-    if st.button("➕ Adicionar Usuário"):
-        st.info("Formulário de cadastro de usuário aberto.")
-
-    st.markdown("<div style='margin-top: 15px;'></div>", unsafe_allow_html=True)
-    st.markdown("#### 🔒 Permissões")
-
-    col_p1, col_p2 = st.columns(2)
-    with col_p1:
-        with st.container(border=True):
-            st.markdown("**Administrador**")
-            st.checkbox("Clientes", value=True, key="adm_cli")
-            st.checkbox("Leads", value=True, key="adm_leads")
-            st.checkbox("Pipeline", value=True, key="adm_pipe")
-            st.checkbox("Relatórios", value=True, key="adm_rel")
-            st.checkbox("Configurações", value=True, key="adm_cfg")
-            
-    with col_p2:
-        with st.container(border=True):
-            st.markdown("**Vendedor**")
-            st.checkbox("Clientes", value=True, key="vend_cli")
-            st.checkbox("Leads", value=True, key="vend_leads")
-            st.checkbox("Pipeline", value=True, key="vend_pipe")
-            st.checkbox("Configurações", value=False, key="vend_cfg")
-            st.checkbox("Usuários", value=False, key="vend_usu")
-
-    st.markdown("<div style='margin-top: 20px;'></div>", unsafe_allow_html=True)
     if st.button("Salvar Configurações"):
-        st.success("Configurações, aparências, metas e permissões atualizadas com sucesso!")
+        st.success("Configurações e aparências atualizadas com sucesso!")
         st.rerun()
