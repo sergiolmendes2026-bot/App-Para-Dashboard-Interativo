@@ -122,14 +122,14 @@ def inicializar_banco():
 
 inicializar_banco()
 
-# --- BARRA LATERAL COM MENU E ÍCONES ---
+# --- BARRA LATERAL COM MENU E ÍCONES AJUSTADOS ---
 with st.sidebar:
     st.markdown(f"""
-        <div style="display: flex; align-items: center; gap: 10px; padding: 10px 0 20px 0;">
-            <div style="background-color: {cor_hex}; width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">📊</div>
+        <div style="display: flex; align-items: center; gap: 12px; padding: 10px 5px 25px 5px;">
+            <div style="background-color: {cor_hex}; width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 16px;">📊</div>
             <div>
-                <div style="font-weight: bold; font-size: 16px; color: {text_app};">CRM</div>
-                <div style="font-size: 11px; color: #94a3b8; letter-spacing: 1px;">COMERCIAL</div>
+                <div style="font-weight: bold; font-size: 16px; color: {text_app}; line-height: 1.2;">CRM</div>
+                <div style="font-size: 10px; color: #94a3b8; letter-spacing: 1.5px; font-weight: 600;">COMERCIAL</div>
             </div>
         </div>
     """, unsafe_allow_html=True)
@@ -160,18 +160,22 @@ with st.sidebar:
         default_index=0,
         styles={
             "container": {"padding": "0!important", "background-color": "transparent"},
-            "icon": {"color": cor_hex, "font-size": "15px"},
+            "icon": {"color": "#94a3b8", "font-size": "16px"},
             "nav-link": {
                 "font-size": "14px",
                 "text-align": "left",
-                "margin": "4px 0px",
+                "margin": "6px 0px",
+                "padding": "10px 14px",
                 "color": "#94a3b8",
-                "--hover-color": "#1e293b",
+                "border-radius": "10px",
+                "--hover-color": "rgba(255, 255, 255, 0.05)",
             },
             "nav-link-selected": {
                 "background-color": cor_hex,
                 "color": "#FFFFFF",
                 "font-weight": "600",
+                "border-radius": "10px",
+                "box-shadow": f"0 4px 12px {cor_hex}40",
             },
         },
     )
@@ -450,7 +454,7 @@ elif selected == "Vendas":
             if v_cliente and v_valor > 0:
                 conn = conectar()
                 conn.execute("INSERT INTO vendas (cliente, valor, data, responsavel, status) VALUES (?, ?, ?, ?, ?)", 
-                           (v_cliente, v_valor, v_data, v_resp, "Pago"))
+                             (v_cliente, v_valor, v_data, v_resp, "Pago"))
                 conn.commit()
                 conn.close()
                 st.success("Venda registrada com sucesso!")
