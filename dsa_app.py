@@ -490,6 +490,33 @@ elif selected == "Configurações":
     st.markdown("### ⚙️ Configurações do Sistema")
     st.markdown("---")
     
+    # --- NOVIDADE: APARÊNCIA ---
+    st.markdown("#### 🎨 Aparência")
+    col_ap1, col_ap2 = st.columns(2)
+    with col_ap1:
+        st.radio("Tema", ["🌙 Escuro", "☀️ Claro"], key="tema_sistema")
+    with col_ap2:
+        st.radio("Cor principal", ["🔵 Azul", "🟢 Verde", "🟣 Roxo"], key="cor_principal_sistema")
+
+    st.markdown("---")
+
+    # --- NOVIDADE: METAS COMERCIAIS ---
+    st.markdown("#### 💰 Metas Comerciais")
+    col_m1, col_m2 = st.columns(2)
+    with col_m1:
+        st.text_input("Meta mensal", value="R$ 150.000")
+    with col_m2:
+        st.text_input("Meta anual", value="R$ 1.800.000")
+
+    st.markdown("<p style='font-size: 14px; color: #94a3b8; margin-top: 10px; margin-bottom: 5px;'>Meta por vendedor</p>", unsafe_allow_html=True)
+    col_mv1, col_mv2 = st.columns(2)
+    with col_mv1:
+        st.text_input("Vendedor", value="João", key="vendedor_meta_1", label_visibility="collapsed")
+    with col_mv2:
+        st.text_input("Valor da meta", value="R$ 30.000", key="valor_meta_1", label_visibility="collapsed")
+
+    st.markdown("---")
+
     col_c1, col_c2 = st.columns(2)
     
     with col_c1:
@@ -536,4 +563,4 @@ elif selected == "Configurações":
 
     st.markdown("<div style='margin-top: 20px;'></div>", unsafe_allow_html=True)
     if st.button("Salvar Configurações"):
-        st.success("Configurações e permissões atualizadas com sucesso!")
+        st.success("Configurações, aparências, metas e permissões atualizadas com sucesso!")
