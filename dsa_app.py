@@ -26,7 +26,6 @@ cor_hex = mapa_cores.get(st.session_state.cor_principal_sistema, "#2563EB")
 is_escuro = "Escuro" in st.session_state.tema_sistema
 
 bg_app = "#0e1117" if is_escuro else "#ffffff"
-text_app = "%23ffffff" if is_escuro else "#1e293b" # Corrigido string
 text_app = "#ffffff" if is_escuro else "#1e293b"
 sidebar_bg = "#0b0f19" if is_escuro else "#f8fafc"
 
@@ -70,15 +69,18 @@ with st.sidebar:
             st.session_state.selected = nome
             st.rerun()
 
-# Recupera a página selecionada com segurança
 selected = st.session_state.selected
+
+def conectar():
+    return sqlite3.connect("crm.db")
 
 @st.cache_data(ttl=1)
 def carregar_dados():
-    conn = sqlite3.connect("crm.db")
-    df_clientes = pd.read_sql("SELECT * FROM clientes", conn) if "clientes" in [row[0] for row in conn.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()] else pd.DataFrame()
-    df_pipeline = pd.read_sql("SELECT * FROM pipeline", conn) if "pipeline" in [row[0] for row in conn.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()] else pd.DataFrame()
-    df_vendas = pd.read_sql("SELECT * FROM vendas", conn) if "vendas" in [row[0] for row in conn.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()] else pd.DataFrame()
+    conn = conectar()
+    tabelas = [row[0] for row in conn.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()]
+    df_clientes = pd.read_sql("SELECT * FROM clientes", conn) if "clientes" in tabelas else pd.DataFrame()
+    df_pipeline = pd.read_sql("SELECT * FROM pipeline", conn) if "pipeline" in tabelas else pd.DataFrame()
+    df_vendas = pd.read_sql("SELECT * FROM vendas", conn) if "vendas" in tabelas else pd.DataFrame()
     conn.close()
     return df_clientes, df_pipeline, df_vendas
 
@@ -88,7 +90,6 @@ df_clientes, df_pipeline, df_vendas = carregar_dados()
 if selected == "Dashboard":
     st.markdown("### 📊 Dashboard de Performance Comercial")
     
-    # 1. KPIs no Topo (Cards)
     total_leads = len(df_clientes)
     valor_pipeline = df_pipeline['valor'].sum() if not df_pipeline.empty and "valor" in df_pipeline.columns else 0.0
     receita_realizada = df_vendas['valor'].sum() if not df_vendas.empty and "valor" in df_vendas.columns else 0.0
@@ -102,7 +103,6 @@ if selected == "Dashboard":
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # Abas para organizar os gráficos e não sobrecarregar a tela
     tab1, tab2, tab3 = st.tabs(["📈 Visão Geral & Vendas", "🎯 Funil & Pipeline", "👥 Equipe & Leads"])
 
     with tab1:
@@ -170,25 +170,156 @@ if selected == "Dashboard":
             else:
                 st.info("Sem dados de status.")
 
+# --- CLIENTES ---
+elif selected == "Clientes":
+    st.markdown("### 👤 Cadastro Completo de Clientes e Leads")
+    with st.form("form_cliente_completo", clear_on_submit=True):
+        col_c1, col_c2 = st.columns(2)
+        with col_c1:
+            nome_contato = st.text_input("Nome do Contato *")
+            nome_empresa = st.text_input("Nome da Empresa")
+            email_cli = st.text_input("E-mail")
+            telefone_cli = st.text_input("Telefone / WhatsApp")
+            regiao_cli = st.selectbox("Região", ["Sudeste", "Sul", "Nordeste", "Centro-Oeste", "Norte"])
+        with col_c2:
+            origem_cli = st.selectbox("Origem do Lead", ["Indicação", "Instagram", "Google Ads", "WhatsApp", "Prospecção Ativa", "Site"])
+            status_opcoes = [
+                "🆕 Novo Lead", "📞 Primeiro Contato", "💬 Em Atendimento",
+                "📋 Proposta Enviada", "⏳ Aguardando Resposta", "🤝 Negociação",
+                "✅ Venda Fechada", "❌ Venda Perdida", "🔄 Pós-Venda"
+            ]
+            status_cli = st.selectbox("Status do Cliente", status_opcoes)
+            motivo_cli = st.text_input("Motivo de Perda (Se aplicável)")
+            responsavel_cli = st.text_input("Responsável Comercial", value="Equipe Comercial")
+            data_cad = st.text_input("Data de Cadastro", value=str(date.today()))
+            data_fech = st.text_input("Data de Fechamento", value="")
+            
+        submitted_cli = st.form_submit_button("Salvar Cliente no CRM")
+        if submitted_cli:
+            if nome_contato:
+                conn = conectar()
+                conn.execute("""
+                    INSERT INTO clientes (nome, empresa, email, telefone, regiao, status, origem, motivo_perda, data, data_fechamento, responsavel) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, (nome_contato, nome_empresa, email_cli, telefone_cli, regiao_cli, status_cli, origem_cli, motivo_cli, data_cad, data_fech, responsavel_cli))
+                conn.commit()
+                conn.close()
+                st.success("Cliente cadastrado com sucesso!")
+                st.rerun()
+            else:
+                st.error("Por favor, preencha ao menos o Nome do Contato.")
+
+    st.markdown("<div style='margin-top: 35px;'></div>", unsafe_allow_html=True)
+    st.markdown("### 📋 Base de Dados Geral (CRM)")
+    if not df_clientes.empty:
+        colunas_mostrar = [c for c in ['nome', 'empresa', 'telefone', 'origem', 'status', 'responsavel', 'data'] if c in df_clientes.columns]
+        st.dataframe(df_clientes[colunas_mostrar], use_container_width=True, hide_index=True)
+    else:
+        st.info("Nenhum cliente cadastrado.")
+
+# --- LEADS ---
+elif selected == "Leads":
+    st.markdown("### 🎯 Gestão de Leads")
+    df_leads_only = df_clientes[df_clientes["status"].str.contains("Lead|Contato|Atendimento|Novo", case=False, na=False)] if not df_clientes.empty and "status" in df_clientes.columns else pd.DataFrame()
+    if not df_leads_only.empty:
+        colunas_mostrar = [c for c in ["nome", "empresa", "email", "telefone", "origem", "status", "data"] if c in df_leads_only.columns]
+        st.dataframe(df_leads_only[colunas_mostrar], use_container_width=True, hide_index=True)
+    else:
+        st.info("Nenhum lead em aberto no momento.")
+
+# --- PIPELINE ---
 elif selected == "Pipeline":
     st.markdown("### 📊 Pipeline Comercial")
     with st.form("form_pipeline", clear_on_submit=True):
-        c1, c2, c3 = st.columns(3)
-        p_titulo = c1.text_input("Título")
-        p_estagio = c2.selectbox("Estágio", ["Prospecção", "Qualificação", "Proposta", "Negociação", "Fechamento"])
-        p_valor = c3.number_input("Valor (R$)", min_value=0.0)
-        if st.form_submit_button("Adicionar Negócio"):
-            conn = sqlite3.connect("crm.db")
-            conn.execute("INSERT INTO pipeline (titulo, estagio, valor) VALUES (?,?,?)", (p_titulo, p_estagio, p_valor))
-            conn.commit()
-            conn.close()
-            st.success("Adicionado com sucesso!")
-            st.rerun()
+        col_p1, col_p2, col_p3 = st.columns(3)
+        with col_p1:
+            p_titulo = st.text_input("Título do Negócio *")
+            p_empresa = st.text_input("Empresa")
+        with col_p2:
+            p_estagio = st.selectbox("Estágio", ["Prospecção", "Qualificação", "Proposta", "Negociação", "Fechamento"])
+            p_contato = st.text_input("Contato")
+        with col_p3:
+            p_valor = st.number_input("Valor Estimado (R$)", min_value=0.0, step=100.0)
+            p_telefone = st.text_input("Telefone")
+            
+        btn_pipe = st.form_submit_button("Adicionar Negócio ao Pipeline")
+        if btn_pipe:
+            if p_titulo:
+                conn = conectar()
+                conn.execute("""
+                    INSERT INTO pipeline (titulo, estagio, valor, empresa, contato, telefone, responsavel, origem) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """, (p_titulo, p_estagio, p_valor, p_empresa, p_contato, p_telefone, "Comercial", "Direto"))
+                conn.commit()
+                conn.close()
+                st.success("Negócio adicionado com sucesso!")
+                st.rerun()
+            else:
+                st.error("Informe o título do negócio.")
 
+# --- VENDAS ---
+elif selected == "Vendas":
+    st.markdown("### 💰 Controle de Vendas Fechadas")
+    faturamento_total = df_vendas['valor'].sum() if not df_vendas.empty and "valor" in df_vendas.columns else 0.0
+    total_vendas_count = len(df_vendas) if not df_vendas.empty else 0
+    ticket_medio = df_vendas['valor'].mean() if not df_vendas.empty and total_vendas_count > 0 else 0.0
+
+    vk1, vk2, vk3 = st.columns(3)
+    vk1.metric("💰 Faturamento Total", f"R$ {faturamento_total:,.2f}")
+    vk2.metric("📦 Total de Vendas", f"{total_vendas_count}")
+    vk3.metric("📈 Ticket Médio", f"R$ {ticket_medio:,.2f}")
+
+    st.markdown("<div style='margin-bottom: 30px;'></div>", unsafe_allow_html=True)
+
+    with st.form("form_venda", clear_on_submit=True):
+        col_v1, col_v2, col_v3, col_v4 = st.columns(4)
+        with col_v1:
+            v_cliente = st.text_input("Cliente *")
+        with col_v2:
+            v_valor = st.number_input("Valor (R$)", min_value=0.0, step=100.0)
+        with col_v3:
+            v_resp = st.text_input("Responsável", value="Comercial")
+        with col_v4:
+            v_data = st.text_input("Data (AAAA-MM-DD)", value=str(date.today()))
+            
+        btn_venda = st.form_submit_button("Registrar Venda")
+        if btn_venda:
+            if v_cliente and v_valor > 0:
+                conn = conectar()
+                conn.execute("INSERT INTO vendas (cliente, valor, data, responsavel, status) VALUES (?, ?, ?, ?, ?)", 
+                           (v_cliente, v_valor, v_data, v_resp, "Pago"))
+                conn.commit()
+                conn.close()
+                st.success("Venda registrada com sucesso!")
+                st.rerun()
+            else:
+                st.error("Preencha o cliente e um valor válido.")
+
+# --- RELATÓRIOS ---
+elif selected == "Relatórios":
+    st.markdown("### 📈 Relatórios e Exportação")
+    df_export = df_vendas if not df_vendas.empty else pd.DataFrame(columns=['cliente', 'valor', 'data', 'responsavel', 'status'])
+    csv_data = df_export.to_csv(index=False).encode('utf-8')
+    st.download_button(label="📥 Exportar Dados para CSV", data=csv_data, file_name="vendas_crm.csv", mime="text/csv")
+
+# --- INTEGRAÇÕES ---
+elif selected == "Integrações":
+    st.markdown("### 🔌 Integrações e Conexões")
+    st.toggle("Ativar Integração WhatsApp", value=True)
+
+# --- CONFIGURAÇÕES ---
 elif selected == "Configurações":
     st.markdown("### ⚙️ Configurações do Sistema")
-    st.radio("Tema", ["🌙 Escuro", "☀️ Claro"], key="tema_sistema")
-    st.radio("Cor principal", ["🔵 Azul", "🟢 Verde", "🟣 Roxo"], key="cor_principal_sistema")
-    if st.button("Salvar Preferências"):
-        st.success("Atualizado!")
+    st.markdown("---")
+    
+    st.markdown("#### 🎨 Aparência")
+    col_ap1, col_ap2 = st.columns(2)
+    with col_ap1:
+        st.radio("Tema", ["🌙 Escuro", "☀️ Claro"], key="tema_sistema")
+    with col_ap2:
+        st.radio("Cor principal", ["🔵 Azul", "🟢 Verde", "🟣 Roxo"], key="cor_principal_sistema")
+
+    st.markdown("---")
+    if st.button("Salvar Configurações"):
+        st.success("Configurações e aparências atualizadas com sucesso!")
         st.rerun()
