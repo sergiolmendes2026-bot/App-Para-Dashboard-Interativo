@@ -45,18 +45,25 @@ st.markdown(f"""
     </style>
 """, unsafe_allow_html=True)
 
-# --- BANCO DE DADOS E DADOS DE DEMONSTRAÇÃO ---
+# --- BANCO DE DADOS E CORREÇÃO DE ESQUEMA ---
 def inicializar_banco():
     conn = sqlite3.connect("crm.db")
-    conn.execute("CREATE TABLE IF NOT EXISTS clientes (id INTEGER PRIMARY KEY AUTOINCREMENT, nome TEXT, empresa TEXT, email TEXT, telefone TEXT, regiao TEXT, status TEXT, origem TEXT, motivo_perda TEXT, data TEXT, data_fechamento TEXT, responsavel TEXT)")
-    conn.execute("CREATE TABLE IF NOT EXISTS pipeline (id INTEGER PRIMARY KEY AUTOINCREMENT, titulo TEXT, estagio TEXT, valor REAL, empresa TEXT, contato TEXT, telefone TEXT, email TEXT, responsavel TEXT, origem TEXT)")
-    conn.execute("CREATE TABLE IF NOT EXISTS vendas (id INTEGER PRIMARY KEY AUTOINCREMENT, cliente TEXT, valor REAL, data TEXT, responsavel TEXT, status TEXT, produto TEXT)")
-    
-    # Popular dados falsos caso esteja vazio para aparecerem os gráficos imediatamente
     cursor = conn.cursor()
+    
+    # Criar tabelas caso não existam
+    cursor.execute("CREATE TABLE IF NOT EXISTS clientes (id INTEGER PRIMARY KEY AUTOINCREMENT, nome TEXT, empresa TEXT, email TEXT, telefone TEXT, regiao TEXT, status TEXT, origem TEXT, motivo_perda TEXT, data TEXT, data_fechamento TEXT, responsavel TEXT)")
+    cursor.execute("CREATE TABLE IF NOT EXISTS pipeline (id INTEGER PRIMARY KEY AUTOINCREMENT, titulo TEXT, estagio TEXT, valor REAL, empresa TEXT, contato TEXT, telefone TEXT, email TEXT, responsavel TEXT, origem TEXT)")
+    cursor.execute("CREATE TABLE IF NOT EXISTS vendas (id INTEGER PRIMARY KEY AUTOINCREMENT, cliente TEXT, valor REAL, data TEXT, responsavel TEXT, status TEXT, produto TEXT)")
+    
+    # Garantir compatibilidade com bases antigas adicionando colunas faltantes
+    tinfo_vendas = [col[1] for col in cursor.execute("PRAGMA table_info(vendas)").fetchall()]
+    if "produto" not in tinfo_vendas:
+        cursor.execute("ALTER TABLE vendas ADD COLUMN produto TEXT")
+    
+    # Popular dados de demonstração caso as tabelas estejam vazias
     cursor.execute("SELECT COUNT(*) FROM vendas")
     if cursor.fetchone()[0] == 0:
-        conn.executemany("INSERT INTO vendas (cliente, valor, data, responsavel, status, produto) VALUES (?, ?, ?, ?, ?, ?)", [
+        cursor.executemany("INSERT INTO vendas (cliente, valor, data, responsavel, status, produto) VALUES (?, ?, ?, ?, ?, ?)", [
             ("Empresa Alpha", 15000.0, "2026-06-01", "Carlos", "Pago", "Software A"),
             ("Empresa Beta", 25000.0, "2026-06-05", "Ana", "Pago", "Software B"),
             ("Empresa Gama", 10000.0, "2026-06-10", "Carlos", "Pago", "Consultoria"),
@@ -65,7 +72,7 @@ def inicializar_banco():
     
     cursor.execute("SELECT COUNT(*) FROM pipeline")
     if cursor.fetchone()[0] == 0:
-        conn.executemany("INSERT INTO pipeline (titulo, estagio, valor, responsavel) VALUES (?, ?, ?, ?)", [
+        cursor.executemany("INSERT INTO pipeline (titulo, estagio, valor, responsavel) VALUES (?, ?, ?, ?)", [
             ("Projeto X", "Prospecção", 50000.0, "Carlos"),
             ("Projeto Y", "Qualificação", 30000.0, "Ana"),
             ("Projeto Z", "Proposta", 20000.0, "Carlos"),
@@ -74,7 +81,7 @@ def inicializar_banco():
 
     cursor.execute("SELECT COUNT(*) FROM clientes")
     if cursor.fetchone()[0] == 0:
-        conn.executemany("INSERT INTO clientes (nome, status, origem, motivo_perda, data) VALUES (?, ?, ?, ?, ?)", [
+        cursor.executemany("INSERT INTO clientes (nome, status, origem, motivo_perda, data) VALUES (?, ?, ?, ?, ?)", [
             ("João Silva", "🆕 Novo Lead", "Google Ads", "", "2026-06-01"),
             ("Maria Souza", "✅ Venda Fechada", "Instagram", "", "2026-06-02"),
             ("Pedro Santos", "❌ Venda Perdida", "Indicação", "Preço Alto", "2026-06-03"),
