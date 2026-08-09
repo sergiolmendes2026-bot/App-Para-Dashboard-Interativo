@@ -50,7 +50,7 @@ def inicializar_banco():
     conn = sqlite3.connect("crm.db")
     conn.execute("CREATE TABLE IF NOT EXISTS clientes (id INTEGER PRIMARY KEY AUTOINCREMENT, nome TEXT, empresa TEXT, email TEXT, telefone TEXT, regiao TEXT, status TEXT, origem TEXT, motivo_perda TEXT, data TEXT, data_fechamento TEXT, responsavel TEXT)")
     conn.execute("CREATE TABLE IF NOT EXISTS pipeline (id INTEGER PRIMARY KEY AUTOINCREMENT, titulo TEXT, estagio TEXT, valor REAL, empresa TEXT, contato TEXT, telefone TEXT, email TEXT, responsavel TEXT, origem TEXT)")
-    conn.execute("CREATE TABLE IF NOT EXISTS vendas (id INTEGER PRIMARY KEY AUTOINCREMENT, cliente TEXT, valor REAL, data TEXT, responsavel TEXT, status TEXT)")
+    conn.execute("CREATE TABLE IF NOT EXISTS vendas (id INTEGER PRIMARY KEY AUTOINCREMENT, cliente TEXT, valor REAL, data TEXT, responsavel TEXT, status TEXT, produto TEXT)")
     conn.commit()
     conn.close()
 
@@ -90,6 +90,7 @@ df_clientes, df_pipeline, df_vendas = carregar_dados()
 if selected == "Dashboard":
     st.markdown("### 📊 Dashboard de Performance Comercial")
     
+    # KPIs no Topo
     total_leads = len(df_clientes)
     valor_pipeline = df_pipeline['valor'].sum() if not df_pipeline.empty and "valor" in df_pipeline.columns else 0.0
     receita_realizada = df_vendas['valor'].sum() if not df_vendas.empty and "valor" in df_vendas.columns else 0.0
@@ -103,45 +104,78 @@ if selected == "Dashboard":
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    tab1, tab2, tab3 = st.tabs(["📈 Visão Geral & Vendas", "🎯 Funil & Pipeline", "👥 Equipe & Leads"])
+    # Abas para organizar os 8 gráficos profissionalmente
+    tab1, tab2, tab3 = st.tabs(["💰 Vendas & Receita", "🎯 Pipeline & Funil", "👥 Leads & Perdas"])
 
     with tab1:
-        col_1, col_2 = st.columns(2)
-        with col_1:
-            st.markdown("#### Evolução das Vendas (Linha)")
-            if not df_vendas.empty and "data" in df_vendas.columns:
-                df_v_linha = df_vendas.groupby("data")["valor"].sum().reset_index()
-                fig_linha = px.line(df_v_linha, x="data", y="valor", color_discrete_sequence=[cor_hex])
+        c_v1, c_v2 = st.columns(2)
+        
+        # 1. Evolução das Vendas (Linha)
+        with c_v1:
+            st.markdown("#### 📈 1. Evolução das Vendas")
+            if not df_vendas.empty and "data" in df_vendas.columns and "valor" in df_vendas.columns:
+                df_temp = df_vendas.copy()
+                df_temp['data'] = pd.to_datetime(df_temp['data'], errors='coerce')
+                df_v_linha = df_temp.groupby("data")["valor"].sum().reset_index()
+                fig_linha = px.line(df_v_linha, x="data", y="valor", markers=True, color_discrete_sequence=[cor_hex])
                 fig_linha.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font=dict(color=text_app))
                 st.plotly_chart(fig_linha, use_container_width=True)
             else:
-                st.info("Sem dados de vendas suficientes.")
+                st.info("Sem dados suficientes de vendas.")
 
-        with col_2:
-            st.markdown("#### Meta x Realizado (Gauge)")
-            meta_exemplo = 100000.0
+        # 2. Meta x Realizado (Gauge)
+        with c_v2:
+            st.markdown("#### 🎯 2. Meta x Realizado (Gauge)")
+            meta_exemplo = 150000.0
             fig_gauge = go.Figure(go.Indicator(
                 mode="gauge+number", value=receita_realizada,
                 domain={'x': [0, 1], 'y': [0, 1]},
-                title={'text': "Progresso da Meta"},
+                title={'text': "Progresso de Vendas vs Meta"},
                 gauge={'axis': {'range': [None, meta_exemplo]}, 'bar': {'color': cor_hex}}
             ))
-            fig_gauge.update_layout(paper_bgcolor="rgba(0,0,0,0)", font=dict(color=text_app), height=250)
+            fig_gauge.update_layout(paper_bgcolor="rgba(0,0,0,0)", font=dict(color=text_app), height=260)
             st.plotly_chart(fig_gauge, use_container_width=True)
 
+        c_v3, c_v4 = st.columns(2)
+        
+        # 4. Receita por Vendedor (Barras)
+        with c_v3:
+            st.markdown("#### 🏆 4. Receita por Vendedor")
+            if not df_vendas.empty and "responsavel" in df_vendas.columns and "valor" in df_vendas.columns:
+                df_vend = df_vendas.groupby("responsavel")["valor"].sum().reset_index()
+                fig_vend = px.bar(df_vend, x="responsavel", y="valor", color_discrete_sequence=[cor_hex])
+                fig_vend.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font=dict(color=text_app))
+                st.plotly_chart(fig_vend, use_container_width=True)
+            else:
+                st.info("Sem dados de vendedores.")
+
+        # 7. Produtos Mais Vendidos (Barras Horizontais)
+        with c_v4:
+            st.markdown("#### 📦 7. Produtos Mais Vendidos")
+            if not df_vendas.empty and "produto" in df_vendas.columns and "valor" in df_vendas.columns:
+                df_prod = df_vendas.groupby("produto")["valor"].sum().reset_index()
+                fig_prod = px.bar(df_prod, x="valor", y="produto", orientation="h", color_discrete_sequence=[cor_hex])
+                fig_prod.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font=dict(color=text_app), yaxis=dict(autorange="reversed"))
+                st.plotly_chart(fig_prod, use_container_width=True)
+            else:
+                st.info("Cadastre vendas com a coluna 'produto' preenchida.")
+
     with tab2:
-        col_3, col_4 = st.columns(2)
-        with col_3:
-            st.markdown("#### Funil de Vendas")
-            if not df_pipeline.empty and "estagio" in df_pipeline.columns:
+        c_p1, c_p2 = st.columns(2)
+        
+        # 3. Funil de Vendas
+        with c_p1:
+            st.markdown("#### 📊 3. Funil de Vendas")
+            if not df_pipeline.empty and "estagio" in df_pipeline.columns and "valor" in df_pipeline.columns:
                 fig_funil = px.funnel(df_pipeline, x="valor", y="estagio", color_discrete_sequence=[cor_hex])
                 fig_funil.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font=dict(color=text_app))
                 st.plotly_chart(fig_funil, use_container_width=True)
             else:
                 st.info("Sem dados no pipeline.")
 
-        with col_4:
-            st.markdown("#### Valor do Pipeline por Etapa (Barras)")
+        # Espaço reservado para métricas adicionais do funil se necessário
+        with c_p2:
+            st.markdown("#### 📈 Status Detalhado do Pipeline")
             if not df_pipeline.empty and "estagio" in df_pipeline.columns:
                 df_pipe_bar = df_pipeline.groupby("estagio")["valor"].sum().reset_index()
                 fig_bar_pipe = px.bar(df_pipe_bar, x="valor", y="estagio", orientation="h", color_discrete_sequence=[cor_hex])
@@ -151,24 +185,42 @@ if selected == "Dashboard":
                 st.info("Sem dados no pipeline.")
 
     with tab3:
-        col_5, col_6 = st.columns(2)
-        with col_5:
-            st.markdown("#### Origem dos Leads (Pizza)")
+        c_l1, c_l2 = st.columns(2)
+        
+        # 5. Origem dos Leads (Donut)
+        with c_l1:
+            st.markdown("#### 🍩 5. Origem dos Leads (Donut)")
             if not df_clientes.empty and "origem" in df_clientes.columns:
-                fig_origem = px.pie(df_clientes, names="origem", hole=0.4, color_discrete_sequence=px.colors.qualitative.Prism)
+                fig_origem = px.pie(df_clientes, names="origem", hole=0.5, color_discrete_sequence=px.colors.qualitative.Prism)
                 fig_origem.update_layout(paper_bgcolor="rgba(0,0,0,0)", font=dict(color=text_app))
                 st.plotly_chart(fig_origem, use_container_width=True)
             else:
-                st.info("Sem dados de clientes.")
+                st.info("Sem dados de origem dos leads.")
 
-        with col_6:
-            st.markdown("#### Clientes por Status (Donut)")
+        # 6. Clientes por Status
+        with c_l2:
+            st.markdown("#### 📋 6. Clientes por Status")
             if not df_clientes.empty and "status" in df_clientes.columns:
-                fig_status = px.pie(df_clientes, names="status", hole=0.6, color_discrete_sequence=px.colors.qualitative.Safe)
-                fig_status.update_layout(paper_bgcolor="rgba(0,0,0,0)", font=dict(color=text_app))
+                df_status = df_clientes.groupby("status").size().reset_index(name="quantidade")
+                fig_status = px.bar(df_status, x="status", y="quantidade", color_discrete_sequence=[cor_hex])
+                fig_status.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font=dict(color=text_app))
                 st.plotly_chart(fig_status, use_container_width=True)
             else:
-                st.info("Sem dados de status.")
+                st.info("Sem dados de status dos clientes.")
+
+        # 8. Motivos de Perda de Negócios
+        st.markdown("#### ❌ 8. Motivos de Perda de Negócios")
+        if not df_clientes.empty and "motivo_perda" in df_clientes.columns:
+            df_perda = df_clientes[df_clientes["motivo_perda"].str.strip() != ""]
+            if not df_perda.empty:
+                df_perda_group = df_perda.groupby("motivo_perda").size().reset_index(name="quantidade")
+                fig_perda = px.bar(df_perda_group, x="motivo_perda", y="quantidade", color_discrete_sequence=["#EF4444"])
+                fig_perda.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font=dict(color=text_app))
+                st.plotly_chart(fig_perda, use_container_width=True)
+            else:
+                st.info("Nenhum motivo de perda registrado.")
+        else:
+            st.info("Sem dados de perda.")
 
 # --- CLIENTES ---
 elif selected == "Clientes":
@@ -272,22 +324,29 @@ elif selected == "Vendas":
     st.markdown("<div style='margin-bottom: 30px;'></div>", unsafe_allow_html=True)
 
     with st.form("form_venda", clear_on_submit=True):
-        col_v1, col_v2, col_v3, col_v4 = st.columns(4)
+        col_v1, col_v2, col_v3, col_v4, col_v5 = st.columns(5)
         with col_v1:
             v_cliente = st.text_input("Cliente *")
         with col_v2:
             v_valor = st.number_input("Valor (R$)", min_value=0.0, step=100.0)
         with col_v3:
-            v_resp = st.text_input("Responsável", value="Comercial")
+            v_produto = st.text_input("Produto", value="Produto A")
         with col_v4:
+            v_resp = st.text_input("Responsável", value="Comercial")
+        with col_v5:
             v_data = st.text_input("Data (AAAA-MM-DD)", value=str(date.today()))
             
         btn_venda = st.form_submit_button("Registrar Venda")
         if btn_venda:
             if v_cliente and v_valor > 0:
                 conn = conectar()
-                conn.execute("INSERT INTO vendas (cliente, valor, data, responsavel, status) VALUES (?, ?, ?, ?, ?)", 
-                           (v_cliente, v_valor, v_data, v_resp, "Pago"))
+                # Atualiza ou insere com suporte ao campo produto
+                tinfo = [col[1] for col in conn.execute("PRAGMA table_info(vendas)").fetchall()]
+                if "produto" not in tinfo:
+                    conn.execute("ALTER TABLE vendas ADD COLUMN produto TEXT")
+                
+                conn.execute("INSERT INTO vendas (cliente, valor, data, responsavel, status, produto) VALUES (?, ?, ?, ?, ?, ?)", 
+                           (v_cliente, v_valor, v_data, v_resp, "Pago", v_produto))
                 conn.commit()
                 conn.close()
                 st.success("Venda registrada com sucesso!")
@@ -298,7 +357,7 @@ elif selected == "Vendas":
 # --- RELATÓRIOS ---
 elif selected == "Relatórios":
     st.markdown("### 📈 Relatórios e Exportação")
-    df_export = df_vendas if not df_vendas.empty else pd.DataFrame(columns=['cliente', 'valor', 'data', 'responsavel', 'status'])
+    df_export = df_vendas if not df_vendas.empty else pd.DataFrame(columns=['cliente', 'valor', 'data', 'responsavel', 'status', 'produto'])
     csv_data = df_export.to_csv(index=False).encode('utf-8')
     st.download_button(label="📥 Exportar Dados para CSV", data=csv_data, file_name="vendas_crm.csv", mime="text/csv")
 
