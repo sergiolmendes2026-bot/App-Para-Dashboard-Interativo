@@ -6,7 +6,7 @@ import plotly.graph_objects as go
 from datetime import date
 
 st.set_page_config(
-    page_title="CRM Comercial Profissional", page_icon="📊", layout="wide"
+    page_title="CRM Pro - Workspace v2.0", page_icon="📊", layout="wide"
 )
 
 # --- INICIALIZAÇÃO DO ESTADO ---
@@ -29,19 +29,49 @@ bg_app = "#0e1117" if is_escuro else "#ffffff"
 text_app = "#ffffff" if is_escuro else "#1e293b"
 sidebar_bg = "#0b0f19" if is_escuro else "#f8fafc"
 
-# --- CSS E ESTILIZAÇÃO ---
+# --- CSS E ESTILIZAÇÃO DO NOVO MENU LATERAL ---
 st.markdown(f"""
     <style>
         .stApp {{ background-color: {bg_app}; color: {text_app}; }}
-        [data-testid="stSidebar"] {{ background-color: {sidebar_bg}; }}
-        div.stButton > button:first-child {{ background-color: {cor_hex} !important; color: white !important; border: none !important; }}
-        h1, h2, h3, h4 {{ color: {text_app}; }}
-        [data-testid="stSidebar"] div.stButton > button {{
-            width: 100%; text-align: left; background-color: transparent !important;
-            color: #94a3b8 !important; border: none !important; border-radius: 10px !important;
-            padding: 10px 14px !important; font-size: 14px !important; font-weight: 500 !important;
+        [data-testid="stSidebar"] {{ 
+            background-color: {sidebar_bg}; 
+            border-right: 1px solid #1e293b;
+            padding-top: 10px;
         }}
-        [data-testid="stSidebar"] div.stButton > button:hover {{ background-color: rgba(255, 255, 255, 0.05) !important; color: #ffffff !important; }}
+        h1, h2, h3, h4 {{ color: {text_app}; }}
+        
+        /* Estilização moderna dos botões do menu lateral */
+        [data-testid="stSidebar"] div.stButton > button {{
+            width: 100%; 
+            text-align: left; 
+            background-color: transparent !important;
+            color: #94a3b8 !important; 
+            border: none !important; 
+            border-radius: 8px !important;
+            padding: 8px 12px !important; 
+            font-size: 14px !important; 
+            font-weight: 500 !important;
+            margin-bottom: 2px;
+            transition: all 0.2s ease-in-out;
+        }}
+        
+        /* Efeito ao passar o mouse */
+        [data-testid="stSidebar"] div.stButton > button:hover {{ 
+            background-color: rgba(255, 255, 255, 0.05) !important; 
+            color: #ffffff !important; 
+        }}
+        
+        /* Cabeçalhos das seções na barra lateral */
+        .sidebar-section-title {{
+            color: #64748b;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            margin-top: 18px;
+            margin-bottom: 6px;
+            padding-left: 12px;
+        }}
     </style>
 """, unsafe_allow_html=True)
 
@@ -50,17 +80,14 @@ def inicializar_banco():
     conn = sqlite3.connect("crm.db")
     cursor = conn.cursor()
     
-    # Criar tabelas caso não existam
     cursor.execute("CREATE TABLE IF NOT EXISTS clientes (id INTEGER PRIMARY KEY AUTOINCREMENT, nome TEXT, empresa TEXT, email TEXT, telefone TEXT, regiao TEXT, status TEXT, origem TEXT, motivo_perda TEXT, data TEXT, data_fechamento TEXT, responsavel TEXT)")
     cursor.execute("CREATE TABLE IF NOT EXISTS pipeline (id INTEGER PRIMARY KEY AUTOINCREMENT, titulo TEXT, estagio TEXT, valor REAL, empresa TEXT, contato TEXT, telefone TEXT, email TEXT, responsavel TEXT, origem TEXT)")
     cursor.execute("CREATE TABLE IF NOT EXISTS vendas (id INTEGER PRIMARY KEY AUTOINCREMENT, cliente TEXT, valor REAL, data TEXT, responsavel TEXT, status TEXT, produto TEXT)")
     
-    # Garantir compatibilidade com bases antigas adicionando colunas faltantes
     tinfo_vendas = [col[1] for col in cursor.execute("PRAGMA table_info(vendas)").fetchall()]
     if "produto" not in tinfo_vendas:
         cursor.execute("ALTER TABLE vendas ADD COLUMN produto TEXT")
     
-    # Popular dados de demonstração caso as tabelas estejam vazias
     cursor.execute("SELECT COUNT(*) FROM vendas")
     if cursor.fetchone()[0] == 0:
         cursor.executemany("INSERT INTO vendas (cliente, valor, data, responsavel, status, produto) VALUES (?, ?, ?, ?, ?, ?)", [
@@ -93,18 +120,48 @@ def inicializar_banco():
 
 inicializar_banco()
 
-# --- BARRA LATERAL ---
+# --- NOVA BARRA LATERAL PROFISSIONAL ---
 with st.sidebar:
-    st.markdown(f"""<div style="padding: 10px 5px 20px 5px;"><div style="font-weight: bold; font-size: 20px; color: {text_app};">CRM COMERCIAL</div></div>""", unsafe_allow_html=True)
-    menu_itens = [
-        ("Dashboard", "📊"), ("Clientes", "👥"), ("Leads", "👤"), 
-        ("Pipeline", "📈"), ("Vendas", "🏆"), ("Relatórios", "📄"), 
-        ("Integrações", "🔌"), ("Configurações", "⚙️")
-    ]
-    for nome, icone in menu_itens:
-        if st.button(f"{icone} {nome}", key=f"nav_{nome}", use_container_width=True):
-            st.session_state.selected = nome
+    # Cabeçalho do Workspace / Logotipo
+    st.markdown(f"""
+        <div style="padding: 5px 4px 15px 4px; display: flex; align-items: center; gap: 10px;">
+            <div style="background-color: {cor_hex}; width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 16px;">📊</div>
+            <div>
+                <div style="font-weight: 700; font-size: 16px; color: {text_app}; line-height: 1.2;">CRM PRO</div>
+                <div style="font-size: 11px; color: #64748b; font-weight: 500;">Workspace v2.0</div>
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
+    
+    st.divider()
+
+    # Função auxiliar para criar itens do menu com destaque no ativo
+    def menu_button(label, icon, key):
+        is_active = st.session_state.selected == label
+        # Estilo customizado para o botão ativo parecer com a imagem de referência
+        active_style = f"background-color: rgba(37, 99, 235, 0.15) !important; color: {cor_hex} !important; font-weight: 600 !important;" if is_active else ""
+        
+        # Renderiza o botão
+        if st.button(f"{icon}  {label}", key=key, use_container_width=True):
+            st.session_state.selected = label
             st.rerun()
+
+    # SEÇÃO: PRINCIPAL
+    st.markdown('<p class="sidebar-section-title">Principal</p>', unsafe_allow_html=True)
+    menu_button("Dashboard", "🏠", "nav_dashboard")
+    menu_button("Clientes", "📖", "nav_clientes")
+    menu_button("Leads", "🎯", "nav_leads")
+
+    # SEÇÃO: COMERCIAL
+    st.markdown('<p class="sidebar-section-title">Comercial</p>', unsafe_allow_html=True)
+    menu_button("Pipeline", "📈", "nav_pipeline")
+    menu_button("Vendas", "🏆", "nav_vendas")
+    menu_button("Relatórios", "📄", "nav_relatorios")
+
+    # SEÇÃO: SISTEMA
+    st.markdown('<p class="sidebar-section-title">Sistema</p>', unsafe_allow_html=True)
+    menu_button("Integrações", "🔌", "nav_integracoes")
+    menu_button("Configurações", "⚙️", "nav_configuracoes")
 
 selected = st.session_state.selected
 
@@ -145,22 +202,21 @@ if selected == "Dashboard":
     with tab1:
         c_v1, c_v2 = st.columns(2)
         
-        # 1. Evolução das Vendas (Linha)
         with c_v1:
-            st.markdown("#### 📈  Evolução das Vendas")
+            st.markdown("#### 📈 1. Evolução das Vendas")
             if not df_vendas.empty and "data" in df_vendas.columns:
                 df_temp = df_vendas.copy()
                 df_temp['data'] = pd.to_datetime(df_temp['data'], errors='coerce')
                 df_v_linha = df_temp.groupby("data")["valor"].sum().reset_index()
+                df_v_linha = df_v_linha.sort_values("data")
                 fig_linha = px.line(df_v_linha, x="data", y="valor", markers=True, color_discrete_sequence=[cor_hex])
                 fig_linha.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font=dict(color=text_app))
                 st.plotly_chart(fig_linha, use_container_width=True)
             else:
                 st.info("Sem dados suficientes de vendas.")
 
-        # 2. Meta x Realizado (Gauge)
         with c_v2:
-            st.markdown("#### 🎯   Meta x Realizado (Gauge)")
+            st.markdown("#### 🎯 2. Meta x Realizado (Gauge)")
             meta_exemplo = 150000.0
             fig_gauge = go.Figure(go.Indicator(
                 mode="gauge+number", value=receita_realizada,
@@ -173,9 +229,8 @@ if selected == "Dashboard":
 
         c_v3, c_v4 = st.columns(2)
         
-        # 4. Receita por Vendedor (Barras)
         with c_v3:
-            st.markdown("#### 🏆   Receita por Vendedor")
+            st.markdown("#### 🏆 4. Receita por Vendedor")
             if not df_vendas.empty and "responsavel" in df_vendas.columns:
                 df_vend = df_vendas.groupby("responsavel")["valor"].sum().reset_index()
                 fig_vend = px.bar(df_vend, x="responsavel", y="valor", color_discrete_sequence=[cor_hex])
@@ -184,9 +239,8 @@ if selected == "Dashboard":
             else:
                 st.info("Sem dados de vendedores.")
 
-        # 7. Produtos Mais Vendidos (Barras Horizontais)
         with c_v4:
-            st.markdown("#### 📦   Produtos Mais Vendidos")
+            st.markdown("#### 📦 7. Produtos Mais Vendidos")
             if not df_vendas.empty and "produto" in df_vendas.columns:
                 df_prod = df_vendas.groupby("produto")["valor"].sum().reset_index()
                 fig_prod = px.bar(df_prod, x="valor", y="produto", orientation="h", color_discrete_sequence=[cor_hex])
@@ -198,9 +252,8 @@ if selected == "Dashboard":
     with tab2:
         c_p1, c_p2 = st.columns(2)
         
-        # 3. Funil de Vendas
         with c_p1:
-            st.markdown("#### 📊   Funil de Vendas")
+            st.markdown("#### 📊 3. Funil de Vendas")
             if not df_pipeline.empty and "estagio" in df_pipeline.columns:
                 fig_funil = px.funnel(df_pipeline, x="valor", y="estagio", color_discrete_sequence=[cor_hex])
                 fig_funil.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font=dict(color=text_app))
@@ -221,9 +274,8 @@ if selected == "Dashboard":
     with tab3:
         c_l1, c_l2 = st.columns(2)
         
-        # 5. Origem dos Leads (Donut)
         with c_l1:
-            st.markdown("#### 🍩   Origem dos Leads (Donut)")
+            st.markdown("#### 🍩 5. Origem dos Leads (Donut)")
             if not df_clientes.empty and "origem" in df_clientes.columns:
                 fig_origem = px.pie(df_clientes, names="origem", hole=0.5, color_discrete_sequence=px.colors.qualitative.Prism)
                 fig_origem.update_layout(paper_bgcolor="rgba(0,0,0,0)", font=dict(color=text_app))
@@ -231,9 +283,8 @@ if selected == "Dashboard":
             else:
                 st.info("Sem dados de origem.")
 
-        # 6. Clientes por Status
         with c_l2:
-            st.markdown("#### 📋   Clientes por Status")
+            st.markdown("#### 📋 6. Clientes por Status")
             if not df_clientes.empty and "status" in df_clientes.columns:
                 df_status = df_clientes.groupby("status").size().reset_index(name="quantidade")
                 fig_status = px.bar(df_status, x="status", y="quantidade", color_discrete_sequence=[cor_hex])
@@ -242,8 +293,7 @@ if selected == "Dashboard":
             else:
                 st.info("Sem dados de status.")
 
-        # 8. Motivos de Perda de Negócios
-        st.markdown("#### ❌   Motivos de Perda de Negócios")
+        st.markdown("#### ❌ 8. Motivos de Perda de Negócios")
         if not df_clientes.empty and "motivo_perda" in df_clientes.columns:
             df_perda = df_clientes[df_clientes["motivo_perda"].str.strip() != ""]
             if not df_perda.empty:
@@ -258,7 +308,7 @@ if selected == "Dashboard":
 
 # --- CLIENTES ---
 elif selected == "Clientes":
-    st.markdown("### 👤 Cadastro Completo de Clientes e Leads")
+    st.markdown("### 📖 Cadastro Completo de Clientes e Leads")
     with st.form("form_cliente_completo", clear_on_submit=True):
         col_c1, col_c2 = st.columns(2)
         with col_c1:
@@ -315,7 +365,7 @@ elif selected == "Leads":
 
 # --- PIPELINE ---
 elif selected == "Pipeline":
-    st.markdown("### 📊 Pipeline Comercial")
+    st.markdown("### 📈 Pipeline Comercial")
     with st.form("form_pipeline", clear_on_submit=True):
         col_p1, col_p2, col_p3 = st.columns(3)
         with col_p1:
@@ -345,7 +395,7 @@ elif selected == "Pipeline":
 
 # --- VENDAS ---
 elif selected == "Vendas":
-    st.markdown("### 💰 Controle de Vendas Fechadas")
+    st.markdown("### 🏆 Controle de Vendas Fechadas")
     faturamento_total = df_vendas['valor'].sum() if not df_vendas.empty and "valor" in df_vendas.columns else 0.0
     total_vendas_count = len(df_vendas) if not df_vendas.empty else 0
     ticket_medio = df_vendas['valor'].mean() if not df_vendas.empty and total_vendas_count > 0 else 0.0
@@ -389,7 +439,7 @@ elif selected == "Vendas":
 
 # --- RELATÓRIOS ---
 elif selected == "Relatórios":
-    st.markdown("### 📈 Relatórios e Exportação")
+    st.markdown("### 📄 Relatórios e Exportação")
     df_export = df_vendas if not df_vendas.empty else pd.DataFrame(columns=['cliente', 'valor', 'data', 'responsavel', 'status', 'produto'])
     csv_data = df_export.to_csv(index=False).encode('utf-8')
     st.download_button(label="📥 Exportar Dados para CSV", data=csv_data, file_name="vendas_crm.csv", mime="text/csv")
