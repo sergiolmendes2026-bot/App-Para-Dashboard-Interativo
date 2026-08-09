@@ -45,12 +45,42 @@ st.markdown(f"""
     </style>
 """, unsafe_allow_html=True)
 
-# --- BANCO DE DADOS ---
+# --- BANCO DE DADOS E DADOS DE DEMONSTRAÇÃO ---
 def inicializar_banco():
     conn = sqlite3.connect("crm.db")
     conn.execute("CREATE TABLE IF NOT EXISTS clientes (id INTEGER PRIMARY KEY AUTOINCREMENT, nome TEXT, empresa TEXT, email TEXT, telefone TEXT, regiao TEXT, status TEXT, origem TEXT, motivo_perda TEXT, data TEXT, data_fechamento TEXT, responsavel TEXT)")
     conn.execute("CREATE TABLE IF NOT EXISTS pipeline (id INTEGER PRIMARY KEY AUTOINCREMENT, titulo TEXT, estagio TEXT, valor REAL, empresa TEXT, contato TEXT, telefone TEXT, email TEXT, responsavel TEXT, origem TEXT)")
     conn.execute("CREATE TABLE IF NOT EXISTS vendas (id INTEGER PRIMARY KEY AUTOINCREMENT, cliente TEXT, valor REAL, data TEXT, responsavel TEXT, status TEXT, produto TEXT)")
+    
+    # Popular dados falsos caso esteja vazio para aparecerem os gráficos imediatamente
+    cursor = conn.cursor()
+    cursor.execute("SELECT COUNT(*) FROM vendas")
+    if cursor.fetchone()[0] == 0:
+        conn.executemany("INSERT INTO vendas (cliente, valor, data, responsavel, status, produto) VALUES (?, ?, ?, ?, ?, ?)", [
+            ("Empresa Alpha", 15000.0, "2026-06-01", "Carlos", "Pago", "Software A"),
+            ("Empresa Beta", 25000.0, "2026-06-05", "Ana", "Pago", "Software B"),
+            ("Empresa Gama", 10000.0, "2026-06-10", "Carlos", "Pago", "Consultoria"),
+            ("Empresa Delta", 40000.0, "2026-06-15", "Ana", "Pago", "Software A"),
+        ])
+    
+    cursor.execute("SELECT COUNT(*) FROM pipeline")
+    if cursor.fetchone()[0] == 0:
+        conn.executemany("INSERT INTO pipeline (titulo, estagio, valor, responsavel) VALUES (?, ?, ?, ?)", [
+            ("Projeto X", "Prospecção", 50000.0, "Carlos"),
+            ("Projeto Y", "Qualificação", 30000.0, "Ana"),
+            ("Projeto Z", "Proposta", 20000.0, "Carlos"),
+            ("Projeto W", "Fechamento", 15000.0, "Ana"),
+        ])
+
+    cursor.execute("SELECT COUNT(*) FROM clientes")
+    if cursor.fetchone()[0] == 0:
+        conn.executemany("INSERT INTO clientes (nome, status, origem, motivo_perda, data) VALUES (?, ?, ?, ?, ?)", [
+            ("João Silva", "🆕 Novo Lead", "Google Ads", "", "2026-06-01"),
+            ("Maria Souza", "✅ Venda Fechada", "Instagram", "", "2026-06-02"),
+            ("Pedro Santos", "❌ Venda Perdida", "Indicação", "Preço Alto", "2026-06-03"),
+            ("Ana Paula", "💬 Em Atendimento", "WhatsApp", "", "2026-06-04"),
+        ])
+
     conn.commit()
     conn.close()
 
@@ -90,7 +120,6 @@ df_clientes, df_pipeline, df_vendas = carregar_dados()
 if selected == "Dashboard":
     st.markdown("### 📊 Dashboard de Performance Comercial")
     
-    # KPIs no Topo
     total_leads = len(df_clientes)
     valor_pipeline = df_pipeline['valor'].sum() if not df_pipeline.empty and "valor" in df_pipeline.columns else 0.0
     receita_realizada = df_vendas['valor'].sum() if not df_vendas.empty and "valor" in df_vendas.columns else 0.0
@@ -104,7 +133,6 @@ if selected == "Dashboard":
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # Abas para organizar os 8 gráficos profissionalmente
     tab1, tab2, tab3 = st.tabs(["💰 Vendas & Receita", "🎯 Pipeline & Funil", "👥 Leads & Perdas"])
 
     with tab1:
@@ -113,7 +141,7 @@ if selected == "Dashboard":
         # 1. Evolução das Vendas (Linha)
         with c_v1:
             st.markdown("#### 📈 1. Evolução das Vendas")
-            if not df_vendas.empty and "data" in df_vendas.columns and "valor" in df_vendas.columns:
+            if not df_vendas.empty and "data" in df_vendas.columns:
                 df_temp = df_vendas.copy()
                 df_temp['data'] = pd.to_datetime(df_temp['data'], errors='coerce')
                 df_v_linha = df_temp.groupby("data")["valor"].sum().reset_index()
@@ -141,7 +169,7 @@ if selected == "Dashboard":
         # 4. Receita por Vendedor (Barras)
         with c_v3:
             st.markdown("#### 🏆 4. Receita por Vendedor")
-            if not df_vendas.empty and "responsavel" in df_vendas.columns and "valor" in df_vendas.columns:
+            if not df_vendas.empty and "responsavel" in df_vendas.columns:
                 df_vend = df_vendas.groupby("responsavel")["valor"].sum().reset_index()
                 fig_vend = px.bar(df_vend, x="responsavel", y="valor", color_discrete_sequence=[cor_hex])
                 fig_vend.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font=dict(color=text_app))
@@ -152,13 +180,13 @@ if selected == "Dashboard":
         # 7. Produtos Mais Vendidos (Barras Horizontais)
         with c_v4:
             st.markdown("#### 📦 7. Produtos Mais Vendidos")
-            if not df_vendas.empty and "produto" in df_vendas.columns and "valor" in df_vendas.columns:
+            if not df_vendas.empty and "produto" in df_vendas.columns:
                 df_prod = df_vendas.groupby("produto")["valor"].sum().reset_index()
                 fig_prod = px.bar(df_prod, x="valor", y="produto", orientation="h", color_discrete_sequence=[cor_hex])
                 fig_prod.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font=dict(color=text_app), yaxis=dict(autorange="reversed"))
                 st.plotly_chart(fig_prod, use_container_width=True)
             else:
-                st.info("Cadastre vendas com a coluna 'produto' preenchida.")
+                st.info("Sem dados de produtos.")
 
     with tab2:
         c_p1, c_p2 = st.columns(2)
@@ -166,16 +194,15 @@ if selected == "Dashboard":
         # 3. Funil de Vendas
         with c_p1:
             st.markdown("#### 📊 3. Funil de Vendas")
-            if not df_pipeline.empty and "estagio" in df_pipeline.columns and "valor" in df_pipeline.columns:
+            if not df_pipeline.empty and "estagio" in df_pipeline.columns:
                 fig_funil = px.funnel(df_pipeline, x="valor", y="estagio", color_discrete_sequence=[cor_hex])
                 fig_funil.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font=dict(color=text_app))
                 st.plotly_chart(fig_funil, use_container_width=True)
             else:
                 st.info("Sem dados no pipeline.")
 
-        # Espaço reservado para métricas adicionais do funil se necessário
         with c_p2:
-            st.markdown("#### 📈 Status Detalhado do Pipeline")
+            st.markdown("#### 📈 Valor do Pipeline por Etapa")
             if not df_pipeline.empty and "estagio" in df_pipeline.columns:
                 df_pipe_bar = df_pipeline.groupby("estagio")["valor"].sum().reset_index()
                 fig_bar_pipe = px.bar(df_pipe_bar, x="valor", y="estagio", orientation="h", color_discrete_sequence=[cor_hex])
@@ -195,7 +222,7 @@ if selected == "Dashboard":
                 fig_origem.update_layout(paper_bgcolor="rgba(0,0,0,0)", font=dict(color=text_app))
                 st.plotly_chart(fig_origem, use_container_width=True)
             else:
-                st.info("Sem dados de origem dos leads.")
+                st.info("Sem dados de origem.")
 
         # 6. Clientes por Status
         with c_l2:
@@ -206,7 +233,7 @@ if selected == "Dashboard":
                 fig_status.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font=dict(color=text_app))
                 st.plotly_chart(fig_status, use_container_width=True)
             else:
-                st.info("Sem dados de status dos clientes.")
+                st.info("Sem dados de status.")
 
         # 8. Motivos de Perda de Negócios
         st.markdown("#### ❌ 8. Motivos de Perda de Negócios")
@@ -330,9 +357,9 @@ elif selected == "Vendas":
         with col_v2:
             v_valor = st.number_input("Valor (R$)", min_value=0.0, step=100.0)
         with col_v3:
-            v_produto = st.text_input("Produto", value="Produto A")
+            v_produto = st.text_input("Produto", value="Software A")
         with col_v4:
-            v_resp = st.text_input("Responsável", value="Comercial")
+            v_resp = st.text_input("Responsável", value="Carlos")
         with col_v5:
             v_data = st.text_input("Data (AAAA-MM-DD)", value=str(date.today()))
             
@@ -340,7 +367,6 @@ elif selected == "Vendas":
         if btn_venda:
             if v_cliente and v_valor > 0:
                 conn = conectar()
-                # Atualiza ou insere com suporte ao campo produto
                 tinfo = [col[1] for col in conn.execute("PRAGMA table_info(vendas)").fetchall()]
                 if "produto" not in tinfo:
                     conn.execute("ALTER TABLE vendas ADD COLUMN produto TEXT")
@@ -370,15 +396,13 @@ elif selected == "Integrações":
 elif selected == "Configurações":
     st.markdown("### ⚙️ Configurações do Sistema")
     st.markdown("---")
-    
     st.markdown("#### 🎨 Aparência")
     col_ap1, col_ap2 = st.columns(2)
     with col_ap1:
         st.radio("Tema", ["🌙 Escuro", "☀️ Claro"], key="tema_sistema")
     with col_ap2:
         st.radio("Cor principal", ["🔵 Azul", "🟢 Verde", "🟣 Roxo"], key="cor_principal_sistema")
-
     st.markdown("---")
     if st.button("Salvar Configurações"):
-        st.success("Configurações e aparências atualizadas com sucesso!")
+        st.success("Configurações atualizadas!")
         st.rerun()
