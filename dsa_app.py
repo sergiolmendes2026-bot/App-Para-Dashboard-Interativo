@@ -203,7 +203,7 @@ try:
     server.starttls()
     server.login("sergiolmendes2026@gmail.com", "jpxkrnphnxdzvibc")
     print("E-mail enviado com sucesso!")
-)
+
     # ... resto do seu código de envio
     print("E-mail enviado com sucesso!")
 except Exception as e:
