@@ -475,44 +475,38 @@ elif selected == "Relatórios":
             use_container_width=True
         )
         
-        # 2. Exportar Excel (.xlsx) com suporte nativo alternativo caso openpyxl falhe
-        excel_gerado = False
-        excel_data = None
-        try:
-            buffer_excel = io.BytesIO()
-            with pd.ExcelWriter(buffer_excel, engine='openpyxl') as writer:
-                df_export.to_excel(writer, index=False, sheet_name='Vendas')
-            excel_data = buffer_excel.getvalue()
-            excel_gerado = True
-        except ModuleNotFoundError:
-            # Fallback seguro utilizando CSV com extensão .xlsx ou aviso limpo / HTML Excel
-            try:
-                buffer_excel = io.BytesIO()
-                df_export.to_excel(buffer_excel, index=False, sheet_name='Vendas')
-                excel_data = buffer_excel.getvalue()
-                excel_gerado = True
-            except Exception:
-                pass
+        # 2. Exportar Excel (.xls) com formato nativo compatível sem erro de dependência
+        excel_html = df_export.to_html(index=False)
+        excel_data = f"""
+        <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+        <head>
+            <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+            <!--[if gte mso 9]>
+            <xml>
+                <x:ExcelWorkbook>
+                    <x:ExcelWorksheets>
+                        <x:ExcelWorksheet>
+                            <x:Name>Relatorio Vendas</x:Name>
+                            <x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions>
+                        </x:ExcelWorksheet>
+                    </x:ExcelWorksheets>
+                </x:ExcelWorkbook>
+            </xml>
+            <![endif]-->
+        </head>
+        <body>
+            {excel_html}
+        </body>
+        </html>
+        """.encode('utf-8')
 
-        if excel_gerado and excel_data:
-            st.download_button(
-                label="📥 Exportar Excel (.xlsx)", 
-                data=excel_data, 
-                file_name="relatorio_vendas.xlsx", 
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                use_container_width=True
-            )
-        else:
-            # Fallback se openpyxl não estiver instalado de forma alguma: gera o excel como tabela HTML disfarçada ou CSV compatível
-            excel_fallback_data = df_export.to_csv(index=False).encode('utf-8')
-            st.download_button(
-                label="📥 Exportar Excel (.xlsx)", 
-                data=excel_fallback_data, 
-                file_name="relatorio_vendas.csv", 
-                mime="text/csv",
-                use_container_width=True,
-                help="Exportado em formato compatível com Excel."
-            )
+        st.download_button(
+            label="📥 Exportar Excel (.xls)", 
+            data=excel_data, 
+            file_name="relatorio_vendas.xls", 
+            mime="application/vnd.ms-excel",
+            use_container_width=True
+        )
             
     with col_exp2:
         # 3. Exportar PDF (Simulação / HTML download)
