@@ -72,20 +72,27 @@ def inicializar_banco():
     conn = sqlite3.connect("crm.db")
     cursor = conn.cursor()
     
-    cursor.execute("CREATE TABLE IF NOT EXISTS clientes (id INTEGER PRIMARY KEY AUTOINCREMENT, nome TEXT, empresa TEXT, email TEXT, telefone TEXT, regiao TEXT, status TEXT, origem TEXT, motivo_perda TEXT, data TEXT, data_fechamento TEXT, responsavel TEXT)")
+    cursor.execute("CREATE TABLE IF NOT EXISTS clientes (id INTEGER PRIMARY KEY AUTOINCREMENT, nome TEXT, empresa TEXT, email TEXT, telefone TEXT, regiao TEXT, status TEXT, origem TEXT, motivo_perda TEXT, data TEXT, data_fechamento TEXT, responsavel TEXT, prioridade TEXT, ultimo_contato TEXT)")
     cursor.execute("CREATE TABLE IF NOT EXISTS pipeline (id INTEGER PRIMARY KEY AUTOINCREMENT, titulo TEXT, estagio TEXT, valor REAL, empresa TEXT, contato TEXT, telefone TEXT, email TEXT, responsavel TEXT, origem TEXT)")
     cursor.execute("CREATE TABLE IF NOT EXISTS vendas (id INTEGER PRIMARY KEY AUTOINCREMENT, cliente TEXT, valor REAL, data TEXT, responsavel TEXT, status TEXT, produto TEXT)")
     cursor.execute("CREATE TABLE IF NOT EXISTS agendamentos (id INTEGER PRIMARY KEY, ativo INTEGER, frequencia TEXT, destinatario TEXT)")
     cursor.execute("CREATE TABLE IF NOT EXISTS historico_exportacoes (id INTEGER PRIMARY KEY AUTOINCREMENT, data TEXT, relatorio TEXT, formato TEXT, usuario TEXT)")
     
-    tinfo_vendas = [col[1] for col in cursor.execute("PRAGMA table_info(vendas)").fetchall()]
-    if "produto" not in tinfo_vendas:
-        cursor.execute("ALTER TABLE vendas ADD COLUMN produto TEXT")
-
+    # Migrações caso colunas novas faltem
     tinfo_clientes = [col[1] for col in cursor.execute("PRAGMA table_info(clientes)").fetchall()]
+    if "prioridade" not in tinfo_clientes:
+        cursor.execute("ALTER TABLE clientes ADD COLUMN prioridade TEXT DEFAULT 'Média'")
+    if "ultimo_contato" not in tinfo_clientes:
+        cursor.execute("ALTER TABLE clientes ADD COLUMN ultimo_contato TEXT DEFAULT '2026-08-08'")
     if "responsavel" not in tinfo_clientes:
-        cursor.execute("ALTER TABLE clientes ADD COLUMN responsavel TEXT")
-    
+        cursor.execute("ALTER TABLE clientes ADD COLUMN responsavel TEXT DEFAULT 'Carlos'")
+    if "empresa" not in tinfo_clientes:
+        cursor.execute("ALTER TABLE clientes ADD COLUMN empresa TEXT DEFAULT 'Empresa Exemplo'")
+    if "email" not in tinfo_clientes:
+        cursor.execute("ALTER TABLE clientes ADD COLUMN email TEXT DEFAULT 'contato@empresa.com'")
+    if "telefone" not in tinfo_clientes:
+        cursor.execute("ALTER TABLE clientes ADD COLUMN telefone TEXT DEFAULT '(11) 99999-9999'")
+
     cursor.execute("SELECT COUNT(*) FROM vendas")
     if cursor.fetchone()[0] == 0:
         cursor.executemany("INSERT INTO vendas (cliente, valor, data, responsavel, status, produto) VALUES (?, ?, ?, ?, ?, ?)", [
@@ -106,11 +113,11 @@ def inicializar_banco():
 
     cursor.execute("SELECT COUNT(*) FROM clientes")
     if cursor.fetchone()[0] == 0:
-        cursor.executemany("INSERT INTO clientes (nome, empresa, status, origem, motivo_perda, data, responsavel) VALUES (?, ?, ?, ?, ?, ?, ?)", [
-            ("João Silva", "Tech Solutions", "🆕 Novo Lead", "Google Ads", "", "2026-06-01", "Carlos"),
-            ("Maria Silva", "Inova Corp", "✅ Venda Fechada", "Instagram", "", "2026-06-02", "Ana"),
-            ("Maria Oliveira", "Global Ltda", "❌ Venda Perdida", "Indicação", "Preço Alto", "2026-06-03", "Carlos"),
-            ("Ana Paula", "Alpha Tech", "💬 Em Atendimento", "WhatsApp", "", "2026-06-04", "Ana"),
+        cursor.executemany("INSERT INTO clientes (nome, empresa, email, telefone, status, origem, motivo_perda, data, responsavel, prioridade, ultimo_contato) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", [
+            ("João Silva", "Tech Solutions", "joao@tech.com", "(11) 98888-1111", "🆕 Novo Lead", "Google Ads", "", "2026-06-01", "Carlos", "🔴 Alta", "2026-08-09"),
+            ("Maria Silva", "Inova Corp", "maria@inova.com", "(11) 97777-2222", "✅ Venda Fechada", "Instagram", "", "2026-06-02", "Ana", "🟡 Média", "2026-08-08"),
+            ("Maria Oliveira", "Global Ltda", "maria.o@global.com", "(21) 96666-3333", "❌ Venda Perdida", "Indicação", "Preço Alto", "2026-06-03", "Carlos", "🟢 Baixa", "2026-08-01"),
+            ("Ana Paula", "Alpha Tech", "ana@alphatech.com", "(31) 95555-4444", "💬 Em Atendimento", "WhatsApp", "", "2026-06-04", "Ana", "🔴 Alta", "2026-08-10"),
         ])
 
     cursor.execute("SELECT COUNT(*) FROM historico_exportacoes")
@@ -381,9 +388,70 @@ elif selected == "Clientes":
         st.info("Nenhum cliente cadastrado.")
 
 elif selected == "Leads":
-    st.markdown("### 🎯 Gestão de Leads")
-    
-    # --- FILTRAGEM AVANÇADA (BASEADA NA SUA SOLICITAÇÃO) ---
+    # Cabeçalho com Título e Botão Novo Lead
+    col_topo_l1, col_topo_l2 = st.columns([4, 1])
+    with col_topo_l1:
+        st.markdown("### 🎯 Gestão de Leads")
+    with col_topo_l2:
+        if st.button("➕ Novo Lead", use_container_width=True):
+            st.session_state.modal_novo_lead = True
+
+    # Cards de Resumo Rápidos
+    total_leads_count = len(df_clientes) if not df_clientes.empty else 0
+    atendimento_count = len(df_clientes[df_clientes["status"].str.contains("Atendimento|Novo|Contato", case=False, na=False)]) if not df_clientes.empty else 0
+    proposta_count = len(df_clientes[df_clientes["status"].str.contains("Proposta|Negociação", case=False, na=False)]) if not df_clientes.empty else 0
+    fechados_count = len(df_clientes[df_clientes["status"].str.contains("Fechada", case=False, na=False)]) if not df_clientes.empty else 0
+    perdidos_count = len(df_clientes[df_clientes["status"].str.contains("Perdida", case=False, na=False)]) if not df_clientes.empty else 0
+
+    mc1, mc2, mc3, mc4, mc5 = st.columns(5)
+    mc1.metric("📊 Total de Leads", total_leads_count)
+    mc2.metric("💬 Em Atendimento", atendimento_count)
+    mc3.metric("📋 Em Proposta", proposta_count)
+    mc4.metric("❌ Perdidos", perdidos_count)
+    mc5.metric("✅ Fechados", fechados_count)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # Formulário modal ou expansor para Novo Lead se ativado
+    if st.session_state.get("modal_novo_lead", False):
+        with st.expander("📝 Adicionar Novo Lead", expanded=True):
+            with st.form("form_novo_lead_rapido"):
+                nc1, nc2, nc3 = st.columns(3)
+                with nc1:
+                    l_nome = st.text_input("Nome do Lead *")
+                    l_empresa = st.text_input("Empresa", value="Empresa Exemplo")
+                with nc2:
+                    l_email = st.text_input("E-mail", value="lead@email.com")
+                    l_tel = st.text_input("Telefone", value="(11) 99999-9999")
+                with nc3:
+                    l_origem = st.selectbox("Origem", ["Google Ads", "Instagram", "WhatsApp", "Indicação", "Site"])
+                    l_prioridade = st.selectbox("Prioridade", ["🔴 Alta", "🟡 Média", "🟢 Baixa"])
+                
+                col_btn_nl1, col_btn_nl2 = st.columns(2)
+                with col_btn_nl1:
+                    salvar_lead = st.form_submit_button("Salvar Lead", use_container_width=True)
+                with col_btn_nl2:
+                    fechar_modal = st.form_submit_button("Cancelar", use_container_width=True)
+
+                if salvar_lead:
+                    if l_nome:
+                        conn = conectar()
+                        conn.execute("""
+                            INSERT INTO clientes (nome, empresa, email, telefone, status, origem, motivo_perda, data, responsavel, prioridade, ultimo_contato)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        """, (l_nome, l_empresa, l_email, l_tel, "🆕 Novo Lead", l_origem, "", str(date.today()), "Carlos", l_prioridade, str(date.today())))
+                        conn.commit()
+                        conn.close()
+                        st.session_state.modal_novo_lead = False
+                        st.success("Lead adicionado com sucesso!")
+                        st.rerun()
+                    else:
+                        st.error("Informe o nome do lead.")
+                if fechar_modal:
+                    st.session_state.modal_novo_lead = False
+                    st.rerun()
+
+    # --- FILTROS AVANÇADOS COM BOTÃO APLICAR E LIMPAR ---
     with st.expander("🔍 Filtros Avançados", expanded=True):
         f_col1, f_col2, f_col3, f_col4, f_col5 = st.columns(5)
         
@@ -403,11 +471,18 @@ elif selected == "Leads":
         with f_col5:
             filtro_empresa = st.selectbox("Empresa", empresa_unicas)
 
+        btn_col1, btn_col2, _ = st.columns([1, 1, 4])
+        with btn_col1:
+            aplicar_filtro = st.button("Aplicar", use_container_width=True)
+        with btn_col2:
+            limpar_filtro = st.button("Limpar", use_container_width=True)
+            if limpar_filtro:
+                st.rerun()
+
     # Filtragem do DataFrame de Leads
     df_leads_filtered = df_clientes.copy() if not df_clientes.empty else pd.DataFrame()
 
     if not df_leads_filtered.empty:
-        # Aplicação dos filtros selecionados
         if filtro_status != "Todos":
             df_leads_filtered = df_leads_filtered[df_leads_filtered["status"] == filtro_status]
         if filtro_origem != "Todas":
@@ -422,8 +497,13 @@ elif selected == "Leads":
             df_leads_filtered['data_dt'] = pd.to_datetime(df_leads_filtered['data'], errors='coerce').dt.date
             df_leads_filtered = df_leads_filtered[(df_leads_filtered['data_dt'] >= inicio) & (df_leads_filtered['data_dt'] <= fim)]
 
+        # Indicador de quantidade acima da tabela
+        total_filtrados = len(df_leads_filtered)
+        total_geral = len(df_clientes)
+        st.markdown(f"<p style='color: #94a3b8; font-size: 13px; margin-bottom: 8px;'>Mostrando {total_filtrados} de {total_geral} leads</p>", unsafe_allow_html=True)
+
         if not df_leads_filtered.empty:
-            colunas_mostrar = [c for c in ["nome", "empresa", "email", "telefone", "origem", "status", "responsavel", "data"] if c in df_leads_filtered.columns]
+            colunas_mostrar = [c for c in ["nome", "empresa", "email", "telefone", "prioridade", "origem", "status", "ultimo_contato", "responsavel", "data"] if c in df_leads_filtered.columns]
             st.dataframe(df_leads_filtered[colunas_mostrar], use_container_width=True, hide_index=True)
         else:
             st.info("Nenhum lead encontrado com os filtros selecionados.")
