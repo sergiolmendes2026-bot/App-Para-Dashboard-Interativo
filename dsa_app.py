@@ -81,6 +81,10 @@ def inicializar_banco():
     tinfo_vendas = [col[1] for col in cursor.execute("PRAGMA table_info(vendas)").fetchall()]
     if "produto" not in tinfo_vendas:
         cursor.execute("ALTER TABLE vendas ADD COLUMN produto TEXT")
+
+    tinfo_clientes = [col[1] for col in cursor.execute("PRAGMA table_info(clientes)").fetchall()]
+    if "responsavel" not in tinfo_clientes:
+        cursor.execute("ALTER TABLE clientes ADD COLUMN responsavel TEXT")
     
     cursor.execute("SELECT COUNT(*) FROM vendas")
     if cursor.fetchone()[0] == 0:
@@ -102,11 +106,11 @@ def inicializar_banco():
 
     cursor.execute("SELECT COUNT(*) FROM clientes")
     if cursor.fetchone()[0] == 0:
-        cursor.executemany("INSERT INTO clientes (nome, status, origem, motivo_perda, data) VALUES (?, ?, ?, ?, ?)", [
-            ("João Silva", "🆕 Novo Lead", "Google Ads", "", "2026-06-01"),
-            ("Maria Silva", "✅ Venda Fechada", "Instagram", "", "2026-06-02"),
-            ("Maria Oliveira", "❌ Venda Perdida", "Indicação", "Preço Alto", "2026-06-03"),
-            ("Ana Paula", "💬 Em Atendimento", "WhatsApp", "", "2026-06-04"),
+        cursor.executemany("INSERT INTO clientes (nome, empresa, status, origem, motivo_perda, data, responsavel) VALUES (?, ?, ?, ?, ?, ?, ?)", [
+            ("João Silva", "Tech Solutions", "🆕 Novo Lead", "Google Ads", "", "2026-06-01", "Carlos"),
+            ("Maria Silva", "Inova Corp", "✅ Venda Fechada", "Instagram", "", "2026-06-02", "Ana"),
+            ("Maria Oliveira", "Global Ltda", "❌ Venda Perdida", "Indicação", "Preço Alto", "2026-06-03", "Carlos"),
+            ("Ana Paula", "Alpha Tech", "💬 Em Atendimento", "WhatsApp", "", "2026-06-04", "Ana"),
         ])
 
     cursor.execute("SELECT COUNT(*) FROM historico_exportacoes")
@@ -378,12 +382,53 @@ elif selected == "Clientes":
 
 elif selected == "Leads":
     st.markdown("### 🎯 Gestão de Leads")
-    df_leads_only = df_clientes[df_clientes["status"].str.contains("Lead|Contato|Atendimento|Novo", case=False, na=False)] if not df_clientes.empty and "status" in df_clientes.columns else pd.DataFrame()
-    if not df_leads_only.empty:
-        colunas_mostrar = [c for c in ["nome", "empresa", "email", "telefone", "origem", "status", "data"] if c in df_leads_only.columns]
-        st.dataframe(df_leads_only[colunas_mostrar], use_container_width=True, hide_index=True)
+    
+    # --- FILTRAGEM AVANÇADA (BASEADA NA SUA SOLICITAÇÃO) ---
+    with st.expander("🔍 Filtros Avançados", expanded=True):
+        f_col1, f_col2, f_col3, f_col4, f_col5 = st.columns(5)
+        
+        status_unicos = ["Todos"] + list(df_clientes["status"].dropna().unique()) if not df_clientes.empty and "status" in df_clientes.columns else ["Todos"]
+        origem_unicas = ["Todas"] + list(df_clientes["origem"].dropna().unique()) if not df_clientes.empty and "origem" in df_clientes.columns else ["Todas"]
+        resp_unicos = ["Todos"] + list(df_clientes["responsavel"].dropna().unique()) if not df_clientes.empty and "responsavel" in df_clientes.columns else ["Todos"]
+        empresa_unicas = ["Todas"] + list(df_clientes["empresa"].dropna().unique()) if not df_clientes.empty and "empresa" in df_clientes.columns else ["Todas"]
+
+        with f_col1:
+            filtro_status = st.selectbox("Status", status_unicos)
+        with f_col2:
+            filtro_origem = st.selectbox("Origem", origem_unicas)
+        with f_col3:
+            filtro_resp = st.selectbox("Responsável", resp_unicos)
+        with f_col4:
+            filtro_data = st.date_input("Período (Data)", value=[])
+        with f_col5:
+            filtro_empresa = st.selectbox("Empresa", empresa_unicas)
+
+    # Filtragem do DataFrame de Leads
+    df_leads_filtered = df_clientes.copy() if not df_clientes.empty else pd.DataFrame()
+
+    if not df_leads_filtered.empty:
+        # Aplicação dos filtros selecionados
+        if filtro_status != "Todos":
+            df_leads_filtered = df_leads_filtered[df_leads_filtered["status"] == filtro_status]
+        if filtro_origem != "Todas":
+            df_leads_filtered = df_leads_filtered[df_leads_filtered["origem"] == filtro_origem]
+        if filtro_resp != "Todos":
+            df_leads_filtered = df_leads_filtered[df_leads_filtered["responsavel"] == filtro_resp]
+        if filtro_empresa != "Todas":
+            df_leads_filtered = df_leads_filtered[df_leads_filtered["empresa"] == filtro_empresa]
+        
+        if len(filtro_data) == 2:
+            inicio, fim = filtro_data
+            df_leads_filtered['data_dt'] = pd.to_datetime(df_leads_filtered['data'], errors='coerce').dt.date
+            df_leads_filtered = df_leads_filtered[(df_leads_filtered['data_dt'] >= inicio) & (df_leads_filtered['data_dt'] <= fim)]
+
+        if not df_leads_filtered.empty:
+            colunas_mostrar = [c for c in ["nome", "empresa", "email", "telefone", "origem", "status", "responsavel", "data"] if c in df_leads_filtered.columns]
+            st.dataframe(df_leads_filtered[colunas_mostrar], use_container_width=True, hide_index=True)
+        else:
+            st.info("Nenhum lead encontrado com os filtros selecionados.")
     else:
-        st.info("Nenhum lead em aberto no momento.")
+        st.info("Nenhum lead cadastrado no momento.")
 
 elif selected == "Pipeline":
     st.markdown("### 📈 Pipeline Comercial")
