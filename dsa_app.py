@@ -12,13 +12,11 @@ st.set_page_config(
 # --- INICIALIZAÇÃO DO ESTADO ---
 if "tema_sistema" not in st.session_state:
     st.session_state.tema_sistema = "🌙 Escuro"
-if "cor_principal_sistema" not in st.session_state:
-    st.session_state.cor_principal_sistema = "🔵 Azul"
 if "selected" not in st.session_state:
     st.session_state.selected = "Dashboard"
 
-}
-cor_hex = mapa_cores.get(st.session_state.cor_principal_sistema, "#2563EB")
+# Cor principal fixa do sistema (já que a opção foi removida)
+cor_hex = "#2563EB"
 is_escuro = "Escuro" in st.session_state.tema_sistema
 
 bg_app = "#0e1117" if is_escuro else "#ffffff"
@@ -467,20 +465,13 @@ elif selected == "Configurações":
 
     with tab_cfg1:
         st.markdown("#### Preferências Visuais")
-        col_ap1, col_ap2 = st.columns(2)
+        st.markdown("##### Tema do Sistema")
+        is_escuro_atual = "Escuro" in st.session_state.tema_sistema
+        texto_btn_tema = "☀️ Mudar para Tema Claro" if is_escuro_atual else "🌙 Mudar para Tema Escuro"
         
-        with col_ap1:
-            st.markdown("##### Tema do Sistema")
-            is_escuro_atual = "Escuro" in st.session_state.tema_sistema
-            texto_btn_tema = "☀️ Mudar para Tema Claro" if is_escuro_atual else "🌙 Mudar para Tema Escuro"
-            
-            if st.button(texto_btn_tema, use_container_width=True):
-                st.session_state.tema_sistema = "☀️ Claro" if is_escuro_atual else "🌙 Escuro"
-                st.rerun()
-
-        with col_ap2:
-            st.markdown("##### Cor Principal do Sistema")
-            st.radio("Cor Principal", ["🔵 Azul", "🟢 Verde", "🟣 Roxo"], key="cor_principal_sistema", label_visibility="collapsed")
+        if st.button(texto_btn_tema):
+            st.session_state.tema_sistema = "☀️ Claro" if is_escuro_atual else "🌙 Escuro"
+            st.rerun()
         
         st.markdown("<br>", unsafe_allow_html=True)
         if st.button("Salvar Preferências de Aparência"):
