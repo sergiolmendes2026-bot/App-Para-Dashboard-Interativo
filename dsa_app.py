@@ -10,6 +10,32 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 from email import encoders
+
+# ... (seus imports e função conectar() já existentes)
+
+def executar_automacao_evento(tipo_evento, dados_contexto=""):
+    """Verifica no banco se a automação está ativa e executa."""
+    conn = conectar()
+    cursor = conn.cursor()
+    
+    mapa_eventos = {
+        "novo_lead": "email_boas_vindas",
+        "mudar_estagio": "tarefa_pipeline",
+        "estagnado": "alerta_estagnado"
+    }
+    
+    chave = mapa_eventos.get(tipo_evento)
+    if not chave:
+        conn.close()
+        return
+        
+    cursor.execute("SELECT ativo FROM automacoes WHERE chave = ?", (chave,))
+    res = cursor.fetchone()
+    conn.close()
+    
+    if res and res[0] == 1:
+        # Aqui você pode adicionar o print ou lógica de envio real
+        st.write(f"✅ Automação disparada: {tipo_evento} - {dados_contexto}")
 st.set_page_config(
     page_title="CRM LMB Pro - Workspace v2.0", page_icon="📊", layout="wide" 
 )
