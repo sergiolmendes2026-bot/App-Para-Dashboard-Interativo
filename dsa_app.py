@@ -167,7 +167,7 @@ def carregar_dados():
 
 df_clientes, df_pipeline, df_vendas = carregar_dados()
 
-# --- BARRA DE PESQUISA GLOBAL ÚNICA NO TOPO ---
+# --- BARRA DE PESQUISA GLOBAL FIXA NO TOPO ---
 col_busca1, col_busca2, col_busca3 = st.columns([6, 1, 1])
 with col_busca1:
     termo_busca = st.text_input("Pesquisa Global", placeholder="🔍 Pesquisar clientes, leads, vendas...", label_visibility="collapsed")
@@ -178,7 +178,7 @@ with col_busca3:
 
 st.markdown("<hr style='margin-top: 0px; margin-bottom: 20px; border-color: #334155;'>", unsafe_allow_html=True)
 
-# Se o usuário digitar algo na barra global, exibe os resultados cruzados
+# Se houver busca, exibe os resultados da busca global em destaque
 if termo_busca and len(termo_busca.strip()) > 0:
     st.markdown(f"### 🔎 Resultados da Busca Global para: *'{termo_busca}'*")
     
@@ -200,174 +200,173 @@ if termo_busca and len(termo_busca.strip()) > 0:
             st.markdown("##### 📈 Pipeline Encontrado")
             st.dataframe(res_pipe, use_container_width=True, hide_index=True)
             
-    st.divider()
-else:
-    # --- CONTEÚDO NORMAL DE CADA PÁGINA (GRÁFICOS E TELAS INTACTOS) ---
+    st.markdown("<hr>", unsafe_allow_html=True)
 
-    if selected == "Dashboard":
-        st.markdown("### 📊 Dashboard de Performance Comercial")
-        
-        total_leads = len(df_clientes)
-        valor_pipeline = df_pipeline['valor'].sum() if not df_pipeline.empty and "valor" in df_pipeline.columns else 0.0
-        receita_realizada = df_vendas['valor'].sum() if not df_vendas.empty and "valor" in df_vendas.columns else 0.0
-        ticket_medio = df_vendas['valor'].mean() if not df_vendas.empty and "valor" in df_vendas.columns and len(df_vendas) > 0 else 0.0
+# --- RENDERIZAÇÃO NORMAL DA PÁGINA SELECIONADA ---
+if selected == "Dashboard":
+    st.markdown("### 📊 Dashboard de Performance Comercial")
+    
+    total_leads = len(df_clientes)
+    valor_pipeline = df_pipeline['valor'].sum() if not df_pipeline.empty and "valor" in df_pipeline.columns else 0.0
+    receita_realizada = df_vendas['valor'].sum() if not df_vendas.empty and "valor" in df_vendas.columns else 0.0
+    ticket_medio = df_vendas['valor'].mean() if not df_vendas.empty and "valor" in df_vendas.columns and len(df_vendas) > 0 else 0.0
 
-        c1, c2, c3, c4 = st.columns(4)
-        c1.metric("Total de Leads", f"{total_leads}")
-        c2.metric("Valor do Pipeline", f"R$ {valor_pipeline:,.2f}")
-        c3.metric("Receita Realizada", f"R$ {receita_realizada:,.2f}")
-        c4.metric("Ticket Médio", f"R$ {ticket_medio:,.2f}")
+    c1, c2, c3, c4 = st.columns(4)
+    c1.metric("Total de Leads", f"{total_leads}")
+    c2.metric("Valor do Pipeline", f"R$ {valor_pipeline:,.2f}")
+    c3.metric("Receita Realizada", f"R$ {receita_realizada:,.2f}")
+    c4.metric("Ticket Médio", f"R$ {ticket_medio:,.2f}")
 
-        st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown("<br>", unsafe_allow_html=True)
 
-        tab1, tab2, tab3 = st.tabs(["💰 Vendas & Receita", "🎯 Pipeline & Funil", "👥 Leads & Perdas"])
+    tab1, tab2, tab3 = st.tabs(["💰 Vendas & Receita", "🎯 Pipeline & Funil", "👥 Leads & Perdas"])
 
-        with tab1:
-            c_v1, c_v2 = st.columns(2)
-            with c_v1:
-                st.markdown("#### 📈 Evolução das Vendas")
-                if not df_vendas.empty and "data" in df_vendas.columns:
-                    df_temp = df_vendas.copy()
-                    df_temp['data'] = pd.to_datetime(df_temp['data'], errors='coerce')
-                    df_v_linha = df_temp.groupby("data")["valor"].sum().reset_index()
-                    df_v_linha = df_v_linha.sort_values("data")
-                    fig_linha = px.line(df_v_linha, x="data", y="valor", markers=True, color_discrete_sequence=[cor_hex])
-                    fig_linha.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font=dict(color=text_app))
-                    st.plotly_chart(fig_linha, use_container_width=True)
-                else:
-                    st.info("Sem dados suficientes de vendas.")
-
-            with c_v2:
-                st.markdown("#### 🎯 Meta x Realizado (Gauge)")
-                meta_exemplo = 150000.0
-                fig_gauge = go.Figure(go.Indicator(
-                    mode="gauge+number", value=receita_realizada,
-                    domain={'x': [0, 1], 'y': [0, 1]},
-                    title={'text': "Progresso de Vendas vs Meta"},
-                    gauge={'axis': {'range': [None, meta_exemplo]}, 'bar': {'color': cor_hex}}
-                ))
-                fig_gauge.update_layout(paper_bgcolor="rgba(0,0,0,0)", font=dict(color=text_app), height=260)
-                st.plotly_chart(fig_gauge, use_container_width=True)
-
-        with tab2:
-            st.markdown("#### 📊 Funil de Vendas")
-            if not df_pipeline.empty and "estagio" in df_pipeline.columns:
-                fig_funil = px.funnel(df_pipeline, x="valor", y="estagio", color_discrete_sequence=[cor_hex])
-                fig_funil.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font=dict(color=text_app))
-                st.plotly_chart(fig_funil, use_container_width=True)
+    with tab1:
+        c_v1, c_v2 = st.columns(2)
+        with c_v1:
+            st.markdown("#### 📈 Evolução das Vendas")
+            if not df_vendas.empty and "data" in df_vendas.columns:
+                df_temp = df_vendas.copy()
+                df_temp['data'] = pd.to_datetime(df_temp['data'], errors='coerce')
+                df_v_linha = df_temp.groupby("data")["valor"].sum().reset_index()
+                df_v_linha = df_v_linha.sort_values("data")
+                fig_linha = px.line(df_v_linha, x="data", y="valor", markers=True, color_discrete_sequence=[cor_hex])
+                fig_linha.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font=dict(color=text_app))
+                st.plotly_chart(fig_linha, use_container_width=True)
             else:
-                st.info("Sem dados no pipeline.")
+                st.info("Sem dados suficientes de vendas.")
 
-        with tab3:
-            st.markdown("#### 🍩 Origem dos Leads")
-            if not df_clientes.empty and "origem" in df_clientes.columns:
-                fig_origem = px.pie(df_clientes, names="origem", hole=0.5, color_discrete_sequence=px.colors.qualitative.Prism)
-                fig_origem.update_layout(paper_bgcolor="rgba(0,0,0,0)", font=dict(color=text_app))
-                st.plotly_chart(fig_origem, use_container_width=True)
-            else:
-                st.info("Sem dados de origem.")
+        with c_v2:
+            st.markdown("#### 🎯 Meta x Realizado (Gauge)")
+            meta_exemplo = 150000.0
+            fig_gauge = go.Figure(go.Indicator(
+                mode="gauge+number", value=receita_realizada,
+                domain={'x': [0, 1], 'y': [0, 1]},
+                title={'text': "Progresso de Vendas vs Meta"},
+                gauge={'axis': {'range': [None, meta_exemplo]}, 'bar': {'color': cor_hex}}
+            ))
+            fig_gauge.update_layout(paper_bgcolor="rgba(0,0,0,0)", font=dict(color=text_app), height=260)
+            st.plotly_chart(fig_gauge, use_container_width=True)
 
-    elif selected == "Clientes":
-        st.markdown("### 📖 Cadastro Completo de Clientes e Leads")
-        with st.form("form_cliente_completo", clear_on_submit=True):
-            col_c1, col_c2 = st.columns(2)
-            with col_c1:
-                nome_contato = st.text_input("Nome do Contato *")
-                nome_empresa = st.text_input("Nome da Empresa")
-                email_cli = st.text_input("E-mail")
-                telefone_cli = st.text_input("Telefone / WhatsApp")
-            with col_c2:
-                origem_cli = st.selectbox("Origem do Lead", ["Indicação", "Instagram", "Google Ads", "WhatsApp", "Site"])
-                status_cli = st.selectbox("Status do Cliente", ["🆕 Novo Lead", "💬 Em Atendimento", "✅ Venda Fechada", "❌ Venda Perdida"])
-                responsavel_cli = st.text_input("Responsável Comercial", value="Equipe Comercial")
-                data_cad = st.text_input("Data de Cadastro", value=str(date.today()))
-                
-            submitted_cli = st.form_submit_button("Salvar Cliente no CRM")
-            if submitted_cli:
-                if nome_contato:
-                    conn = conectar()
-                    conn.execute("INSERT INTO clientes (nome, empresa, email, telefone, status, origem, data, responsavel) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", 
-                               (nome_contato, nome_empresa, email_cli, telefone_cli, status_cli, origem_cli, data_cad, responsavel_cli))
-                    conn.commit()
-                    conn.close()
-                    st.success("Cliente cadastrado com sucesso!")
-                    st.rerun()
-                else:
-                    st.error("Preencha ao menos o Nome do Contato.")
-
-        st.markdown("<div style='margin-top: 25px;'></div>", unsafe_allow_html=True)
-        st.markdown("### 📋 Base de Dados de Clientes")
-        if not df_clientes.empty:
-            st.dataframe(df_clientes[['nome', 'empresa', 'telefone', 'origem', 'status', 'responsavel', 'data']], use_container_width=True, hide_index=True)
+    with tab2:
+        st.markdown("#### 📊 Funil de Vendas")
+        if not df_pipeline.empty and "estagio" in df_pipeline.columns:
+            fig_funil = px.funnel(df_pipeline, x="valor", y="estagio", color_discrete_sequence=[cor_hex])
+            fig_funil.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font=dict(color=text_app))
+            st.plotly_chart(fig_funil, use_container_width=True)
         else:
-            st.info("Nenhum cliente cadastrado.")
+            st.info("Sem dados no pipeline.")
 
-    elif selected == "Leads":
-        st.markdown("### 🎯 Gestão de Leads")
-        df_leads_only = df_clientes[df_clientes["status"].str.contains("Lead|Contato|Atendimento|Novo", case=False, na=False)] if not df_clientes.empty and "status" in df_clientes.columns else pd.DataFrame()
-        if not df_leads_only.empty:
-            st.dataframe(df_leads_only[["nome", "empresa", "email", "telefone", "origem", "status", "data"]], use_container_width=True, hide_index=True)
+    with tab3:
+        st.markdown("#### 🍩 Origem dos Leads")
+        if not df_clientes.empty and "origem" in df_clientes.columns:
+            fig_origem = px.pie(df_clientes, names="origem", hole=0.5, color_discrete_sequence=px.colors.qualitative.Prism)
+            fig_origem.update_layout(paper_bgcolor="rgba(0,0,0,0)", font=dict(color=text_app))
+            st.plotly_chart(fig_origem, use_container_width=True)
         else:
-            st.info("Nenhum lead em aberto.")
+            st.info("Sem dados de origem.")
 
-    elif selected == "Pipeline":
-        st.markdown("### 📈 Pipeline Comercial")
-        if not df_pipeline.empty:
-            st.dataframe(df_pipeline, use_container_width=True, hide_index=True)
-        else:
-            st.info("Pipeline vazio.")
-
-    elif selected == "Vendas":
-        st.markdown("### 🏆 Controle de Vendas Fechadas")
-        if not df_vendas.empty:
-            st.dataframe(df_vendas, use_container_width=True, hide_index=True)
-        else:
-            st.info("Nenhuma venda registrada.")
-
-    elif selected == "Relatórios":
-        st.markdown("### 📄 Relatórios e Exportação")
-        df_export = df_vendas if not df_vendas.empty else pd.DataFrame()
-        csv_data = df_export.to_csv(index=False).encode('utf-8')
-        st.download_button(label="📥 Exportar Dados para CSV", data=csv_data, file_name="vendas_crm.csv", mime="text/csv")
-
-    elif selected == "Integrações":
-        st.markdown("### 🔌 Integrações e Conexões")
-        st.toggle("Ativar Integração WhatsApp", value=True)
-
-    elif selected == "Configurações":
-        st.markdown("### ⚙️ Configurações do Sistema")
-        tab_cfg1, tab_cfg2, tab_cfg3, tab_cfg4 = st.tabs(["🎨 Aparência", "🔌 Integrações & API", "⚡ Automações", "📋 Logs & Histórico"])
-
-        with tab_cfg1:
-            st.markdown("#### Preferências Visuais")
-            col_ap1, col_ap2 = st.columns(2)
-            with col_ap1:
-                st.radio("Tema do Sistema", ["🌙 Escuro", "☀️ Claro"], key="tema_sistema")
-            with col_ap2:
-                st.radio("Cor Principal do Sistema", ["🔵 Azul", "🟢 Verde", "🟣 Roxo"], key="cor_principal_sistema")
-            if st.button("Salvar Preferências"):
-                st.success("Salvo com sucesso!")
+elif selected == "Clientes":
+    st.markdown("### 📖 Cadastro Completo de Clientes e Leads")
+    with st.form("form_cliente_completo", clear_on_submit=True):
+        col_c1, col_c2 = st.columns(2)
+        with col_c1:
+            nome_contato = st.text_input("Nome do Contato *")
+            nome_empresa = st.text_input("Nome da Empresa")
+            email_cli = st.text_input("E-mail")
+            telefone_cli = st.text_input("Telefone / WhatsApp")
+        with col_c2:
+            origem_cli = st.selectbox("Origem do Lead", ["Indicação", "Instagram", "Google Ads", "WhatsApp", "Site"])
+            status_cli = st.selectbox("Status do Cliente", ["🆕 Novo Lead", "💬 Em Atendimento", "✅ Venda Fechada", "❌ Venda Perdida"])
+            responsavel_cli = st.text_input("Responsável Comercial", value="Equipe Comercial")
+            data_cad = st.text_input("Data de Cadastro", value=str(date.today()))
+            
+        submitted_cli = st.form_submit_button("Salvar Cliente no CRM")
+        if submitted_cli:
+            if nome_contato:
+                conn = conectar()
+                conn.execute("INSERT INTO clientes (nome, empresa, email, telefone, status, origem, data, responsavel) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", 
+                           (nome_contato, nome_empresa, email_cli, telefone_cli, status_cli, origem_cli, data_cad, responsavel_cli))
+                conn.commit()
+                conn.close()
+                st.success("Cliente cadastrado com sucesso!")
                 st.rerun()
+            else:
+                st.error("Preencha ao menos o Nome do Contato.")
 
-        with tab_cfg2:
-            st.markdown("#### Tabela de Integrações")
-            dados_integracoes = pd.DataFrame({
-                "Serviço": ["WhatsApp Business", "Google Calendar", "SMTP", "OpenAI"],
-                "Status": ["🟢 Conectado", "🟢 Conectado", "❌ Desconectado", "🟢 Ativo"],
-                "Ação": ["Configurar", "Gerenciar", "Conectar", "Testar"]
-            })
-            st.dataframe(dados_integracoes, use_container_width=True, hide_index=True)
+    st.markdown("<div style='margin-top: 25px;'></div>", unsafe_allow_html=True)
+    st.markdown("### 📋 Base de Dados de Clientes")
+    if not df_clientes.empty:
+        st.dataframe(df_clientes[['nome', 'empresa', 'telefone', 'origem', 'status', 'responsavel', 'data']], use_container_width=True, hide_index=True)
+    else:
+        st.info("Nenhum cliente cadastrado.")
 
-        with tab_cfg3:
-            st.markdown("#### Automações")
-            st.checkbox("Criar lead automaticamente via webhook", value=True)
-            st.checkbox("Disparar e-mail de boas-vindas", value=True)
+elif selected == "Leads":
+    st.markdown("### 🎯 Gestão de Leads")
+    df_leads_only = df_clientes[df_clientes["status"].str.contains("Lead|Contato|Atendimento|Novo", case=False, na=False)] if not df_clientes.empty and "status" in df_clientes.columns else pd.DataFrame()
+    if not df_leads_only.empty:
+        st.dataframe(df_leads_only[["nome", "empresa", "email", "telefone", "origem", "status", "data"]], use_container_width=True, hide_index=True)
+    else:
+        st.info("Nenhum lead em aberto.")
 
-        with tab_cfg4:
-            st.markdown("#### Histórico de Sincronização")
-            dados_logs = pd.DataFrame({
-                "Data": ["09/08/2026 18:42", "09/08/2026 18:49"],
-                "Serviço": ["WhatsApp", "SMTP"],
-                "Status": ["🟢 Sucesso", "❌ Erro"]
-            })
-            st.dataframe(dados_logs, use_container_width=True, hide_index=True)
+elif selected == "Pipeline":
+    st.markdown("### 📈 Pipeline Comercial")
+    if not df_pipeline.empty:
+        st.dataframe(df_pipeline, use_container_width=True, hide_index=True)
+    else:
+        st.info("Pipeline vazio.")
+
+elif selected == "Vendas":
+    st.markdown("### 🏆 Controle de Vendas Fechadas")
+    if not df_vendas.empty:
+        st.dataframe(df_vendas, use_container_width=True, hide_index=True)
+    else:
+        st.info("Nenhuma venda registrada.")
+
+elif selected == "Relatórios":
+    st.markdown("### 📄 Relatórios e Exportação")
+    df_export = df_vendas if not df_vendas.empty else pd.DataFrame()
+    csv_data = df_export.to_csv(index=False).encode('utf-8')
+    st.download_button(label="📥 Exportar Dados para CSV", data=csv_data, file_name="vendas_crm.csv", mime="text/csv")
+
+elif selected == "Integrações":
+    st.markdown("### 🔌 Integrações e Conexões")
+    st.toggle("Ativar Integração WhatsApp", value=True)
+
+elif selected == "Configurações":
+    st.markdown("### ⚙️ Configurações do Sistema")
+    tab_cfg1, tab_cfg2, tab_cfg3, tab_cfg4 = st.tabs(["🎨 Aparência", "🔌 Integrações & API", "⚡ Automações", "📋 Logs & Histórico"])
+
+    with tab_cfg1:
+        st.markdown("#### Preferências Visuais")
+        col_ap1, col_ap2 = st.columns(2)
+        with col_ap1:
+            st.radio("Tema do Sistema", ["🌙 Escuro", "☀️ Claro"], key="tema_sistema")
+        with col_ap2:
+            st.radio("Cor Principal do Sistema", ["🔵 Azul", "🟢 Verde", "🟣 Roxo"], key="cor_principal_sistema")
+        if st.button("Salvar Preferências"):
+            st.success("Salvo com sucesso!")
+            st.rerun()
+
+    with tab_cfg2:
+        st.markdown("#### Tabela de Integrações")
+        dados_integracoes = pd.DataFrame({
+            "Serviço": ["WhatsApp Business", "Google Calendar", "SMTP", "OpenAI"],
+            "Status": ["🟢 Conectado", "🟢 Conectado", "❌ Desconectado", "🟢 Ativo"],
+            "Ação": ["Configurar", "Gerenciar", "Conectar", "Testar"]
+        })
+        st.dataframe(dados_integracoes, use_container_width=True, hide_index=True)
+
+    with tab_cfg3:
+        st.markdown("#### Automações")
+        st.checkbox("Criar lead automaticamente via webhook", value=True)
+        st.checkbox("Disparar e-mail de boas-vindas", value=True)
+
+    with tab_cfg4:
+        st.markdown("#### Histórico de Sincronização")
+        dados_logs = pd.DataFrame({
+            "Data": ["09/08/2026 18:42", "09/08/2026 18:49"],
+            "Serviço": ["WhatsApp", "SMTP"],
+            "Status": ["🟢 Sucesso", "❌ Erro"]
+        })
+        st.dataframe(dados_logs, use_container_width=True, hide_index=True)
