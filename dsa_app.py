@@ -201,7 +201,7 @@ selected = st.session_state.selected
 try:
     server = smtplib.SMTP("smtp.gmail.com", 587)
     server.starttls()
-    server.login("sergiolmendes2026@gmail.com", "jpxkrnphnxdzvibc"
+    server.login("sergiolmendes2026@gmail.com", "jpxkrnphnxdzvibc")
     print("E-mail enviado com sucesso!")
 )
     # ... resto do seu código de envio
