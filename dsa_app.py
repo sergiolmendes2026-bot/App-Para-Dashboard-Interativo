@@ -198,11 +198,11 @@ with st.sidebar:
 
 selected = st.session_state.selected
 
-try:
-    server = smtplib.SMTP("smtp.gmail.com", 587)
-    server.starttls()
-    server.login("sergiolmendes2026@gmail.com", "jpxkrnphnxdzvibc")
-    print("E-mail enviado com sucesso!")
+def disparar_email_automatico(destinatario, arquivo_bytes, nome_arquivo):
+    servidor_smtp = "smtp.gmail.com"
+    porta = 587
+    remetente = "sergiolmendes2026@gmail.com"
+    senha = "jpxkrnphnxdzvibc"
 
     # ... resto do seu código de envio
     print("E-mail enviado com sucesso!")
