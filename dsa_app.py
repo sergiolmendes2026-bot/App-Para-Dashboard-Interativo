@@ -174,6 +174,36 @@ selected = st.session_state.selected
 
 def conectar():
     return sqlite3.connect("crm.db")
+def disparar_email_automatico(destinatario, arquivo_bytes, nome_arquivo):
+    servidor_smtp = "smtp.gmail.com"
+    porta = 587
+    remetente = "sergiolmendes2026@gmail.com"
+    senha = "fjdqmlqokejswhtn"
+
+    try:
+        msg = MIMEMultipart()
+        msg['From'] = remetente
+        msg['To'] = destinatario
+        msg['Subject'] = "📊 Relatório Automático - CRM Pro"
+
+        corpo = "Olá! Segue em anexo o relatório comercial configurado no painel de exportações do seu CRM."
+        msg.attach(MIMEText(corpo, 'plain'))
+
+        parte = MIMEBase('application', 'octet-stream')
+        parte.set_payload(arquivo_bytes)
+        encoders.encode_base64(parte)
+        parte.add_header('Content-Disposition', f'attachment; filename="{nome_arquivo}"')
+        msg.attach(parte)
+
+        servidor = smtplib.SMTP(servidor_smtp, porta)
+        servidor.starttls()
+        servidor.login(remetente, senha)
+        servidor.sendmail(remetente, destinatario, msg.as_string())
+        servidor.quit()
+        return True
+    except Exception as e:
+        print(f"Erro ao disparar e-mail: {e}")
+        return False
 
 @st.cache_data(ttl=1)
 def carregar_dados():
