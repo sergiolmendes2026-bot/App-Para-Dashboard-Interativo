@@ -492,14 +492,26 @@ elif selected == "Configurações":
                 </div>
             """, unsafe_allow_html=True)
             
-            if st.button("🗑️ Limpar Todos os Registros de Clientes", type="primary"):
-                conn = conectar()
-                conn.execute("DELETE FROM clientes")
-                conn.commit()
-                conn.close()
-                st.cache_data.clear()
-                st.success("Registros de clientes apagados com sucesso!")
-                st.rerun()
+           # ... (dentro da parte do elif selected == "Configurações":)
+
+    with tab_cfg1:
+        st.markdown("#### Preferências Visuais")
+        # ... (seu código de tema e cor)
+
+        # --- COLE O NOVO CÓDIGO AQUI ---
+        if st.button("🗑️ Limpar Todos os Registros de Clientes", type="primary"):
+            # 1. Abre conexão e deleta do banco
+            conn = sqlite3.connect("crm.db")
+            conn.execute("DELETE FROM clientes")
+            conn.commit()
+            conn.close()
+            
+            # 2. Limpa o cache do Streamlit
+            st.cache_data.clear()
+            
+            # 3. Força o rerun imediato
+            st.success("Registros de clientes apagados com sucesso!")
+            st.rerun()
         
     with tab_cfg2:
         st.markdown("#### Configurações e Tabela de Integrações")
