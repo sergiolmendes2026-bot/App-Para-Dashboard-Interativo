@@ -12,7 +12,7 @@ from email.mime.base import MIMEBase
 from email import encoders
 
 st.set_page_config(
-    page_title="CRM LMB Pro - Workspace v2.0", page_icon="📊", layout="wide" 
+    page_title="CRM Pro - Workspace v2.0", page_icon="📊", layout="wide" 
 )
 
 # --- INICIALIZAÇÃO DO ESTADO ---
@@ -20,8 +20,10 @@ if "tema_sistema" not in st.session_state:
     st.session_state.tema_sistema = "🌙 Escuro"
 if "selected" not in st.session_state:
     st.session_state.selected = "Dashboard"
+if "modal_novo_lead" not in st.session_state:
+    st.session_state.modal_novo_lead = False
 
-# Cor principal fixa do sistema
+# Cores e temas
 cor_hex = "#2563EB"
 is_escuro = "Escuro" in st.session_state.tema_sistema
 
@@ -142,7 +144,7 @@ def disparar_email_automatico(destinatario, arquivo_bytes, nome_arquivo):
     servidor_smtp = "smtp.gmail.com"
     porta = 587
     remetente = "sergiolmendes2026@gmail.com"
-    senha = "fjdqmlqokejswhtn"
+    senha = "fjdqmlqokejswhtn"  # Sua senha de app gerada
 
     try:
         msg = MIMEMultipart()
@@ -254,10 +256,15 @@ if selected == "Dashboard":
     c3.metric("Receita Realizada", f"R$ {receita_realizada:,.2f}")
     c4.metric("Ticket Médio", f"R$ {ticket_medio:,.2f}")
 
+    if not df_vendas.empty:
+        st.markdown("---")
+        fig = px.bar(df_vendas, x='cliente', y='valor', color='responsavel', title="Vendas por Cliente")
+        st.plotly_chart(fig, use_container_width=True)
+
 elif selected == "Clientes":
     st.markdown("### 📖 Cadastro Completo de Clientes e Leads")
     if not df_clientes.empty:
-        st.dataframe(df_clientes[['nome', 'empresa', 'telefone', 'origem', 'status', 'responsavel', 'data']], use_container_width=True, hide_index=True)
+        st.dataframe(df_clientes[['nome', 'empresa', 'email', 'telefone', 'origem', 'status', 'responsavel']], use_container_width=True, hide_index=True)
 
 elif selected == "Leads":
     col_topo_l1, col_topo_l2 = st.columns([4, 1])
@@ -272,9 +279,17 @@ elif selected == "Leads":
 
 elif selected == "Pipeline":
     st.markdown("### 📈 Pipeline Comercial")
+    if not df_pipeline.empty:
+        st.dataframe(df_pipeline, use_container_width=True, hide_index=True)
+    else:
+        st.info("Nenhum item cadastrado no pipeline.")
 
 elif selected == "Vendas":
     st.markdown("### 🏆 Controle de Vendas Fechadas")
+    if not df_vendas.empty:
+        st.dataframe(df_vendas, use_container_width=True, hide_index=True)
+    else:
+        st.info("Nenhuma venda registrada.")
 
 elif selected == "Relatórios":
     st.markdown("### 📄 Relatórios e Exportação")
@@ -306,14 +321,13 @@ elif selected == "Relatórios":
             conn.commit()
             conn.close()
             
-            # Disparo imediato de teste ao salvar para validar a conexão de e-mail
             if ativar_envio and destinatario:
                 csv_bytes = df_export.to_csv(index=False).encode('utf-8')
                 sucesso_envio = disparar_email_automatico(destinatario, csv_bytes, "relatorio_vendas.csv")
                 if sucesso_envio:
                     st.success("Configuração salva e e-mail de teste enviado com sucesso!")
                 else:
-                    st.warning("Configuração salva, mas houve falha ao enviar o e-mail de teste (verifique as credenciais SMTP).")
+                    st.warning("Configuração salva, mas houve falha ao enviar o e-mail de teste.")
             else:
                 st.success("Configuração de agendamento salva com sucesso!")
 
@@ -331,3 +345,4 @@ elif selected == "Integrações":
 
 elif selected == "Configurações":
     st.markdown("### ⚙️ Configurações do Sistema")
+    st.selectbox("Tema do Sistema", ["🌙 Escuro", "☀️ Claro"], key="tema_sistema")
