@@ -73,9 +73,17 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 # --- BANCO DE DADOS E CORREÇÃO DE ESQUEMA ---
-def inicializar_banco():
-    conn = sqlite3.connect("crm.db")
-    cursor = conn.cursor()
+@st.cache_data(ttl=1)
+def carregar_dados():
+    conn = conectar()
+    tabelas = [row[0] for row in conn.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()]
+    df_clientes = pd.read_sql("SELECT * FROM clientes", conn) if "clientes" in tabelas else pd.DataFrame()
+    df_pipeline = pd.read_sql("SELECT * FROM pipeline", conn) if "pipeline" in tabelas else pd.DataFrame()
+    df_vendas = pd.read_sql("SELECT * FROM vendas", conn) if "vendas" in tabelas else pd.DataFrame()
+    conn.close()
+    return df_clientes, df_pipeline, df_vendas
+
+df_clientes, df_pipeline, df_vendas = carregar_dados()
     
     cursor.execute("CREATE TABLE IF NOT EXISTS clientes (id INTEGER PRIMARY KEY AUTOINCREMENT, nome TEXT, empresa TEXT, email TEXT, telefone TEXT, regiao TEXT, status TEXT, origem TEXT, motivo_perda TEXT, data TEXT, data_fechamento TEXT, responsavel TEXT)")
     cursor.execute("CREATE TABLE IF NOT EXISTS pipeline (id INTEGER PRIMARY KEY AUTOINCREMENT, titulo TEXT, estagio TEXT, valor REAL, empresa TEXT, contato TEXT, telefone TEXT, email TEXT, responsavel TEXT, origem TEXT)")
