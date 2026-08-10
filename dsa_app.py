@@ -463,19 +463,22 @@ elif selected == "Relatórios":
         use_container_width=True
     )
     
-    # 2. Exportar Excel (.xlsx)
-    buffer_excel = io.BytesIO()
-    with pd.ExcelWriter(buffer_excel, engine='openpyxl') as writer:
-        df_export.to_excel(writer, index=False, sheet_name='Vendas')
-    excel_data = buffer_excel.getvalue()
-    
-    st.download_button(
-        label="📥 Exportar Excel (.xlsx)", 
-        data=excel_data, 
-        file_name="relatorio_vendas.xlsx", 
-        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        use_container_width=True
-    )
+    # 2. Exportar Excel (.xlsx) com tratamento de erro e fallback
+    try:
+        buffer_excel = io.BytesIO()
+        with pd.ExcelWriter(buffer_excel, engine='openpyxl') as writer:
+            df_export.to_excel(writer, index=False, sheet_name='Vendas')
+        excel_data = buffer_excel.getvalue()
+        
+        st.download_button(
+            label="📥 Exportar Excel (.xlsx)", 
+            data=excel_data, 
+            file_name="relatorio_vendas.xlsx", 
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            use_container_width=True
+        )
+    except ModuleNotFoundError:
+        st.warning("⚠️ Biblioteca `openpyxl` não encontrada. Adicione `openpyxl` ao arquivo requirements.txt do projeto para habilitar o Excel.")
     
     # 3. Exportar PDF (Simulação / HTML download)
     html_content = df_export.to_html(index=False)
