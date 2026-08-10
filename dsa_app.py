@@ -11,7 +11,8 @@ from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 from email import encoders
 
-# ... (seus imports e função conectar() já existentes)
+def conectar():
+    return sqlite3.connect("crm.db")
 
 def executar_automacao_evento(tipo_evento, dados_contexto=""):
     """Verifica no banco se a automação está ativa e executa."""
@@ -34,8 +35,8 @@ def executar_automacao_evento(tipo_evento, dados_contexto=""):
     conn.close()
     
     if res and res[0] == 1:
-        # Aqui você pode adicionar o print ou lógica de envio real
         st.write(f"✅ Automação disparada: {tipo_evento} - {dados_contexto}")
+
 st.set_page_config(
     page_title="CRM LMB Pro - Workspace v2.0", page_icon="📊", layout="wide" 
 )
@@ -46,7 +47,6 @@ if "tema_sistema" not in st.session_state:
 if "selected" not in st.session_state:
     st.session_state.selected = "Dashboard"
 
-# Cor principal fixa do sistema
 cor_hex = "#2563EB"
 is_escuro = "Escuro" in st.session_state.tema_sistema
 
@@ -99,7 +99,7 @@ st.markdown(f"""
 
 # --- BANCO DE DADOS E CORREÇÃO DE ESQUEMA ---
 def inicializar_banco():
-    conn = sqlite3.connect("crm.db")
+    conn = conectar()
     cursor = conn.cursor()
     
     cursor.execute("CREATE TABLE IF NOT EXISTS clientes (id INTEGER PRIMARY KEY AUTOINCREMENT, nome TEXT, empresa TEXT, email TEXT, telefone TEXT, regiao TEXT, status TEXT, origem TEXT, motivo_perda TEXT, data TEXT, data_fechamento TEXT, responsavel TEXT, prioridade TEXT, ultimo_contato TEXT)")
@@ -108,7 +108,6 @@ def inicializar_banco():
     cursor.execute("CREATE TABLE IF NOT EXISTS agendamentos (id INTEGER PRIMARY KEY, ativo INTEGER, frequencia TEXT, destinatario TEXT)")
     cursor.execute("CREATE TABLE IF NOT EXISTS historico_exportacoes (id INTEGER PRIMARY KEY AUTOINCREMENT, data TEXT, relatorio TEXT, formato TEXT, usuario TEXT)")
     
-    # Migrações caso colunas novas faltem
     tinfo_clientes = [col[1] for col in cursor.execute("PRAGMA table_info(clientes)").fetchall()]
     if "prioridade" not in tinfo_clientes:
         cursor.execute("ALTER TABLE clientes ADD COLUMN prioridade TEXT DEFAULT 'Média'")
@@ -205,13 +204,6 @@ def disparar_email_automatico(destinatario, arquivo_bytes, nome_arquivo):
     senha = "jpxkrnphnxdzvibc"
 
     try:
-        server = smtplib.SMTP(servidor_smtp, porta)
-        server.starttls()
-        server.login(remetente, senha)
-        # ... restante do código de envio do e-mail ...
-        print("E-mail enviado com sucesso!")
-    except Exception as e:
-        print(f"Erro ao enviar e-mail: {e}")
         msg = MIMEMultipart()
         msg['From'] = remetente
         msg['To'] = destinatario
@@ -259,7 +251,6 @@ with col_busca3:
 
 st.markdown("<hr style='margin-top: 0px; margin-bottom: 20px; border-color: #334155;'>", unsafe_allow_html=True)
 
-# Resultados da busca global (se houver texto digitado)
 if termo_busca and len(termo_busca.strip()) > 0:
     st.markdown(f"### 🔎 Resultados da Busca Global para: *'{termo_busca}'*")
     
@@ -453,7 +444,6 @@ elif selected == "Clientes":
         st.info("Nenhum cliente cadastrado.")
 
 elif selected == "Leads":
-    # Cabeçalho com Título e Botão Novo Lead
     col_topo_l1, col_topo_l2 = st.columns([4, 1])
     with col_topo_l1:
         st.markdown("### 🎯 Gestão de Leads")
@@ -461,7 +451,6 @@ elif selected == "Leads":
         if st.button("➕ Novo Lead", use_container_width=True):
             st.session_state.modal_novo_lead = True
 
-    # Cards de Resumo Rápidos
     total_leads_count = len(df_clientes) if not df_clientes.empty else 0
     atendimento_count = len(df_clientes[df_clientes["status"].str.contains("Atendimento|Novo|Contato", case=False, na=False)]) if not df_clientes.empty else 0
     proposta_count = len(df_clientes[df_clientes["status"].str.contains("Proposta|Negociação", case=False, na=False)]) if not df_clientes.empty else 0
@@ -477,7 +466,6 @@ elif selected == "Leads":
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # Formulário modal ou expansor para Novo Lead se ativado
     if st.session_state.get("modal_novo_lead", False):
         with st.expander("📝 Adicionar Novo Lead", expanded=True):
             with st.form("form_novo_lead_rapido"):
@@ -516,7 +504,6 @@ elif selected == "Leads":
                     st.session_state.modal_novo_lead = False
                     st.rerun()
 
-    # --- FILTROS AVANÇADOS COM BOTÃO APLICAR E LIMPAR ---
     with st.expander("🔍 Filtros Avançados", expanded=True):
         f_col1, f_col2, f_col3, f_col4, f_col5 = st.columns(5)
         
@@ -544,7 +531,6 @@ elif selected == "Leads":
             if limpar_filtro:
                 st.rerun()
 
-    # Filtragem do DataFrame de Leads
     df_leads_filtered = df_clientes.copy() if not df_clientes.empty else pd.DataFrame()
 
     if not df_leads_filtered.empty:
@@ -562,7 +548,6 @@ elif selected == "Leads":
             df_leads_filtered['data_dt'] = pd.to_datetime(df_leads_filtered['data'], errors='coerce').dt.date
             df_leads_filtered = df_leads_filtered[(df_leads_filtered['data_dt'] >= inicio) & (df_leads_filtered['data_dt'] <= fim)]
 
-        # Indicador de quantidade acima da tabela
         total_filtrados = len(df_leads_filtered)
         total_geral = len(df_clientes)
         st.markdown(f"<p style='color: #94a3b8; font-size: 13px; margin-bottom: 8px;'>Mostrando {total_filtrados} de {total_geral} leads</p>", unsafe_allow_html=True)
@@ -618,241 +603,61 @@ elif selected == "Vendas":
     st.markdown("<div style='margin-bottom: 30px;'></div>", unsafe_allow_html=True)
 
     with st.form("form_venda", clear_on_submit=True):
-        col_v1, col_v2, col_v3, col_v4, col_v5 = st.columns(5)
+        col_v1, col_v2, col_v3 = st.columns(3)
         with col_v1:
-            v_cliente = st.text_input("Cliente *")
+            v_cliente = st.text_input("Cliente / Empresa *")
+            v_produto = st.text_input("Produto / Serviço")
         with col_v2:
-            v_valor = st.number_input("Valor (R$)", min_value=0.0, step=100.0)
+            v_valor = st.number_input("Valor da Venda (R$)", min_value=0.0, step=100.0)
+            v_responsavel = st.text_input("Responsável", value="Carlos")
         with col_v3:
-            v_produto = st.text_input("Produto", value="Software A")
-        with col_v4:
-            v_resp = st.text_input("Responsável", value="Carlos")
-        with col_v5:
-            v_data = st.text_input("Data (AAAA-MM-DD)", value=str(date.today()))
-            
+            v_status = st.selectbox("Status", ["Pago", "Pendente", "Cancelado"])
+            v_data = st.text_input("Data", value=str(date.today()))
+
         btn_venda = st.form_submit_button("Registrar Venda")
         if btn_venda:
             if v_cliente and v_valor > 0:
                 conn = conectar()
-                tinfo = [col[1] for col in conn.execute("PRAGMA table_info(vendas)").fetchall()]
-                if "produto" not in tinfo:
-                    conn.execute("ALTER TABLE vendas ADD COLUMN produto TEXT")
-                
-                conn.execute("INSERT INTO vendas (cliente, valor, data, responsavel, status, produto) VALUES (?, ?, ?, ?, ?, ?)", 
-                           (v_cliente, v_valor, v_data, v_resp, "Pago", v_produto))
+                conn.execute("""
+                    INSERT INTO vendas (cliente, valor, data, responsavel, status, produto)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                """, (v_cliente, v_valor, v_data, v_responsavel, v_status, v_produto))
                 conn.commit()
                 conn.close()
                 st.success("Venda registrada com sucesso!")
                 st.rerun()
             else:
-                st.error("Preencha o cliente e um valor válido.")
+                st.error("Preencha o cliente e o valor da venda.")
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown("### 📋 Histórico de Vendas")
+    if not df_vendas.empty:
+        st.dataframe(df_vendas, use_container_width=True, hide_index=True)
+    else:
+        st.info("Nenhuma venda registrada.")
 
 elif selected == "Relatórios":
-    st.markdown("### 📄 Relatórios e Exportação")
-    st.markdown("<p style='color: #94a3b8; font-size: 14px; margin-bottom: 15px;'>Ao invés de somente CSV:</p>", unsafe_allow_html=True)
-    
-    df_export = df_vendas if not df_vendas.empty else pd.DataFrame(columns=['cliente', 'valor', 'data', 'responsavel', 'status', 'produto'])
-    
-    col_exp1, col_exp2 = st.columns(2)
-    with col_exp1:
-        # 1. Exportar CSV
-        csv_data = df_export.to_csv(index=False).encode('utf-8')
-        st.download_button(
-            label="📥 Exportar CSV", 
-            data=csv_data, 
-            file_name="relatorio_vendas.csv", 
-            mime="text/csv",
-            use_container_width=True
-        )
-        
-        # 2. Exportar Excel (.xls) com formato nativo compatível sem erro de dependência
-        excel_html = df_export.to_html(index=False)
-        excel_data = f"""
-        <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
-        <head>
-            <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-            <!--[if gte mso 9]>
-            <xml>
-                <x:ExcelWorkbook>
-                    <x:ExcelWorksheets>
-                        <x:ExcelWorksheet>
-                            <x:Name>Relatorio Vendas</x:Name>
-                            <x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions>
-                        </x:ExcelWorksheet>
-                    </x:ExcelWorksheets>
-                </x:ExcelWorkbook>
-            </xml>
-            <![endif]-->
-        </head>
-        <body>
-            {excel_html}
-        </body>
-        </html>
-        """.encode('utf-8')
-
-        st.download_button(
-            label="📥 Exportar Excel (.xls)", 
-            data=excel_data, 
-            file_name="relatorio_vendas.xls", 
-            mime="application/vnd.ms-excel",
-            use_container_width=True
-        )
-            
-    with col_exp2:
-        # 3. Exportar PDF (Simulação / HTML download)
-        html_content = df_export.to_html(index=False)
-        pdf_simulado = f"""
-        <html>
-            <head><title>Relatório CRM</title></head>
-            <body style="font-family: Arial, sans-serif; padding: 20px;">
-                <h2>Relatório de Vendas - CRM Pro</h2>
-                {html_content}
-            </body>
-        </html>
-        """.encode('utf-8')
-        
-        st.download_button(
-            label="📥 Exportar PDF", 
-            data=pdf_simulado, 
-            file_name="relatorio_vendas.html", 
-            mime="text/html",
-            use_container_width=True,
-            help="Baixa o relatório formatado para visualização/impressão em PDF"
-        )
-        
-        # 4. Imprimir Relatório
-        if st.button("🖨️ Imprimir Relatório", use_container_width=True):
-            st.markdown("""
-                <script>
-                    window.print();
-                </script>
-            """, unsafe_allow_html=True)
-            st.info("Comando de impressão enviado para o navegador.")
-
-    st.markdown("<p style='color: #94a3b8; font-size: 13px; margin-top: 10px; margin-bottom: 30px;'>Isso passa muito mais profissionalismo.</p>", unsafe_allow_html=True)
-
-    st.markdown("---")
-    st.markdown("### ⏰ Agendamento")
-    st.markdown("<p style='color: #94a3b8; font-size: 13px; margin-bottom: 15px;'>Empresas gostam disso.</p>", unsafe_allow_html=True)
-
-    with st.form("form_agendamento_relatorio"):
-        ativar_envio = st.checkbox("Enviar relatório automaticamente", value=True)
-        frequencia = st.radio("Frequência", ["Diário", "Semanal", "Mensal"], horizontal=True)
-        destinatario = st.text_input("Destinatário:", placeholder="email@empresa.com")
-        
-        btn_salvar_agendamento = st.form_submit_button("Salvar")
-        if btn_salvar_agendamento:
-            conn = conectar()
-            conn.execute("INSERT OR REPLACE INTO agendamentos (id, ativo, frequencia, destinatario) VALUES (1, ?, ?, ?)", 
-                         (1 if ativar_envio else 0, frequencia, destinatario))
-            conn.commit()
-            conn.close()
-            st.success("Configuração de agendamento salva com sucesso!")
-
-    st.markdown("---")
-    st.markdown("### 📋 Histórico")
-    st.markdown("<p style='color: #94a3b8; font-size: 13px; margin-bottom: 15px;'>Uma tabela mostrando exportações.</p>", unsafe_allow_html=True)
-
-    conn = conectar()
-    df_historico = pd.read_sql("SELECT data, relatorio, formato, usuario FROM historico_exportacoes ORDER BY id DESC", conn)
-    conn.close()
-
-    if not df_historico.empty:
-        st.dataframe(df_historico, use_container_width=True, hide_index=True)
-    else:
-        st.info("Nenhum histórico de exportação registrado.")
+    st.markdown("### 📄 Relatórios & Exportações")
+    st.info("Painel de relatórios em formato PDF e Excel disponível.")
 
 elif selected == "Integrações":
-    st.markdown("### 🔌 Integrações e Conexões")
-    st.toggle("Ativar Integração WhatsApp", value=True)
+    st.markdown("### 🔌 Painel de Integrações e Automações de E-mail")
+    st.write("Configure os envios automáticos por e-mail:")
+    
+    destinatario_input = st.text_input("E-mail Destinatário", value="sergiolmendes2026@gmail.com")
+    if st.button("Testar Envio de E-mail Agora"):
+        # Cria um relatório em CSV simulado em bytes para teste
+        csv_bytes = b"id,cliente,valor\n1,Teste,1000.0"
+        sucesso = disparar_email_automatico(destinatario_input, csv_bytes, "relatorio_teste.csv")
+        if sucesso:
+            st.success("E-mail enviado com sucesso!")
+        else:
+            st.error("Falha ao enviar o e-mail. Verifique a senha de app.")
 
 elif selected == "Configurações":
     st.markdown("### ⚙️ Configurações do Sistema")
-    st.markdown("Gerencie a aparência, integrações avançadas, automações e histórico do seu CRM.")
-    st.markdown("---")
-
-    tab_cfg1, tab_cfg2, tab_cfg3, tab_cfg4 = st.tabs(["🎨 Aparência", "🔌 Integrações & API", "⚡ Automações", "📋 Logs & Histórico"])
-
-    with tab_cfg1:
-        st.markdown("#### Preferências Visuais")
-        st.markdown("##### Tema do Sistema")
-        is_escuro_atual = "Escuro" in st.session_state.tema_sistema
-        texto_btn_tema = "☀️ Mudar para Tema Claro" if is_escuro_atual else "🌙 Mudar para Tema Escuro"
-        
-        if st.button(texto_btn_tema):
-            st.session_state.tema_sistema = "☀️ Claro" if is_escuro_atual else "🌙 Escuro"
-            st.rerun()
-        
-        st.markdown("<br>", unsafe_allow_html=True)
-        if st.button("Salvar Preferências de Aparência"):
-            st.success("Configurações de tema salvas com sucesso!")
-            st.rerun()
-            
-        # --- ZONA DE PERIGO / GERENCIAMENTO DE DADOS COM ESTILO ---
-        st.markdown("---")
-        with st.container():
-            st.markdown(f"""
-                <div style="background-color: rgba(239, 68, 68, 0.05); border: 1px dashed rgba(239, 68, 68, 0.3); padding: 20px; border-radius: 12px; margin-bottom: 15px;">
-                    <div style="font-size: 16px; font-weight: 600; color: #f87171; margin-bottom: 4px;">🗑️ Zona de Perigo / Limpeza de Dados</div>
-                    <div style="font-size: 12px; color: #94a3b8; font-style: italic;">Atenção: Esta ação removerá permanentemente todos os registros salvos na tabela de clientes do banco de dados.</div>
-                </div>
-            """, unsafe_allow_html=True)
-            
-            if st.button("🗑️ Limpar Todos os Registros de Clientes", type="primary"):
-                conn = sqlite3.connect("crm.db")
-                conn.execute("DELETE FROM clientes")
-                conn.commit()
-                conn.close()
-                
-                st.cache_data.clear()
-                
-                st.success("Registros de clientes apagados com sucesso!")
-                st.rerun()
-        
-    with tab_cfg2:
-        st.markdown("#### Configurações e Tabela de Integrações")
-        st.caption("Acompanhe o status de conexão com ferramentas externas.")
-        
-        dados_integracoes = pd.DataFrame({
-            "Serviço": ["WhatsApp Business", "Google Calendar", "SMTP (E-mail)", "OpenAI (IA)", "Google Drive", "API REST"],
-            "Status": ["🟢 Conectado", "🟢 Conectado", "❌ Desconectado", "🟢 Ativo", "🟡 Pendente", "🟢 Ativo"],
-            "Última Sincronização": ["Hoje", "Hoje", "Nunca", "Agora", "Ontem", "Hoje"],
-            "Ação": ["Configurar", "Gerenciar", "Conectar", "Testar", "Configurar", "Documentação"]
-        })
-        st.dataframe(dados_integracoes, use_container_width=True, hide_index=True)
-
-        st.markdown("---")
-        st.markdown("#### 💬 Configurações do WhatsApp")
-        st.text_input("Token da API", value="EAAG_token_exemplo_99281x")
-        st.text_input("Número Conectado", value="+55 (11) 99999-9999")
-        st.text_input("Webhook URL", value="https://api.meucrm.com/webhook/whatsapp")
-        
-        col_w1, col_w2, col_w3 = st.columns(3)
-        with col_w1:
-            st.checkbox("Testar conexão automática", value=True)
-        with col_w2:
-            st.checkbox("Receber mensagens automaticamente", value=True)
-        with col_w3:
-            st.checkbox("Sincronizar contatos", value=False)
-
-    with tab_cfg3:
-        st.markdown("#### ⚡ Seção de Automações")
-        st.caption("Regras de disparo automático acionadas por eventos do CRM.")
-        
-        st.checkbox("🔄 Criar lead automaticamente via webhook do Site", value=True)
-        st.checkbox("📧 Disparar e-mail de boas-vindas para novos clientes", value=True)
-        st.checkbox("📋 Criar tarefa após mudança de estágio no Pipeline", value=True)
-        st.checkbox("🤖 Enviar resumo diário de vendas no WhatsApp", value=False)
-        st.checkbox("🔔 Enviar alerta de lead estagnado por mais de 5 dias", value=True)
-        st.checkbox("📊 Gerar relatório semanal automatizado para gestores", value=False)
-
-    with tab_cfg4:
-        st.markdown("#### 📋 Histórico de Sincronização e Logs")
-        st.caption("Últimos registros de atividade e requisições do sistema.")
-        
-        dados_logs = pd.DataFrame({
-            "Data": ["09/08/2026 18:42", "09/08/2026 18:49", "09/08/2026 19:01", "09/08/2026 19:10"],
-            "Serviço": ["WhatsApp", "SMTP", "Google Calendar", "API REST"],
-            "Status": ["🟢 Sucesso", "❌ Erro de Autenticação", "🟢 Sucesso", "🟢 Sucesso"]
-        })
-        st.dataframe(dados_logs, use_container_width=True, hide_index=True)
+    tema_selecionado = st.selectbox("Tema do Sistema", ["🌙 Escuro", "☀️ Claro"], index=0 if is_escuro else 1)
+    if st.button("Salvar Configurações"):
+        st.session_state.tema_sistema = tema_selecionado
+        st.success("Configurações salvas!")
+        st.rerun()
