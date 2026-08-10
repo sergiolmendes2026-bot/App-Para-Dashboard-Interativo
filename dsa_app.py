@@ -204,12 +204,14 @@ def disparar_email_automatico(destinatario, arquivo_bytes, nome_arquivo):
     remetente = "sergiolmendes2026@gmail.com"
     senha = "jpxkrnphnxdzvibc"
 
-    # ... resto do seu código de envio
-    print("E-mail enviado com sucesso!")
-except Exception as e:
-    print(f"Erro ao enviar e-mail: {e}")
-
     try:
+        server = smtplib.SMTP(servidor_smtp, porta)
+        server.starttls()
+        server.login(remetente, senha)
+        # ... restante do código de envio do e-mail ...
+        print("E-mail enviado com sucesso!")
+    except Exception as e:
+        print(f"Erro ao enviar e-mail: {e}")
         msg = MIMEMultipart()
         msg['From'] = remetente
         msg['To'] = destinatario
