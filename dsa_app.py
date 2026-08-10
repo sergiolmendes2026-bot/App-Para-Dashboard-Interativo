@@ -17,10 +17,6 @@ if "cor_principal_sistema" not in st.session_state:
 if "selected" not in st.session_state:
     st.session_state.selected = "Dashboard"
 
-mapa_cores = {
-    "🔵 Azul": "#2563EB", 
-    "🟢 Verde": "#10B981", 
-    "🟣 Roxo": "#7C3AED"
 }
 cor_hex = mapa_cores.get(st.session_state.cor_principal_sistema, "#2563EB")
 is_escuro = "Escuro" in st.session_state.tema_sistema
