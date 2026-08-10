@@ -5,7 +5,11 @@ import plotly.express as px
 import plotly.graph_objects as go
 from datetime import date
 import io
-
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.mime.base import MIMEBase
+from email import encoders
 st.set_page_config(
     page_title="CRM LMB Pro - Workspace v2.0", page_icon="📊", layout="wide" 
 )
