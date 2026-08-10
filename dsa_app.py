@@ -282,9 +282,10 @@ if selected == "Dashboard":
             st.markdown("#### 🎯 Meta x Realizado")
             meta_exemplo = 150000.0
             fig_gauge = go.Figure(go.Indicator(
-                mode="gauge+number", value=receita_realizada,
+                mode="gauge+number",
+                value=receita_realizada,
                 domain={'x': [0, 1], 'y': [0, 1]},
-                title={'text": "Progresso de Vendas vs Meta"},
+                title={'text': "Progresso de Vendas vs Meta"},
                 gauge={'axis': {'range': [None, meta_exemplo]}, 'bar': {'color': cor_hex}}
             ))
             fig_gauge.update_layout(paper_bgcolor="rgba(0,0,0,0)", font=dict(color=text_app), height=260)
