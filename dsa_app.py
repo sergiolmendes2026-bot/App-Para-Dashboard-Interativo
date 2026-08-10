@@ -75,6 +75,8 @@ def inicializar_banco():
     cursor.execute("CREATE TABLE IF NOT EXISTS clientes (id INTEGER PRIMARY KEY AUTOINCREMENT, nome TEXT, empresa TEXT, email TEXT, telefone TEXT, regiao TEXT, status TEXT, origem TEXT, motivo_perda TEXT, data TEXT, data_fechamento TEXT, responsavel TEXT)")
     cursor.execute("CREATE TABLE IF NOT EXISTS pipeline (id INTEGER PRIMARY KEY AUTOINCREMENT, titulo TEXT, estagio TEXT, valor REAL, empresa TEXT, contato TEXT, telefone TEXT, email TEXT, responsavel TEXT, origem TEXT)")
     cursor.execute("CREATE TABLE IF NOT EXISTS vendas (id INTEGER PRIMARY KEY AUTOINCREMENT, cliente TEXT, valor REAL, data TEXT, responsavel TEXT, status TEXT, produto TEXT)")
+    cursor.execute("CREATE TABLE IF NOT EXISTS agendamentos (id INTEGER PRIMARY KEY, ativo INTEGER, frequencia TEXT, destinatario TEXT)")
+    cursor.execute("CREATE TABLE IF NOT EXISTS historico_exportacoes (id INTEGER PRIMARY KEY AUTOINCREMENT, data TEXT, relatorio TEXT, formato TEXT, usuario TEXT)")
     
     tinfo_vendas = [col[1] for col in cursor.execute("PRAGMA table_info(vendas)").fetchall()]
     if "produto" not in tinfo_vendas:
@@ -105,6 +107,14 @@ def inicializar_banco():
             ("Maria Silva", "✅ Venda Fechada", "Instagram", "", "2026-06-02"),
             ("Maria Oliveira", "❌ Venda Perdida", "Indicação", "Preço Alto", "2026-06-03"),
             ("Ana Paula", "💬 Em Atendimento", "WhatsApp", "", "2026-06-04"),
+        ])
+
+    cursor.execute("SELECT COUNT(*) FROM historico_exportacoes")
+    if cursor.fetchone()[0] == 0:
+        cursor.executemany("INSERT INTO historico_exportacoes (data, relatorio, formato, usuario) VALUES (?, ?, ?, ?)", [
+            ("10/08", "Vendas", "PDF", "Admin"),
+            ("09/08", "Clientes", "Excel", "Larissa"),
+            ("08/08", "Receita", "CSV", "Admin"),
         ])
 
     conn.commit()
@@ -449,66 +459,102 @@ elif selected == "Vendas":
 
 elif selected == "Relatórios":
     st.markdown("### 📄 Relatórios e Exportação")
-    st.markdown("<p style='color: #94a3b8; font-size: 14px; margin-bottom: 20px;'>Ao invés de somente CSV:</p>", unsafe_allow_html=True)
+    st.markdown("<p style='color: #94a3b8; font-size: 14px; margin-bottom: 15px;'>Ao invés de somente CSV:</p>", unsafe_allow_html=True)
     
     df_export = df_vendas if not df_vendas.empty else pd.DataFrame(columns=['cliente', 'valor', 'data', 'responsavel', 'status', 'produto'])
     
-    # 1. Exportar CSV
-    csv_data = df_export.to_csv(index=False).encode('utf-8')
-    st.download_button(
-        label="📥 Exportar CSV", 
-        data=csv_data, 
-        file_name="relatorio_vendas.csv", 
-        mime="text/csv",
-        use_container_width=True
-    )
-    
-    # 2. Exportar Excel (.xlsx) com tratamento de erro e fallback
-    try:
-        buffer_excel = io.BytesIO()
-        with pd.ExcelWriter(buffer_excel, engine='openpyxl') as writer:
-            df_export.to_excel(writer, index=False, sheet_name='Vendas')
-        excel_data = buffer_excel.getvalue()
-        
+    col_exp1, col_exp2 = st.columns(2)
+    with col_exp1:
+        # 1. Exportar CSV
+        csv_data = df_export.to_csv(index=False).encode('utf-8')
         st.download_button(
-            label="📥 Exportar Excel (.xlsx)", 
-            data=excel_data, 
-            file_name="relatorio_vendas.xlsx", 
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            label="📥 Exportar CSV", 
+            data=csv_data, 
+            file_name="relatorio_vendas.csv", 
+            mime="text/csv",
             use_container_width=True
         )
-    except ModuleNotFoundError:
-        st.warning("⚠️ Biblioteca `openpyxl` não encontrada. Adicione `openpyxl` ao arquivo requirements.txt do projeto para habilitar o Excel.")
-    
-    # 3. Exportar PDF (Simulação / HTML download)
-    html_content = df_export.to_html(index=False)
-    pdf_simulado = f"""
-    <html>
-        <head><title>Relatório CRM</title></head>
-        <body style="font-family: Arial, sans-serif; padding: 20px;">
-            <h2>Relatório de Vendas - CRM Pro</h2>
-            {html_content}
-        </body>
-    </html>
-    """.encode('utf-8')
-    
-    st.download_button(
-        label="📥 Exportar PDF", 
-        data=pdf_simulado, 
-        file_name="relatorio_vendas.html", 
-        mime="text/html",
-        use_container_width=True,
-        help="Baixa o relatório formatado para visualização/impressão em PDF"
-    )
-    
-    # 4. Imprimir Relatório
-    if st.button("🖨️ Imprimir Relatório", use_container_width=True):
-        st.markdown("""
-            <script>
-                window.print();
-            </script>
-        """, unsafe_allow_html=True)
-        st.info("Comando de impressão enviado para o navegador.")
+        
+        # 2. Exportar Excel (.xlsx) com tratamento de erro
+        try:
+            buffer_excel = io.BytesIO()
+            with pd.ExcelWriter(buffer_excel, engine='openpyxl') as writer:
+                df_export.to_excel(writer, index=False, sheet_name='Vendas')
+            excel_data = buffer_excel.getvalue()
+            
+            st.download_button(
+                label="📥 Exportar Excel (.xlsx)", 
+                data=excel_data, 
+                file_name="relatorio_vendas.xlsx", 
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                use_container_width=True
+            )
+        except ModuleNotFoundError:
+            st.warning("⚠️ Biblioteca `openpyxl` não encontrada para Excel.")
+            
+    with col_exp2:
+        # 3. Exportar PDF (Simulação / HTML download)
+        html_content = df_export.to_html(index=False)
+        pdf_simulado = f"""
+        <html>
+            <head><title>Relatório CRM</title></head>
+            <body style="font-family: Arial, sans-serif; padding: 20px;">
+                <h2>Relatório de Vendas - CRM Pro</h2>
+                {html_content}
+            </body>
+        </html>
+        """.encode('utf-8')
+        
+        st.download_button(
+            label="📥 Exportar PDF", 
+            data=pdf_simulado, 
+            file_name="relatorio_vendas.html", 
+            mime="text/html",
+            use_container_width=True,
+            help="Baixa o relatório formatado para visualização/impressão em PDF"
+        )
+        
+        # 4. Imprimir Relatório
+        if st.button("🖨️ Imprimir Relatório", use_container_width=True):
+            st.markdown("""
+                <script>
+                    window.print();
+                </script>
+            """, unsafe_allow_html=True)
+            st.info("Comando de impressão enviado para o navegador.")
+
+    st.markdown("<p style='color: #94a3b8; font-size: 13px; margin-top: 10px; margin-bottom: 30px;'>Isso passa muito mais profissionalismo.</p>", unsafe_allow_html=True)
+
+    st.markdown("---")
+    st.markdown("### ⏰ Agendamento")
+    st.markdown("<p style='color: #94a3b8; font-size: 13px; margin-bottom: 15px;'>Empresas gostam disso.</p>", unsafe_allow_html=True)
+
+    with st.form("form_agendamento_relatorio"):
+        ativar_envio = st.checkbox("Enviar relatório automaticamente", value=True)
+        frequencia = st.radio("Frequência", ["Diário", "Semanal", "Mensal"], horizontal=True)
+        destinatario = st.text_input("Destinatário:", placeholder="email@empresa.com")
+        
+        btn_salvar_agendamento = st.form_submit_button("Salvar")
+        if btn_salvar_agendamento:
+            conn = conectar()
+            conn.execute("INSERT OR REPLACE INTO agendamentos (id, ativo, frequencia, destinatario) VALUES (1, ?, ?, ?)", 
+                         (1 if ativar_envio else 0, frequencia, destinatario))
+            conn.commit()
+            conn.close()
+            st.success("Configuração de agendamento salva com sucesso!")
+
+    st.markdown("---")
+    st.markdown("### 📋 Histórico")
+    st.markdown("<p style='color: #94a3b8; font-size: 13px; margin-bottom: 15px;'>Uma tabela mostrando exportações.</p>", unsafe_allow_html=True)
+
+    conn = conectar()
+    df_historico = pd.read_sql("SELECT data, relatorio, formato, usuario FROM historico_exportacoes ORDER BY id DESC", conn)
+    conn.close()
+
+    if not df_historico.empty:
+        st.dataframe(df_historico, use_container_width=True, hide_index=True)
+    else:
+        st.info("Nenhum histórico de exportação registrado.")
 
 elif selected == "Integrações":
     st.markdown("### 🔌 Integrações e Conexões")
