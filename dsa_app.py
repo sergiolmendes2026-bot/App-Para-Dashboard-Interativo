@@ -117,8 +117,6 @@ def inicializar_banco():
 
 inicializar_banco()
 
-inicializar_banco()
-
 # --- BARRA LATERAL ---
 with st.sidebar:
     st.markdown(f"""
@@ -474,10 +472,19 @@ elif selected == "Configurações":
     with tab_cfg1:
         st.markdown("#### Preferências Visuais")
         col_ap1, col_ap2 = st.columns(2)
+        
         with col_ap1:
-            st.radio("Tema do Sistema", ["🌙 Escuro", "☀️ Claro"], key="tema_sistema")
+            st.markdown("##### Tema do Sistema")
+            is_escuro_atual = "Escuro" in st.session_state.tema_sistema
+            texto_btn_tema = "☀️ Mudar para Tema Claro" if is_escuro_atual else "🌙 Mudar para Tema Escuro"
+            
+            if st.button(texto_btn_tema, use_container_width=True):
+                st.session_state.tema_sistema = "☀️ Claro" if is_escuro_atual else "🌙 Escuro"
+                st.rerun()
+
         with col_ap2:
-            st.radio("Cor Principal do Sistema", ["🔵 Azul", "🟢 Verde", "🟣 Roxo"], key="cor_principal_sistema")
+            st.markdown("##### Cor Principal do Sistema")
+            st.radio("Cor Principal", ["🔵 Azul", "🟢 Verde", "🟣 Roxo"], key="cor_principal_sistema", label_visibility="collapsed")
         
         st.markdown("<br>", unsafe_allow_html=True)
         if st.button("Salvar Preferências de Aparência"):
@@ -494,26 +501,16 @@ elif selected == "Configurações":
                 </div>
             """, unsafe_allow_html=True)
             
-           # ... (dentro da parte do elif selected == "Configurações":)
-
-    with tab_cfg1:
-        st.markdown("#### Preferências Visuais")
-        # ... (seu código de tema e cor)
-
-        # --- COLE O NOVO CÓDIGO AQUI ---
-        if st.button("🗑️ Limpar Todos os Registros de Clientes", type="primary"):
-            # 1. Abre conexão e deleta do banco
-            conn = sqlite3.connect("crm.db")
-            conn.execute("DELETE FROM clientes")
-            conn.commit()
-            conn.close()
-            
-            # 2. Limpa o cache do Streamlit
-            st.cache_data.clear()
-            
-            # 3. Força o rerun imediato
-            st.success("Registros de clientes apagados com sucesso!")
-            st.rerun()
+            if st.button("🗑️ Limpar Todos os Registros de Clientes", type="primary"):
+                conn = sqlite3.connect("crm.db")
+                conn.execute("DELETE FROM clientes")
+                conn.commit()
+                conn.close()
+                
+                st.cache_data.clear()
+                
+                st.success("Registros de clientes apagados com sucesso!")
+                st.rerun()
         
     with tab_cfg2:
         st.markdown("#### Configurações e Tabela de Integrações")
