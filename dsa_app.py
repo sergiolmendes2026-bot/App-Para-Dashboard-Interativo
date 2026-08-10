@@ -29,7 +29,7 @@ bg_app = "#0e1117" if is_escuro else "#ffffff"
 text_app = "#ffffff" if is_escuro else "#1e293b"
 sidebar_bg = "#0b0f19" if is_escuro else "#f8fafc"
 
-# --- CSS E ESTILIZAÇÃO DO NOVO MENU LATERAL ---
+# --- CSS E ESTILIZAÇÃO DO MENU E PAINEIS ---
 st.markdown(f"""
     <style>
         .stApp {{ background-color: {bg_app}; color: {text_app}; }}
@@ -40,7 +40,6 @@ st.markdown(f"""
         }}
         h1, h2, h3, h4 {{ color: {text_app}; }}
         
-        /* Estilização moderna dos botões do menu lateral */
         [data-testid="stSidebar"] div.stButton > button {{
             width: 100%; 
             text-align: left; 
@@ -55,13 +54,11 @@ st.markdown(f"""
             transition: all 0.2s ease-in-out;
         }}
         
-        /* Efeito ao passar o mouse */
         [data-testid="stSidebar"] div.stButton > button:hover {{ 
             background-color: rgba(255, 255, 255, 0.05) !important; 
             color: #ffffff !important; 
         }}
         
-        /* Cabeçalhos das seções na barra lateral */
         .sidebar-section-title {{
             color: #64748b;
             font-size: 10px;
@@ -122,7 +119,6 @@ inicializar_banco()
 
 # --- NOVA BARRA LATERAL PROFISSIONAL ---
 with st.sidebar:
-    # Cabeçalho do Workspace / Logotipo
     st.markdown(f"""
         <div style="padding: 5px 4px 15px 4px; display: flex; align-items: center; gap: 10px;">
             <div style="background-color: {cor_hex}; width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 16px;">📊</div>
@@ -135,30 +131,23 @@ with st.sidebar:
     
     st.divider()
 
-    # Função auxiliar para criar itens do menu com destaque no ativo
     def menu_button(label, icon, key):
         is_active = st.session_state.selected == label
-        # Estilo customizado para o botão ativo parecer com a imagem de referência
         active_style = f"background-color: rgba(37, 99, 235, 0.15) !important; color: {cor_hex} !important; font-weight: 600 !important;" if is_active else ""
-        
-        # Renderiza o botão
         if st.button(f"{icon}  {label}", key=key, use_container_width=True):
             st.session_state.selected = label
             st.rerun()
 
-    # SEÇÃO: PRINCIPAL
     st.markdown('<p class="sidebar-section-title">Principal</p>', unsafe_allow_html=True)
     menu_button("Dashboard", "🏠", "nav_dashboard")
     menu_button("Clientes", "📖", "nav_clientes")
     menu_button("Leads", "🎯", "nav_leads")
 
-    # SEÇÃO: COMERCIAL
     st.markdown('<p class="sidebar-section-title">Comercial</p>', unsafe_allow_html=True)
     menu_button("Pipeline", "📈", "nav_pipeline")
     menu_button("Vendas", "🏆", "nav_vendas")
     menu_button("Relatórios", "📄", "nav_relatorios")
 
-    # SEÇÃO: SISTEMA
     st.markdown('<p class="sidebar-section-title">Sistema</p>', unsafe_allow_html=True)
     menu_button("Integrações", "🔌", "nav_integracoes")
     menu_button("Configurações", "⚙️", "nav_configuracoes")
@@ -201,9 +190,8 @@ if selected == "Dashboard":
 
     with tab1:
         c_v1, c_v2 = st.columns(2)
-        
         with c_v1:
-            st.markdown("#### 📈  Evolução das Vendas")
+            st.markdown("#### 📈 1. Evolução das Vendas")
             if not df_vendas.empty and "data" in df_vendas.columns:
                 df_temp = df_vendas.copy()
                 df_temp['data'] = pd.to_datetime(df_temp['data'], errors='coerce')
@@ -216,7 +204,7 @@ if selected == "Dashboard":
                 st.info("Sem dados suficientes de vendas.")
 
         with c_v2:
-            st.markdown("#### 🎯  Meta x Realizado (Gauge)")
+            st.markdown("#### 🎯 2. Meta x Realizado (Gauge)")
             meta_exemplo = 150000.0
             fig_gauge = go.Figure(go.Indicator(
                 mode="gauge+number", value=receita_realizada,
@@ -228,9 +216,8 @@ if selected == "Dashboard":
             st.plotly_chart(fig_gauge, use_container_width=True)
 
         c_v3, c_v4 = st.columns(2)
-        
         with c_v3:
-            st.markdown("#### 🏆  Receita por Vendedor")
+            st.markdown("#### 🏆 4. Receita por Vendedor")
             if not df_vendas.empty and "responsavel" in df_vendas.columns:
                 df_vend = df_vendas.groupby("responsavel")["valor"].sum().reset_index()
                 fig_vend = px.bar(df_vend, x="responsavel", y="valor", color_discrete_sequence=[cor_hex])
@@ -240,7 +227,7 @@ if selected == "Dashboard":
                 st.info("Sem dados de vendedores.")
 
         with c_v4:
-            st.markdown("#### 📦  Produtos Mais Vendidos")
+            st.markdown("#### 📦 7. Produtos Mais Vendidos")
             if not df_vendas.empty and "produto" in df_vendas.columns:
                 df_prod = df_vendas.groupby("produto")["valor"].sum().reset_index()
                 fig_prod = px.bar(df_prod, x="valor", y="produto", orientation="h", color_discrete_sequence=[cor_hex])
@@ -251,9 +238,8 @@ if selected == "Dashboard":
 
     with tab2:
         c_p1, c_p2 = st.columns(2)
-        
         with c_p1:
-            st.markdown("#### 📊  Funil de Vendas")
+            st.markdown("#### 📊 3. Funil de Vendas")
             if not df_pipeline.empty and "estagio" in df_pipeline.columns:
                 fig_funil = px.funnel(df_pipeline, x="valor", y="estagio", color_discrete_sequence=[cor_hex])
                 fig_funil.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font=dict(color=text_app))
@@ -273,9 +259,8 @@ if selected == "Dashboard":
 
     with tab3:
         c_l1, c_l2 = st.columns(2)
-        
         with c_l1:
-            st.markdown("#### 🍩  Origem dos Leads (Donut)")
+            st.markdown("#### 🍩 5. Origem dos Leads (Donut)")
             if not df_clientes.empty and "origem" in df_clientes.columns:
                 fig_origem = px.pie(df_clientes, names="origem", hole=0.5, color_discrete_sequence=px.colors.qualitative.Prism)
                 fig_origem.update_layout(paper_bgcolor="rgba(0,0,0,0)", font=dict(color=text_app))
@@ -284,7 +269,7 @@ if selected == "Dashboard":
                 st.info("Sem dados de origem.")
 
         with c_l2:
-            st.markdown("#### 📋  Clientes por Status")
+            st.markdown("#### 📋 6. Clientes por Status")
             if not df_clientes.empty and "status" in df_clientes.columns:
                 df_status = df_clientes.groupby("status").size().reset_index(name="quantidade")
                 fig_status = px.bar(df_status, x="status", y="quantidade", color_discrete_sequence=[cor_hex])
@@ -293,7 +278,7 @@ if selected == "Dashboard":
             else:
                 st.info("Sem dados de status.")
 
-        st.markdown("#### ❌  Motivos de Perda de Negócios")
+        st.markdown("#### ❌ 8. Motivos de Perda de Negócios")
         if not df_clientes.empty and "motivo_perda" in df_clientes.columns:
             df_perda = df_clientes[df_clientes["motivo_perda"].str.strip() != ""]
             if not df_perda.empty:
@@ -449,17 +434,73 @@ elif selected == "Integrações":
     st.markdown("### 🔌 Integrações e Conexões")
     st.toggle("Ativar Integração WhatsApp", value=True)
 
-# --- CONFIGURAÇÕES ---
+# --- CONFIGURAÇÕES (VERSÃO COMPLETA E DETALHADA) ---
 elif selected == "Configurações":
     st.markdown("### ⚙️ Configurações do Sistema")
+    st.markdown("Gerencie a aparência, integrações avançadas, automações e histórico do seu CRM.")
     st.markdown("---")
-    st.markdown("#### 🎨 Aparência")
-    col_ap1, col_ap2 = st.columns(2)
-    with col_ap1:
-        st.radio("Tema", ["🌙 Escuro", "☀️ Claro"], key="tema_sistema")
-    with col_ap2:
-        st.radio("Cor principal", ["🔵 Azul", "🟢 Verde", "🟣 Roxo"], key="cor_principal_sistema")
-    st.markdown("---")
-    if st.button("Salvar Configurações"):
-        st.success("Configurações atualizadas!")
-        st.rerun()
+
+    # Criando abas para organizar as seções detalhadas
+    tab_cfg1, tab_cfg2, tab_cfg3, tab_cfg4 = st.tabs(["🎨 Aparência", "🔌 Integrações & API", "⚡ Automações", "📋 Logs & Histórico"])
+
+    with tab_cfg1:
+        st.markdown("#### Preferências Visuais")
+        col_ap1, col_ap2 = st.columns(2)
+        with col_ap1:
+            st.radio("Tema do Sistema", ["🌙 Escuro", "☀️ Claro"], key="tema_sistema")
+        with col_ap2:
+            st.radio("Cor Principal do Sistema", ["🔵 Azul", "🟢 Verde", "🟣 Roxo"], key="cor_principal_sistema")
+        
+        st.markdown("<br>", unsafe_allow_html=True)
+        if st.button("Salvar Preferências de Aparência"):
+            st.success("Configurações de tema salvas com sucesso!")
+            st.rerun()
+
+    with tab_cfg2:
+        st.markdown("#### Configurações e Tabela de Integrações")
+        st.caption("Acompanhe o status de conexão com ferramentas externas.")
+        
+        # Tabela estilo painel de integrações
+        dados_integracoes = pd.DataFrame({
+            "Serviço": ["WhatsApp Business", "Google Calendar", "SMTP (E-mail)", "OpenAI (IA)", "Google Drive", "API REST"],
+            "Status": ["🟢 Conectado", "🟢 Conectado", "❌ Desconectado", "🟢 Ativo", "🟡 Pendente", "🟢 Ativo"],
+            "Última Sincronização": ["Hoje", "Hoje", "Nunca", "Agora", "Ontem", "Hoje"],
+            "Ação": ["Configurar", "Gerenciar", "Conectar", "Testar", "Configurar", "Documentação"]
+        })
+        st.dataframe(dados_integracoes, use_container_width=True, hide_index=True)
+
+        st.markdown("---")
+        st.markdown("#### 💬 Configurações do WhatsApp")
+        st.text_input("Token da API", value="EAAG_token_exemplo_99281x")
+        st.text_input("Número Conectado", value="+55 (11) 99999-9999")
+        st.text_input("Webhook URL", value="https://api.meucrm.com/webhook/whatsapp")
+        
+        col_w1, col_w2, col_w3 = st.columns(3)
+        with col_w1:
+            st.checkbox("Testar conexão automática", value=True)
+        with col_w2:
+            st.checkbox("Receber mensagens automaticamente", value=True)
+        with col_w3:
+            st.checkbox("Sincronizar contatos", value=False)
+
+    with tab_cfg3:
+        st.markdown("#### ⚡ Seção de Automações")
+        st.caption("Regras de disparo automático acionadas por eventos do CRM.")
+        
+        st.checkbox("🔄 Criar lead automaticamente via webhook do Site", value=True)
+        st.checkbox("📧 Disparar e-mail de boas-vindas para novos clientes", value=True)
+        st.checkbox("📋 Criar tarefa após mudança de estágio no Pipeline", value=True)
+        st.checkbox("🤖 Enviar resumo diário de vendas no WhatsApp", value=False)
+        st.checkbox("🔔 Enviar alerta de lead estagnado por mais de 5 dias", value=True)
+        st.checkbox("📊 Gerar relatório semanal automatizado para gestores", value=False)
+
+    with tab_cfg4:
+        st.markdown("#### 📋 Histórico de Sincronização e Logs")
+        st.caption("Últimos registros de atividade e requisições do sistema.")
+        
+        dados_logs = pd.DataFrame({
+            "Data": ["09/08/2026 18:42", "09/08/2026 18:49", "09/08/2026 19:01", "09/08/2026 19:10"],
+            "Serviço": ["WhatsApp", "SMTP", "Google Calendar", "API REST"],
+            "Status": ["🟢 Sucesso", "❌ Erro de Autenticação", "🟢 Sucesso", "🟢 Sucesso"]
+        })
+        st.dataframe(dados_logs, use_container_width=True, hide_index=True)
