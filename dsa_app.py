@@ -141,8 +141,8 @@ inicializar_banco()
 def disparar_email_automatico(destinatario, arquivo_bytes, nome_arquivo):
     servidor_smtp = "smtp.gmail.com"
     porta = 587
-    remetente = "seu_email@gmail.com"
-    senha = "sua_senha_de_app"
+    remetente = "sergiolmendes2026@gmail.com"
+    senha = "fjdqmlqokejswhtn"
 
     try:
         msg = MIMEMultipart()
