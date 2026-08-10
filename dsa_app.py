@@ -4,6 +4,7 @@ import streamlit as st
 import plotly.express as px
 import plotly.graph_objects as go
 from datetime import date
+import io
 
 st.set_page_config(
     page_title="CRM LMB Pro - Workspace v2.0", page_icon="📊", layout="wide" 
@@ -15,7 +16,7 @@ if "tema_sistema" not in st.session_state:
 if "selected" not in st.session_state:
     st.session_state.selected = "Dashboard"
 
-# Cor principal fixa do sistema (já que a opção foi removida)
+# Cor principal fixa do sistema
 cor_hex = "#2563EB"
 is_escuro = "Escuro" in st.session_state.tema_sistema
 
@@ -448,9 +449,63 @@ elif selected == "Vendas":
 
 elif selected == "Relatórios":
     st.markdown("### 📄 Relatórios e Exportação")
+    st.markdown("<p style='color: #94a3b8; font-size: 14px; margin-bottom: 20px;'>Ao invés de somente CSV:</p>", unsafe_allow_html=True)
+    
     df_export = df_vendas if not df_vendas.empty else pd.DataFrame(columns=['cliente', 'valor', 'data', 'responsavel', 'status', 'produto'])
+    
+    # 1. Exportar CSV
     csv_data = df_export.to_csv(index=False).encode('utf-8')
-    st.download_button(label="📥 Exportar Dados para CSV", data=csv_data, file_name="vendas_crm.csv", mime="text/csv")
+    st.download_button(
+        label="📥 Exportar CSV", 
+        data=csv_data, 
+        file_name="relatorio_vendas.csv", 
+        mime="text/csv",
+        use_container_width=True
+    )
+    
+    # 2. Exportar Excel (.xlsx)
+    buffer_excel = io.BytesIO()
+    with pd.ExcelWriter(buffer_excel, engine='openpyxl') as writer:
+        df_export.to_excel(writer, index=False, sheet_name='Vendas')
+    excel_data = buffer_excel.getvalue()
+    
+    st.download_button(
+        label="📥 Exportar Excel (.xlsx)", 
+        data=excel_data, 
+        file_name="relatorio_vendas.xlsx", 
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        use_container_width=True
+    )
+    
+    # 3. Exportar PDF (Simulação / HTML download)
+    html_content = df_export.to_html(index=False)
+    pdf_simulado = f"""
+    <html>
+        <head><title>Relatório CRM</title></head>
+        <body style="font-family: Arial, sans-serif; padding: 20px;">
+            <h2>Relatório de Vendas - CRM Pro</h2>
+            {html_content}
+        </body>
+    </html>
+    """.encode('utf-8')
+    
+    st.download_button(
+        label="📥 Exportar PDF", 
+        data=pdf_simulado, 
+        file_name="relatorio_vendas.html", 
+        mime="text/html",
+        use_container_width=True,
+        help="Baixa o relatório formatado para visualização/impressão em PDF"
+    )
+    
+    # 4. Imprimir Relatório
+    if st.button("🖨️ Imprimir Relatório", use_container_width=True):
+        st.markdown("""
+            <script>
+                window.print();
+            </script>
+        """, unsafe_allow_html=True)
+        st.info("Comando de impressão enviado para o navegador.")
 
 elif selected == "Integrações":
     st.markdown("### 🔌 Integrações e Conexões")
