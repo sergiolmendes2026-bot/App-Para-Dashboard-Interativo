@@ -6,7 +6,7 @@ import plotly.graph_objects as go
 from datetime import date
 
 st.set_page_config(
-    page_title="CRM LMB Pro - Workspace v2.0", page_icon="📊", layout="wide"
+    page_title="CRM LMB Pro - Workspace v2.0", page_icon="📊", layout="wide" 
 )
 
 # --- INICIALIZAÇÃO DO ESTADO ---
