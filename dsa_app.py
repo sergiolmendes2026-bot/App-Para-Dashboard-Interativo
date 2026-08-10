@@ -481,7 +481,17 @@ elif selected == "Configurações":
         if st.button("Salvar Preferências de Aparência"):
             st.success("Configurações de tema salvas com sucesso!")
             st.rerun()
-
+        # --- COLE O CÓDIGO DE APAGAR AQUI ---
+        st.markdown("---")
+        st.markdown("#### 🗑️ Gerenciamento de Dados")
+        if st.button("Limpar Todos os Registros de Clientes"):
+            conn = conectar()
+            conn.execute("DELETE FROM clientes")
+            conn.commit()
+            conn.close()
+            st.success("Registros de clientes apagados com sucesso!")
+            st.rerun()
+        
     with tab_cfg2:
         st.markdown("#### Configurações e Tabela de Integrações")
         st.caption("Acompanhe o status de conexão com ferramentas externas.")
