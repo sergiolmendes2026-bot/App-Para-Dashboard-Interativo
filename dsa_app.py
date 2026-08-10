@@ -204,7 +204,7 @@ def disparar_email_automatico(destinatario, arquivo_bytes, nome_arquivo):
     servidor_smtp = "smtp.gmail.com"
     porta = 587
     remetente = "sergiolmendes2026@gmail.com"
-    senha = "fjdqmlqokejswhtn"
+    senha = "jpxkrnphnxdzvibc"
 
     try:
         msg = MIMEMultipart()
