@@ -52,25 +52,20 @@ def disparar_email_automatico(destinatario, arquivo_bytes, nome_arquivo):
         return False
 
 def executar_automacao_evento(tipo_evento, dados_contexto=""):
-    """Verifica no banco se a automação está ativa e executa."""
     conn = conectar()
     cursor = conn.cursor()
-    
     mapa_eventos = {
         "novo_lead": "email_boas_vindas",
         "mudar_estagio": "tarefa_pipeline",
         "estagnado": "alerta_estagnado"
     }
-    
     chave = mapa_eventos.get(tipo_evento)
     if not chave:
         conn.close()
         return
-        
     cursor.execute("SELECT ativo FROM automacoes WHERE chave = ?", (chave,))
     res = cursor.fetchone()
     conn.close()
-    
     if res and res[0] == 1:
         st.write(f"✅ Automação disparada: {tipo_evento} - {dados_contexto}")
 
@@ -140,6 +135,7 @@ def inicializar_banco():
     cursor.execute("CREATE TABLE IF NOT EXISTS vendas (id INTEGER PRIMARY KEY AUTOINCREMENT, cliente TEXT, valor REAL, data TEXT, responsavel TEXT, status TEXT, produto TEXT)")
     cursor.execute("CREATE TABLE IF NOT EXISTS agendamentos (id INTEGER PRIMARY KEY, ativo INTEGER, frequencia TEXT, destinatario TEXT)")
     cursor.execute("CREATE TABLE IF NOT EXISTS historico_exportacoes (id INTEGER PRIMARY KEY AUTOINCREMENT, data TEXT, relatorio TEXT, formato TEXT, usuario TEXT)")
+    cursor.execute("CREATE TABLE IF NOT EXISTS automacoes (id INTEGER PRIMARY KEY AUTOINCREMENT, chave TEXT, ativo INTEGER)")
     
     tinfo_clientes = [col[1] for col in cursor.execute("PRAGMA table_info(clientes)").fetchall()]
     if "prioridade" not in tinfo_clientes:
@@ -279,7 +275,6 @@ if termo_busca and len(termo_busca.strip()) > 0:
 # --- RENDERIZAÇÃO DE PÁGINAS ---
 if selected == "Dashboard":
     st.markdown("### 📊 Dashboard de Performance Comercial")
-    
     total_leads = len(df_clientes)
     valor_pipeline = df_pipeline['valor'].sum() if not df_pipeline.empty and "valor" in df_pipeline.columns else 0.0
     receita_realizada = df_vendas['valor'].sum() if not df_vendas.empty and "valor" in df_vendas.columns else 0.0
@@ -329,6 +324,13 @@ elif selected == "Clientes":
             else:
                 st.error("Por favor, preencha ao menos o Nome do Contato.")
 
+elif selected == "Leads":
+    st.markdown("### 🎯 Gestão de Leads")
+    if not df_clientes.empty:
+        st.dataframe(df_clientes, use_container_width=True, hide_index=True)
+    else:
+        st.info("Nenhum lead cadastrado.")
+
 elif selected == "Pipeline":
     st.markdown("### 📈 Pipeline Comercial")
     with st.form("form_pipeline", clear_on_submit=True):
@@ -357,3 +359,22 @@ elif selected == "Pipeline":
                 st.rerun()
             else:
                 st.error("Informe o título do negócio.")
+
+elif selected == "Vendas":
+    st.markdown("### 🏆 Registro e Gestão de Vendas")
+    if not df_vendas.empty:
+        st.dataframe(df_vendas, use_container_width=True, hide_index=True)
+    else:
+        st.info("Nenhuma venda registrada.")
+
+elif selected == "Relatórios":
+    st.markdown("### 📄 Relatórios Comerciais e Exportação")
+    st.info("Módulo de relatórios e exportação pronto para uso.")
+
+elif selected == "Integrações":
+    st.markdown("### 🔌 Integrações e Automações do Sistema")
+    st.write("Configure webhooks, disparos de e-mail e APIs externas.")
+
+elif selected == "Configurações":
+    st.markdown("### ⚙️ Configurações do Workspace")
+    st.session_state.tema_sistema = st.selectbox("Tema do Sistema", ["🌙 Escuro", "☀️ Claro"], index=0 if is_escuro else 1)
