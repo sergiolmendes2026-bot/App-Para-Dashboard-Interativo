@@ -132,7 +132,6 @@ with st.sidebar:
     st.divider()
 
     def menu_button(label, icon, key):
-        is_active = st.session_state.selected == label
         if st.button(f"{icon}  {label}", key=key, use_container_width=True):
             st.session_state.selected = label
             st.rerun()
@@ -168,7 +167,7 @@ def carregar_dados():
 
 df_clientes, df_pipeline, df_vendas = carregar_dados()
 
-# --- BARRA DE PESQUISA GLOBAL NO CABEÇALHO ---
+# --- BARRA DE PESQUISA GLOBAL ÚNICA NO TOPO ---
 col_busca1, col_busca2, col_busca3 = st.columns([6, 1, 1])
 with col_busca1:
     termo_busca = st.text_input("Pesquisa Global", placeholder="🔍 Pesquisar clientes, leads, vendas...", label_visibility="collapsed")
@@ -179,44 +178,32 @@ with col_busca3:
 
 st.markdown("<hr style='margin-top: 0px; margin-bottom: 20px; border-color: #334155;'>", unsafe_allow_html=True)
 
-# Lógica de Exibição dos Resultados da Busca Global
+# Se o usuário digitar algo na barra global, exibe os resultados cruzados
 if termo_busca and len(termo_busca.strip()) > 0:
-    st.markdown(f"### 🔎 Resultados da Busca para: *'{termo_busca}'*")
+    st.markdown(f"### 🔎 Resultados da Busca Global para: *'{termo_busca}'*")
     
-    # 1. Clientes
     if not df_clientes.empty and "nome" in df_clientes.columns:
         res_clientes = df_clientes[df_clientes['nome'].str.contains(termo_busca, case=False, na=False) | df_clientes['empresa'].str.contains(termo_busca, case=False, na=False)]
         if not res_clientes.empty:
-            st.markdown("##### 👥 Clientes")
+            st.markdown("##### 👥 Clientes Encontrados")
             st.dataframe(res_clientes[['nome', 'empresa', 'email', 'telefone', 'status']], use_container_width=True, hide_index=True)
 
-    # 2. Leads (Filtra por leads)
-    if not df_clientes.empty and "status" in df_clientes.columns:
-        df_leads_base = df_clientes[df_clientes["status"].str.contains("Lead|Contato|Atendimento|Novo", case=False, na=False)]
-        res_leads = df_leads_base[df_leads_base['nome'].str.contains(termo_busca, case=False, na=False) | df_leads_base['empresa'].str.contains(termo_busca, case=False, na=False)]
-        if not res_leads.empty:
-            st.markdown("##### 🎯 Leads")
-            st.dataframe(res_leads[['nome', 'empresa', 'telefone', 'origem', 'status']], use_container_width=True, hide_index=True)
-
-    # 3. Vendas
     if not df_vendas.empty and "cliente" in df_vendas.columns:
         res_vendas = df_vendas[df_vendas['cliente'].str.contains(termo_busca, case=False, na=False) | df_vendas['produto'].str.contains(termo_busca, case=False, na=False)]
         if not res_vendas.empty:
-            st.markdown("##### 🏆 Vendas")
+            st.markdown("##### 🏆 Vendas Encontradas")
             st.dataframe(res_vendas, use_container_width=True, hide_index=True)
 
-    # 4. Pipeline
     if not df_pipeline.empty and "titulo" in df_pipeline.columns:
-        res_pipe = df_pipeline[df_pipeline['titulo'].str.contains(termo_busca, case=False, na=False) | df_pipeline['estagio'].str.contains(termo_busca, case=False, na=False)]
+        res_pipe = df_pipeline[df_pipeline['titulo'].str.contains(termo_busca, case=False, na=False)]
         if not res_pipe.empty:
-            st.markdown("##### 📈 Pipeline")
+            st.markdown("##### 📈 Pipeline Encontrado")
             st.dataframe(res_pipe, use_container_width=True, hide_index=True)
-
+            
     st.divider()
 else:
-    # --- CONTEÚDO NORMAL DAS PÁGINAS SE NÃO HOUVER BUSCA GLOBAL ---
+    # --- CONTEÚDO NORMAL DE CADA PÁGINA (GRÁFICOS E TELAS INTACTOS) ---
 
-    # --- DASHBOARD ---
     if selected == "Dashboard":
         st.markdown("### 📊 Dashboard de Performance Comercial")
         
@@ -280,13 +267,8 @@ else:
             else:
                 st.info("Sem dados de origem.")
 
-    # --- CLIENTES ---
     elif selected == "Clientes":
         st.markdown("### 📖 Cadastro Completo de Clientes e Leads")
-        
-        # Filtro específico da tela de clientes
-        filtro_cli = st.text_input("🔍 Pesquisar na tabela de Clientes", placeholder="Digite nome, empresa ou e-mail...")
-        
         with st.form("form_cliente_completo", clear_on_submit=True):
             col_c1, col_c2 = st.columns(2)
             with col_c1:
@@ -316,62 +298,42 @@ else:
         st.markdown("<div style='margin-top: 25px;'></div>", unsafe_allow_html=True)
         st.markdown("### 📋 Base de Dados de Clientes")
         if not df_clientes.empty:
-            df_exibir = df_clientes.copy()
-            if filtro_cli:
-                df_exibir = df_exibir[df_exibir['nome'].str.contains(filtro_cli, case=False, na=False) | df_exibir['empresa'].str.contains(filtro_cli, case=False, na=False)]
-            st.dataframe(df_exibir[['nome', 'empresa', 'telefone', 'origem', 'status', 'responsavel', 'data']], use_container_width=True, hide_index=True)
+            st.dataframe(df_clientes[['nome', 'empresa', 'telefone', 'origem', 'status', 'responsavel', 'data']], use_container_width=True, hide_index=True)
         else:
             st.info("Nenhum cliente cadastrado.")
 
-    # --- LEADS ---
     elif selected == "Leads":
         st.markdown("### 🎯 Gestão de Leads")
-        filtro_leads = st.text_input("🔍 Pesquisar em Leads", placeholder="Nome ou empresa...")
         df_leads_only = df_clientes[df_clientes["status"].str.contains("Lead|Contato|Atendimento|Novo", case=False, na=False)] if not df_clientes.empty and "status" in df_clientes.columns else pd.DataFrame()
         if not df_leads_only.empty:
-            if filtro_leads:
-                df_leads_only = df_leads_only[df_leads_only['nome'].str.contains(filtro_leads, case=False, na=False)]
             st.dataframe(df_leads_only[["nome", "empresa", "email", "telefone", "origem", "status", "data"]], use_container_width=True, hide_index=True)
         else:
             st.info("Nenhum lead em aberto.")
 
-    # --- PIPELINE ---
     elif selected == "Pipeline":
         st.markdown("### 📈 Pipeline Comercial")
-        filtro_pipe = st.text_input("🔍 Pesquisar no Pipeline", placeholder="Título ou estágio...")
         if not df_pipeline.empty:
-            df_pipe_ex = df_pipeline.copy()
-            if filtro_pipe:
-                df_pipe_ex = df_pipe_ex[df_pipe_ex['titulo'].str.contains(filtro_pipe, case=False, na=False)]
-            st.dataframe(df_pipe_ex, use_container_width=True, hide_index=True)
+            st.dataframe(df_pipeline, use_container_width=True, hide_index=True)
         else:
             st.info("Pipeline vazio.")
 
-    # --- VENDAS ---
     elif selected == "Vendas":
         st.markdown("### 🏆 Controle de Vendas Fechadas")
-        filtro_vendas = st.text_input("🔍 Pesquisar em Vendas", placeholder="Cliente ou produto...")
         if not df_vendas.empty:
-            df_v_ex = df_vendas.copy()
-            if filtro_vendas:
-                df_v_ex = df_v_ex[df_v_ex['cliente'].str.contains(filtro_vendas, case=False, na=False) | df_v_ex['produto'].str.contains(filtro_vendas, case=False, na=False)]
-            st.dataframe(df_v_ex, use_container_width=True, hide_index=True)
+            st.dataframe(df_vendas, use_container_width=True, hide_index=True)
         else:
             st.info("Nenhuma venda registrada.")
 
-    # --- RELATÓRIOS ---
     elif selected == "Relatórios":
         st.markdown("### 📄 Relatórios e Exportação")
         df_export = df_vendas if not df_vendas.empty else pd.DataFrame()
         csv_data = df_export.to_csv(index=False).encode('utf-8')
         st.download_button(label="📥 Exportar Dados para CSV", data=csv_data, file_name="vendas_crm.csv", mime="text/csv")
 
-    # --- INTEGRAÇÕES ---
     elif selected == "Integrações":
         st.markdown("### 🔌 Integrações e Conexões")
         st.toggle("Ativar Integração WhatsApp", value=True)
 
-    # --- CONFIGURAÇÕES ---
     elif selected == "Configurações":
         st.markdown("### ⚙️ Configurações do Sistema")
         tab_cfg1, tab_cfg2, tab_cfg3, tab_cfg4 = st.tabs(["🎨 Aparência", "🔌 Integrações & API", "⚡ Automações", "📋 Logs & Histórico"])
