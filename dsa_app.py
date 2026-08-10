@@ -30,7 +30,6 @@ def inicializar_banco():
     cursor.execute("CREATE TABLE IF NOT EXISTS agendamentos (id INTEGER PRIMARY KEY, ativo INTEGER, frequencia TEXT, destinatario TEXT)")
     cursor.execute("CREATE TABLE IF NOT EXISTS historico_exportacoes (id INTEGER PRIMARY KEY AUTOINCREMENT, data TEXT, relatorio TEXT, formato TEXT, usuario TEXT)")
     
-    # Tabela essencial para as Automações funcionarem
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS automacoes (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -39,7 +38,6 @@ def inicializar_banco():
         )
     """)
     
-    # Migrações de colunas caso faltem
     tinfo_clientes = [col[1] for col in cursor.execute("PRAGMA table_info(clientes)").fetchall()]
     if "prioridade" not in tinfo_clientes:
         cursor.execute("ALTER TABLE clientes ADD COLUMN prioridade TEXT DEFAULT 'Média'")
@@ -54,7 +52,6 @@ def inicializar_banco():
     if "telefone" not in tinfo_clientes:
         cursor.execute("ALTER TABLE clientes ADD COLUMN telefone TEXT DEFAULT '(11) 99999-9999'")
 
-    # Dados iniciais se as tabelas estiverem vazias
     cursor.execute("SELECT COUNT(*) FROM vendas")
     if cursor.fetchone()[0] == 0:
         cursor.executemany("INSERT INTO vendas (cliente, valor, data, responsavel, status, produto) VALUES (?, ?, ?, ?, ?, ?)", [
@@ -76,25 +73,20 @@ inicializar_banco()
 
 # --- FUNÇÃO DE EXECUÇÃO DE AUTOMAÇÕES ---
 def executar_automacao_evento(tipo_evento, dados_contexto=""):
-    """Verifica no banco se a automação está ativa e executa."""
     conn = conectar()
     cursor = conn.cursor()
-    
     mapa_eventos = {
         "novo_lead": "email_boas_vindas",
         "mudar_estagio": "tarefa_pipeline",
         "estagnado": "alerta_estagnado"
     }
-    
     chave = mapa_eventos.get(tipo_evento)
     if not chave:
         conn.close()
         return
-        
     cursor.execute("SELECT ativo FROM automacoes WHERE chave = ?", (chave,))
     res = cursor.fetchone()
     conn.close()
-    
     if res and res[0] == 1:
         st.toast(f"⚡ Automação disparada: {tipo_evento} - {dados_contexto}", icon="🚀")
 
@@ -213,6 +205,33 @@ if selected == "Dashboard":
     c1.metric("Total de Leads", f"{total_leads}")
     c2.metric("Valor do Pipeline", f"R$ {valor_pipeline:,.2f}")
     c3.metric("Receita Realizada", f"R$ {receita_realizada:,.2f}")
+    
+    st.divider()
+    
+    # Gráficos restaurados
+    col_g1, col_g2 = st.columns(2)
+    with col_g1:
+        st.markdown("#### 📈 Vendas por Responsável")
+        if not df_vendas.empty and "responsavel" in df_vendas.columns:
+            fig_resp = px.bar(df_vendas, x="responsavel", y="valor", color="responsavel", text_auto=True)
+            st.plotly_chart(fig_resp, use_container_width=True)
+        else:
+            st.info("Sem dados de vendas suficientes para o gráfico.")
+            
+    with col_g2:
+        st.markdown("#### 🥧 Pipeline por Estágio")
+        if not df_pipeline.empty and "estagio" in df_pipeline.columns:
+            fig_pipe = px.pie(df_pipeline, names="estagio", values="valor", hole=0.4)
+            st.plotly_chart(fig_pipe, use_container_width=True)
+        else:
+            st.info("Sem dados no pipeline suficientes para o gráfico.")
+
+elif selected == "Clientes":
+    st.markdown("### 📖 Base de Clientes")
+    if not df_clientes.empty:
+        st.dataframe(df_clientes, use_container_width=True)
+    else:
+        st.info("Nenhum cliente cadastrado ainda.")
 
 elif selected == "Leads":
     st.markdown("### 🎯 Gestão de Leads")
@@ -228,17 +247,56 @@ elif selected == "Leads":
                              (l_nome, l_email, "🆕 Novo Lead", "Site", str(date.today())))
                 conn.commit()
                 conn.close()
-                
-                # Dispara a automação configurada!
                 executar_automacao_evento("novo_lead", l_email)
-                
                 st.success("Lead cadastrado com sucesso!")
                 st.rerun()
+            else:
+                st.warning("Preencha o nome do lead.")
+                
+    st.divider()
+    st.markdown("#### Leads Cadastrados")
+    if not df_clientes.empty:
+        st.dataframe(df_clientes, use_container_width=True)
+
+elif selected == "Pipeline":
+    st.markdown("### 📈 Pipeline de Vendas")
+    if not df_pipeline.empty:
+        st.dataframe(df_pipeline, use_container_width=True)
+    else:
+        st.info("Pipeline vazio.")
+
+elif selected == "Vendas":
+    st.markdown("### 🏆 Registro de Vendas")
+    if not df_vendas.empty:
+        st.dataframe(df_vendas, use_container_width=True)
+    else:
+        st.info("Nenhuma venda registrada.")
+
+elif selected == "Relatórios":
+    st.markdown("### 📄 Relatórios Comerciais")
+    st.write("Gere e exporte relatórios consolidados em Excel ou CSV.")
+    if not df_vendas.empty:
+        buffer = io.BytesIO()
+        df_vendas.to_excel(buffer, index=False)
+        st.download_button("📥 Baixar Relatório de Vendas (Excel)", data=buffer.getvalue(), file_name="relatorio_vendas.xlsx", mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+
+elif selected == "Integrações":
+    st.markdown("### 🔌 Integrações e Webhooks")
+    st.write("Conecte seu CRM a ferramentas externas via API.")
+    st.text_input("Chave de API (Token)", value="crm_live_99823749812739", type="password")
 
 elif selected == "Configurações":
     st.markdown("### ⚙️ Configurações do Sistema")
     tab_ap, tab_int, tab_aut, tab_log = st.tabs(["🎨 Aparência", "🔌 Integrações & API", "⚡ Automações", "📋 Logs & Histórico"])
     
+    with tab_ap:
+        st.markdown("#### 🎨 Aparência do Sistema")
+        tema = st.selectbox("Escolha o Tema", ["🌙 Escuro", "☀️ Claro"], index=0 if is_escuro else 1)
+        if st.button("Salvar Tema"):
+            st.session_state.tema_sistema = tema
+            st.success("Tema atualizado com sucesso!")
+            st.rerun()
+
     with tab_aut:
         st.markdown("#### ⚡ Seção de Automações")
         st.markdown("<p style='color: #94a3b8; font-size: 13px;'>Regras de disparo automático acionadas por eventos do CRM.</p>", unsafe_allow_html=True)
@@ -272,7 +330,3 @@ elif selected == "Configurações":
     with tab_log:
         st.markdown("#### 📋 Histórico de Logs")
         st.info("As automações executadas em tempo real aparecem em notificações na tela.")
-
-else:
-    st.markdown(f"### 📄 Página: {selected}")
-    st.info("Página em funcionamento.")
