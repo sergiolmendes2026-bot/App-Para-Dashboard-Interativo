@@ -163,18 +163,33 @@ with st.sidebar:
             st.session_state.selected = label
             st.rerun()
 
+    # PRINCIPAL
     st.markdown('<p class="sidebar-section-title">Principal</p>', unsafe_allow_html=True)
     menu_button("Dashboard", "🏠", "nav_dashboard")
-    menu_button("Clientes", "📖", "nav_clientes")
+    menu_button("Clientes", "👥", "nav_clientes")
     menu_button("Leads", "🎯", "nav_leads")
+    menu_button("Agenda", "📅", "nav_agenda")
+    menu_button("Atividades", "📞", "nav_atividades")
 
+    # COMERCIAL
     st.markdown('<p class="sidebar-section-title">Comercial</p>', unsafe_allow_html=True)
     menu_button("Pipeline", "📈", "nav_pipeline")
-    menu_button("Vendas", "🏆", "nav_vendas")
-    menu_button("Relatórios", "📄", "nav_relatorios")
+    menu_button("Vendas", "💰", "nav_vendas")
+    menu_button("Propostas", "📄", "nav_propostas")
+    menu_button("Relatórios", "📊", "nav_relatorios")
+    menu_button("Metas", "🎯", "nav_metas")
 
+    # MARKETING
+    st.markdown('<p class="sidebar-section-title">Marketing</p>', unsafe_allow_html=True)
+    menu_button("Campanhas", "📧", "nav_campanhas")
+    menu_button("WhatsApp", "💬", "nav_whatsapp")
+
+    # SISTEMA
     st.markdown('<p class="sidebar-section-title">Sistema</p>', unsafe_allow_html=True)
     menu_button("Integrações", "🔌", "nav_integracoes")
+    menu_button("Usuários", "👤", "nav_usuarios")
+    menu_button("Permissões", "🔒", "nav_permissoes")
+    menu_button("Notificações", "🔔", "nav_notificacoes")
     menu_button("Configurações", "⚙️", "nav_configuracoes")
 
 selected = st.session_state.selected
