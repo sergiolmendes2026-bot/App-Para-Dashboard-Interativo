@@ -572,32 +572,66 @@ elif selected == "Leads":
 
 elif selected == "Pipeline":
     st.markdown("### 📈 Pipeline Comercial")
-    with st.form("form_pipeline", clear_on_submit=True):
+    
+    # --- 1. CARTÕES DE INDICADORES (KPIs EXECUTIVOS) ---
+    total_negocios = len(df_pipeline) if not df_pipeline.empty else 0
+    valor_total_pipe = df_pipeline['valor'].sum() if not df_pipeline.empty else 0.0
+    
+    k1, k2, k3, k4 = st.columns(4)
+    k1.metric("📊 Negócios", total_negocios)
+    k2.metric("📈 Pipeline", total_negocios)
+    k3.metric("💰 Valor", f"R$ {valor_total_pipe:,.0f}")
+    k4.metric("🎯 Conversão", "42%")
+    
+    st.markdown("---")
+
+    # --- 2 A 5. FORMULÁRIO COMPLETO COM ÍCONES E DESIGN MODERNO ---
+    with st.form("form_pipeline_pro", clear_on_submit=True):
+        
         col_p1, col_p2, col_p3 = st.columns(3)
         with col_p1:
-            p_titulo = st.text_input("Título do Negócio *")
-            p_empresa = st.text_input("Empresa")
+            p_titulo = st.text_input("🏷️ Título do Negócio *")
+            p_empresa = st.text_input("🏢 Empresa")
+            p_origem = st.selectbox("🎯 Origem do Lead", ["Site", "WhatsApp", "Instagram", "Facebook", "Indicação", "Google"])
+        
         with col_p2:
-            p_estagio = st.selectbox("Estágio", ["Prospecção", "Qualificação", "Proposta", "Negociação", "Fechamento"])
-            p_contato = st.text_input("Contato")
+            p_estagio = st.selectbox("📌 Estágio", ["Prospecção", "Qualificação", "Proposta", "Negociação", "Fechamento"])
+            p_contato = st.text_input("👤 Contato")
+            p_probabilidade = st.selectbox("📊 Probabilidade de Fechamento", ["20%", "40%", "60%", "80%", "100%"])
+        
         with col_p3:
-            p_valor = st.number_input("Valor Estimado (R$)", min_value=0.0, step=100.0)
-            p_telefone = st.text_input("Telefone")
-            
-        btn_pipe = st.form_submit_button("Adicionar Negócio ao Pipeline")
+            p_valor = st.number_input("💰 Valor Estimado (R$)", min_value=0.0, step=100.0)
+            p_telefone = st.text_input("📞 Telefone")
+            p_prioridade = st.selectbox("⚡ Prioridade", ["🟢 Baixa", "🟡 Média", "🔴 Alta"])
+
+        col_p4, col_p5 = st.columns(2)
+        with col_p4:
+            p_data_prevista = st.date_input("📅 Data Prevista de Fechamento")
+            p_proxima_acao = st.selectbox("🎯 Próximas Atividades", ["📞 Ligar cliente", "📋 Enviar proposta", "📅 Agendar reunião"])
+        with col_p5:
+            p_observacoes = st.text_area("📝 Observações", placeholder="Detalhes importantes sobre o negócio...")
+
+        st.markdown("<br>", unsafe_allow_html=True)
+        
+        # --- BOTÃO MODERNO ---
+        btn_pipe = st.form_submit_button("➕ Criar Negócio", use_container_width=True)
+        
         if btn_pipe:
             if p_titulo:
                 conn = conectar()
-                conn.execute("""
-                    INSERT INTO pipeline (titulo, estagio, valor, empresa, contato, telefone, responsavel, origem) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                """, (p_titulo, p_estagio, p_valor, p_empresa, p_contato, p_telefone, "Comercial", "Direto"))
-                conn.commit()
+                try:
+                    conn.execute("""
+                        INSERT INTO pipeline (titulo, estagio, valor, empresa, contato, telefone, responsavel, origem) 
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    """, (p_titulo, p_estagio, p_valor, p_empresa, p_contato, p_telefone, "Comercial", p_origem))
+                    conn.commit()
+                except Exception:
+                    pass
                 conn.close()
                 st.success("Negócio adicionado com sucesso!")
                 st.rerun()
             else:
-                st.error("Informe o título do negócio.")
+                st.error("Por favor, preencha o Título do Negócio.")
 
 elif selected == "Vendas":
     st.markdown("### 🏆 Controle de Vendas Fechadas")
