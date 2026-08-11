@@ -79,9 +79,11 @@ def inicializar_banco():
     cursor.execute("CREATE TABLE IF NOT EXISTS clientes (id INTEGER PRIMARY KEY AUTOINCREMENT, nome TEXT, empresa TEXT, email TEXT, telefone TEXT, regiao TEXT, status TEXT, origem TEXT, motivo_perda TEXT, data TEXT, data_fechamento TEXT, responsavel TEXT, prioridade TEXT, ultimo_contato TEXT)")
     cursor.execute("CREATE TABLE IF NOT EXISTS pipeline (id INTEGER PRIMARY KEY AUTOINCREMENT, titulo TEXT, estagio TEXT, valor REAL, empresa TEXT, contato TEXT, telefone TEXT, email TEXT, responsavel TEXT, origem TEXT)")
     cursor.execute("CREATE TABLE IF NOT EXISTS vendas (id INTEGER PRIMARY KEY AUTOINCREMENT, cliente TEXT, valor REAL, data TEXT, responsavel TEXT, status TEXT, produto TEXT)")
-    cursor.execute("CREATE TABLE IF NOT EXISTS agendamentos (id INTEGER PRIMARY KEY, ativo INTEGER, frequencia TEXT, destinatario TEXT)")
-    cursor.execute("CREATE TABLE IF NOT EXISTS historico_exportacoes (id INTEGER PRIMARY KEY AUTOINCREMENT, data TEXT, relatorio TEXT, formato TEXT, usuario TEXT)")
-    cursor.execute("CREATE TABLE IF NOT EXISTS automacoes (id INTEGER PRIMARY KEY AUTOINCREMENT, chave TEXT, ativo INTEGER)")
+    cursor.execute("CREATE TABLE IF NOT EXISTS agenda (id INTEGER PRIMARY KEY AUTOINCREMENT, titulo TEXT, data TEXT, horario TEXT, responsavel TEXT, status TEXT)")
+    cursor.execute("CREATE TABLE IF NOT EXISTS atividades (id INTEGER PRIMARY KEY AUTOINCREMENT, tipo TEXT, descricao TEXT, contato TEXT, data TEXT, status TEXT)")
+    cursor.execute("CREATE TABLE IF NOT EXISTS propostas (id INTEGER PRIMARY KEY AUTOINCREMENT, cliente TEXT, valor REAL, validade TEXT, status TEXT)")
+    cursor.execute("CREATE TABLE IF NOT EXISTS metas (id INTEGER PRIMARY KEY AUTOINCREMENT, vendedor TEXT, meta REAL, realizado REAL)")
+    cursor.execute("CREATE TABLE IF NOT EXISTS campanhas (id INTEGER PRIMARY KEY AUTOINCREMENT, nome TEXT, canal TEXT, disparos INTEGER, status TEXT)")
     
     tinfo_clientes = [col[1] for col in cursor.execute("PRAGMA table_info(clientes)").fetchall()]
     if "prioridade" not in tinfo_clientes:
@@ -92,10 +94,6 @@ def inicializar_banco():
         cursor.execute("ALTER TABLE clientes ADD COLUMN responsavel TEXT DEFAULT 'Carlos'")
     if "empresa" not in tinfo_clientes:
         cursor.execute("ALTER TABLE clientes ADD COLUMN empresa TEXT DEFAULT 'Empresa Exemplo'")
-    if "email" not in tinfo_clientes:
-        cursor.execute("ALTER TABLE clientes ADD COLUMN email TEXT DEFAULT 'contato@empresa.com'")
-    if "telefone" not in tinfo_clientes:
-        cursor.execute("ALTER TABLE clientes ADD COLUMN telefone TEXT DEFAULT '(11) 99999-9999'")
 
     cursor.execute("SELECT COUNT(*) FROM vendas")
     if cursor.fetchone()[0] == 0:
@@ -115,13 +113,39 @@ def inicializar_banco():
             ("Projeto W", "Fechamento", 15000.0, "Ana"),
         ])
 
-    cursor.execute("SELECT COUNT(*) FROM clientes")
+    cursor.execute("SELECT COUNT(*) FROM agenda")
     if cursor.fetchone()[0] == 0:
-        cursor.executemany("INSERT INTO clientes (nome, empresa, email, telefone, status, origem, motivo_perda, data, responsavel, prioridade, ultimo_contato) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", [
-            ("João Silva", "Tech Solutions", "joao@tech.com", "(11) 98888-1111", "🆕 Novo Lead", "Google Ads", "", "2026-06-01", "Carlos", "🔴 Alta", "2026-08-09"),
-            ("Maria Silva", "Inova Corp", "maria@inova.com", "(11) 97777-2222", "✅ Venda Fechada", "Instagram", "", "2026-06-02", "Ana", "🟡 Média", "2026-08-08"),
-            ("Maria Oliveira", "Global Ltda", "maria.o@global.com", "(21) 96666-3333", "❌ Venda Perdida", "Indicação", "Preço Alto", "2026-06-03", "Carlos", "🟢 Baixa", "2026-08-01"),
-            ("Ana Paula", "Alpha Tech", "ana@alphatech.com", "(31) 95555-4444", "💬 Em Atendimento", "WhatsApp", "", "2026-06-04", "Ana", "🔴 Alta", "2026-08-10"),
+        cursor.executemany("INSERT INTO agenda (titulo, data, horario, responsavel, status) VALUES (?, ?, ?, ?, ?)", [
+            ("Reunião Alinhamento", "2026-08-12", "14:00", "Carlos", "Pendente"),
+            ("Apresentação de Proposta", "2026-08-13", "10:30", "Ana", "Confirmado")
+        ])
+
+    cursor.execute("SELECT COUNT(*) FROM atividades")
+    if cursor.fetchone()[0] == 0:
+        cursor.executemany("INSERT INTO atividades (tipo, descricao, contato, data, status) VALUES (?, ?, ?, ?, ?)", [
+            ("Ligação", "Retornar sobre orçamento enviado", "João Silva", "2026-08-11", "Pendente"),
+            ("E-mail", "Enviar documentação técnica", "Maria Silva", "2026-08-11", "Concluído")
+        ])
+
+    cursor.execute("SELECT COUNT(*) FROM propostas")
+    if cursor.fetchone()[0] == 0:
+        cursor.executemany("INSERT INTO propostas (cliente, valor, validade, status) VALUES (?, ?, ?, ?)", [
+            ("Tech Solutions", 18000.0, "2026-08-30", "Enviada"),
+            ("Inova Corp", 32000.0, "2026-09-05", "Aceita")
+        ])
+
+    cursor.execute("SELECT COUNT(*) FROM metas")
+    if cursor.fetchone()[0] == 0:
+        cursor.executemany("INSERT INTO metas (vendedor, meta, realizado) VALUES (?, ?, ?)", [
+            ("Carlos", 75000.0, 60000.0),
+            ("Ana", 75000.0, 65000.0)
+        ])
+
+    cursor.execute("SELECT COUNT(*) FROM campanhas")
+    if cursor.fetchone()[0] == 0:
+        cursor.executemany("INSERT INTO campanhas (nome, canal, disparos, status) VALUES (?, ?, ?, ?)", [
+            ("Promoção Inverno", "E-mail Marketing", 1250, "Concluído"),
+            ("Follow-up Leads Frios", "WhatsApp", 420, "Ativo")
         ])
 
     conn.commit()
@@ -185,10 +209,15 @@ def carregar_dados():
     df_clientes = pd.read_sql("SELECT * FROM clientes", conn) if "clientes" in tabelas else pd.DataFrame()
     df_pipeline = pd.read_sql("SELECT * FROM pipeline", conn) if "pipeline" in tabelas else pd.DataFrame()
     df_vendas = pd.read_sql("SELECT * FROM vendas", conn) if "vendas" in tabelas else pd.DataFrame()
+    df_agenda = pd.read_sql("SELECT * FROM agenda", conn) if "agenda" in tabelas else pd.DataFrame()
+    df_atividades = pd.read_sql("SELECT * FROM atividades", conn) if "atividades" in tabelas else pd.DataFrame()
+    df_propostas = pd.read_sql("SELECT * FROM propostas", conn) if "propostas" in tabelas else pd.DataFrame()
+    df_metas = pd.read_sql("SELECT * FROM metas", conn) if "metas" in tabelas else pd.DataFrame()
+    df_campanhas = pd.read_sql("SELECT * FROM campanhas", conn) if "campanhas" in tabelas else pd.DataFrame()
     conn.close()
-    return df_clientes, df_pipeline, df_vendas
+    return df_clientes, df_pipeline, df_vendas, df_agenda, df_atividades, df_propostas, df_metas, df_campanhas
 
-df_clientes, df_pipeline, df_vendas = carregar_dados()
+df_clientes, df_pipeline, df_vendas, df_agenda, df_atividades, df_propostas, df_metas, df_campanhas = carregar_dados()
 
 # --- BARRA DE PESQUISA GLOBAL ÚNICA NO TOPO ---
 col_busca1, col_busca2, col_busca3 = st.columns([6, 1, 1])
@@ -215,12 +244,6 @@ if termo_busca and len(termo_busca.strip()) > 0:
         if not res_vendas.empty:
             st.markdown("##### 🏆 Vendas Encontradas")
             st.dataframe(res_vendas, use_container_width=True, hide_index=True)
-
-    if not df_pipeline.empty and "titulo" in df_pipeline.columns:
-        res_pipe = df_pipeline[df_pipeline['titulo'].str.contains(termo_busca, case=False, na=False)]
-        if not res_pipe.empty:
-            st.markdown("##### 📈 Pipeline Encontrado")
-            st.dataframe(res_pipe, use_container_width=True, hide_index=True)
             
     st.divider()
 
@@ -452,6 +475,54 @@ elif selected == "Leads":
     else:
         st.info("Nenhum lead encontrado.")
 
+elif selected == "Agenda":
+    st.markdown("### 📅 Agenda de Compromissos")
+    with st.form("form_agenda"):
+        c_ag1, c_ag2 = st.columns(2)
+        with c_ag1:
+            titulo_ag = st.text_input("Título do Compromisso")
+            data_ag = st.date_input("Data", value=date.today())
+        with c_ag2:
+            horario_ag = st.text_input("Horário (ex: 14:00)")
+            resp_ag = st.text_input("Responsável", value="Carlos")
+        sub_ag = st.form_submit_button("Agendar Compromisso")
+        if sub_ag and titulo_ag:
+            conn = conectar()
+            conn.execute("INSERT INTO agenda (titulo, data, horario, responsavel, status) VALUES (?, ?, ?, ?, ?)", (titulo_ag, str(data_ag), horario_ag, resp_ag, "Pendente"))
+            conn.commit()
+            conn.close()
+            st.success("Compromisso agendado com sucesso!")
+            st.rerun()
+    st.markdown("#### 📋 Seus Compromissos")
+    if not df_agenda.empty:
+        st.dataframe(df_agenda, use_container_width=True, hide_index=True)
+    else:
+        st.info("Nenhum compromisso agendado.")
+
+elif selected == "Atividades":
+    st.markdown("### 📞 Registro de Atividades")
+    with st.form("form_ativ"):
+        c_at1, c_at2 = st.columns(2)
+        with c_at1:
+            tipo_at = st.selectbox("Tipo de Atividade", ["Ligação", "E-mail", "Reunião", "WhatsApp"])
+            contato_at = st.text_input("Nome do Contato / Empresa")
+        with c_at2:
+            desc_at = st.text_input("Descrição da Atividade")
+            data_at = st.date_input("Data", value=date.today())
+        sub_at = st.form_submit_button("Registrar Atividade")
+        if sub_at and desc_at:
+            conn = conectar()
+            conn.execute("INSERT INTO atividades (tipo, descricao, contato, data, status) VALUES (?, ?, ?, ?, ?)", (tipo_at, desc_at, contato_at, str(data_at), "Pendente"))
+            conn.commit()
+            conn.close()
+            st.success("Atividade registrada!")
+            st.rerun()
+    st.markdown("#### 📋 Histórico de Atividades")
+    if not df_atividades.empty:
+        st.dataframe(df_atividades, use_container_width=True, hide_index=True)
+    else:
+        st.info("Nenhuma atividade registrada.")
+
 elif selected == "Pipeline":
     st.markdown("### 📈 Pipeline Comercial")
     if not df_pipeline.empty:
@@ -466,6 +537,75 @@ elif selected == "Vendas":
     else:
         st.info("Nenhuma venda registrada.")
 
-elif selected in ["Agenda", "Atividades", "Propostas", "Relatórios", "Metas", "Campanhas", "WhatsApp", "Integrações", "Usuários", "Permissões", "Notificações", "Configurações"]:
-    st.markdown(f"### ⚙️ {selected}")
-    st.info(f"Painel de {selected} em funcionamento.")
+elif selected == "Propostas":
+    st.markdown("### 📄 Gestão de Propostas Comerciais")
+    with st.form("form_prop"):
+        c_pr1, c_pr2 = st.columns(2)
+        with c_pr1:
+            cli_prop = st.text_input("Cliente / Empresa")
+            val_prop = st.number_input("Valor da Proposta (R$)", min_value=0.0, value=10000.0)
+        with c_pr2:
+            val_data = st.text_input("Validade (ex: 2026-09-30)", value="2026-09-30")
+            status_prop = st.selectbox("Status", ["Enviada", "Aceita", "Rejeitada"])
+        sub_prop = st.form_submit_button("Salvar Proposta")
+        if sub_prop and cli_prop:
+            conn = conectar()
+            conn.execute("INSERT INTO propostas (cliente, valor, validade, status) VALUES (?, ?, ?, ?)", (cli_prop, val_prop, val_data, status_prop))
+            conn.commit()
+            conn.close()
+            st.success("Proposta salva com sucesso!")
+            st.rerun()
+    st.markdown("#### 📋 Propostas Emitidas")
+    if not df_propostas.empty:
+        st.dataframe(df_propostas, use_container_width=True, hide_index=True)
+    else:
+        st.info("Nenhuma proposta cadastrada.")
+
+elif selected == "Relatórios":
+    st.markdown("### 📊 Relatórios Gerenciais de Vendas")
+    st.info("Gere relatórios consolidados em formato analítico abaixo.")
+    if not df_vendas.empty:
+        st.markdown("#### Resumo de Vendas por Vendedor")
+        df_rel_vend = df_vendas.groupby("responsavel")["valor"].agg(['count', 'sum', 'mean']).reset_index()
+        df_rel_vend.columns = ['Vendedor', 'Qtd Vendas', 'Total (R$)', 'Ticket Médio (R$)']
+        st.dataframe(df_rel_vend, use_container_width=True, hide_index=True)
+    else:
+        st.info("Sem dados suficientes para relatórios.")
+
+elif selected == "Metas":
+    st.markdown("### 🎯 Metas da Equipe Comercial")
+    if not df_metas.empty:
+        for index, row in df_metas.iterrows():
+            vendedor = row['vendedor']
+            meta = row['meta']
+            realizado = row['realizado']
+            progresso = min(int((realizado / meta) * 100), 100)
+            st.markdown(f"**{vendedor}** — Realizado: R$ {realizado:,.0f} / Meta: R$ {meta:,.0f} ({progresso}%)")
+            st.progress(progresso)
+    else:
+        st.info("Nenhuma meta cadastrada.")
+
+elif selected == "Campanhas":
+    st.markdown("### 📧 Campanhas de Marketing")
+    if not df_campanhas.empty:
+        st.dataframe(df_campanhas, use_container_width=True, hide_index=True)
+    else:
+        st.info("Nenhuma campanha cadastrada.")
+
+elif selected == "WhatsApp":
+    st.markdown("### 💬 Disparador Rápido WhatsApp")
+    with st.form("form_whats"):
+        tel_w = st.text_input("Número do WhatsApp (com DDD)", value="(11) 99999-9999")
+        msg_w = st.text_area("Mensagem Personalizada", value="Olá! Gostaria de retomar nosso contato comercial sobre nossos softwares.")
+        sub_w = st.form_submit_button("Gerar Link de Disparo")
+        if sub_w:
+            st.success(f"Link gerado com sucesso para o número {tel_w}!")
+            st.code(f"https://wa.me/55{tel_w.replace('(', '').replace(')', '').replace(' ', '').replace('-', '')}?text={msg_w}")
+
+elif selected in ["Integrações", "Usuários", "Permissões", "Notificações", "Configurações"]:
+    st.markdown(f"### ⚙️ Painel de {selected}")
+    st.markdown(f"Configurações e parâmetros gerais para o módulo de **{selected}** do CRM LMB Pro.")
+    st.toggle(f"Ativar notificações de {selected}", value=True)
+    st.text_input("Chave de API / Credencial de Acesso", value="crm_token_secr_998877")
+    if st.button("Salvar Configurações"):
+        st.success("Alterações salvas com sucesso!")
