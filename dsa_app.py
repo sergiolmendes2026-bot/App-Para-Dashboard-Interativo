@@ -4,6 +4,12 @@ import streamlit as st
 import plotly.express as px
 import plotly.graph_objects as go
 from datetime import date
+import io
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.mime.base import MIMEBase
+from email import encoders
 
 st.set_page_config(
     page_title="CRM LMB Pro - Workspace v2.0", page_icon="📊", layout="wide" 
@@ -15,6 +21,7 @@ if "tema_sistema" not in st.session_state:
 if "selected" not in st.session_state:
     st.session_state.selected = "Dashboard"
 
+# Cor principal fixa do sistema
 cor_hex = "#2563EB"
 is_escuro = "Escuro" in st.session_state.tema_sistema
 
@@ -71,39 +78,32 @@ st.markdown(f"""
     </style>
 """, unsafe_allow_html=True)
 
-# --- BANCO DE DADOS E CORREÇÃO DE ESQUEMA ROBUSTA ---
+# --- BANCO DE DADOS E CORREÇÃO DE ESQUEMA ---
 def inicializar_banco():
     conn = sqlite3.connect("crm.db")
     cursor = conn.cursor()
     
-    # Criação das tabelas base
     cursor.execute("CREATE TABLE IF NOT EXISTS clientes (id INTEGER PRIMARY KEY AUTOINCREMENT, nome TEXT, empresa TEXT, email TEXT, telefone TEXT, regiao TEXT, status TEXT, origem TEXT, motivo_perda TEXT, data TEXT, data_fechamento TEXT, responsavel TEXT, prioridade TEXT, ultimo_contato TEXT)")
     cursor.execute("CREATE TABLE IF NOT EXISTS pipeline (id INTEGER PRIMARY KEY AUTOINCREMENT, titulo TEXT, estagio TEXT, valor REAL, empresa TEXT, contato TEXT, telefone TEXT, email TEXT, responsavel TEXT, origem TEXT)")
     cursor.execute("CREATE TABLE IF NOT EXISTS vendas (id INTEGER PRIMARY KEY AUTOINCREMENT, cliente TEXT, valor REAL, data TEXT, responsavel TEXT, status TEXT, produto TEXT)")
-    cursor.execute("CREATE TABLE IF NOT EXISTS agenda (id INTEGER PRIMARY KEY AUTOINCREMENT, titulo TEXT, data TEXT, horario TEXT, responsavel TEXT, status TEXT)")
-    cursor.execute("CREATE TABLE IF NOT EXISTS atividades (id INTEGER PRIMARY KEY AUTOINCREMENT, tipo TEXT, descricao TEXT, contato TEXT, data TEXT, status TEXT)")
-    cursor.execute("CREATE TABLE IF NOT EXISTS propostas (id INTEGER PRIMARY KEY AUTOINCREMENT, cliente TEXT, valor REAL, validade TEXT, status TEXT)")
-    cursor.execute("CREATE TABLE IF NOT EXISTS metas (id INTEGER PRIMARY KEY AUTOINCREMENT, vendedor TEXT, meta REAL, realizado REAL)")
-    cursor.execute("CREATE TABLE IF NOT EXISTS campanhas (id INTEGER PRIMARY KEY AUTOINCREMENT, nome TEXT, canal TEXT, disparos INTEGER, status TEXT)")
+    cursor.execute("CREATE TABLE IF NOT EXISTS agendamentos (id INTEGER PRIMARY KEY, ativo INTEGER, frequencia TEXT, destinatario TEXT)")
+    cursor.execute("CREATE TABLE IF NOT EXISTS historico_exportacoes (id INTEGER PRIMARY KEY AUTOINCREMENT, data TEXT, relatorio TEXT, formato TEXT, usuario TEXT)")
+    cursor.execute("CREATE TABLE IF NOT EXISTS automacoes (id INTEGER PRIMARY KEY AUTOINCREMENT, chave TEXT, ativo INTEGER)")
     
-    # Migrações seguras de colunas caso já existam tabelas antigas
     tinfo_clientes = [col[1] for col in cursor.execute("PRAGMA table_info(clientes)").fetchall()]
-    if "prioridade" not in tinfo_clientes: cursor.execute("ALTER TABLE clientes ADD COLUMN prioridade TEXT DEFAULT 'Média'")
-    if "ultimo_contato" not in tinfo_clientes: cursor.execute("ALTER TABLE clientes ADD COLUMN ultimo_contato TEXT DEFAULT '2026-08-08'")
-    if "responsavel" not in tinfo_clientes: cursor.execute("ALTER TABLE clientes ADD COLUMN responsavel TEXT DEFAULT 'Carlos'")
-    if "empresa" not in tinfo_clientes: cursor.execute("ALTER TABLE clientes ADD COLUMN empresa TEXT DEFAULT 'Empresa Exemplo'")
+    if "prioridade" not in tinfo_clientes:
+        cursor.execute("ALTER TABLE clientes ADD COLUMN prioridade TEXT DEFAULT 'Média'")
+    if "ultimo_contato" not in tinfo_clientes:
+        cursor.execute("ALTER TABLE clientes ADD COLUMN ultimo_contato TEXT DEFAULT '2026-08-08'")
+    if "responsavel" not in tinfo_clientes:
+        cursor.execute("ALTER TABLE clientes ADD COLUMN responsavel TEXT DEFAULT 'Carlos'")
+    if "empresa" not in tinfo_clientes:
+        cursor.execute("ALTER TABLE clientes ADD COLUMN empresa TEXT DEFAULT 'Empresa Exemplo'")
+    if "email" not in tinfo_clientes:
+        cursor.execute("ALTER TABLE clientes ADD COLUMN email TEXT DEFAULT 'contato@empresa.com'")
+    if "telefone" not in tinfo_clientes:
+        cursor.execute("ALTER TABLE clientes ADD COLUMN telefone TEXT DEFAULT '(11) 99999-9999'")
 
-    tinfo_ativ = [col[1] for col in cursor.execute("PRAGMA table_info(atividades)").fetchall()]
-    if "status" not in tinfo_ativ: cursor.execute("ALTER TABLE atividades ADD COLUMN status TEXT DEFAULT 'Pendente'")
-    if "tipo" not in tinfo_ativ: cursor.execute("ALTER TABLE atividades ADD COLUMN tipo TEXT DEFAULT 'Ligação'")
-    if "descricao" not in tinfo_ativ: cursor.execute("ALTER TABLE atividades ADD COLUMN descricao TEXT DEFAULT ''")
-    if "contato" not in tinfo_ativ: cursor.execute("ALTER TABLE atividades ADD COLUMN contato TEXT DEFAULT ''")
-    if "data" not in tinfo_ativ: cursor.execute("ALTER TABLE atividades ADD COLUMN data TEXT DEFAULT ''")
-
-    tinfo_agenda = [col[1] for col in cursor.execute("PRAGMA table_info(agenda)").fetchall()]
-    if "status" not in tinfo_agenda: cursor.execute("ALTER TABLE agenda ADD COLUMN status TEXT DEFAULT 'Pendente'")
-
-    # Inserção de dados iniciais se tabelas estiverem vazias
     cursor.execute("SELECT COUNT(*) FROM vendas")
     if cursor.fetchone()[0] == 0:
         cursor.executemany("INSERT INTO vendas (cliente, valor, data, responsavel, status, produto) VALUES (?, ?, ?, ?, ?, ?)", [
@@ -122,39 +122,21 @@ def inicializar_banco():
             ("Projeto W", "Fechamento", 15000.0, "Ana"),
         ])
 
-    cursor.execute("SELECT COUNT(*) FROM agenda")
+    cursor.execute("SELECT COUNT(*) FROM clientes")
     if cursor.fetchone()[0] == 0:
-        cursor.executemany("INSERT INTO agenda (titulo, data, horario, responsavel, status) VALUES (?, ?, ?, ?, ?)", [
-            ("Reunião Alinhamento", "2026-08-12", "14:00", "Carlos", "Pendente"),
-            ("Apresentação de Proposta", "2026-08-13", "10:30", "Ana", "Confirmado")
+        cursor.executemany("INSERT INTO clientes (nome, empresa, email, telefone, status, origem, motivo_perda, data, responsavel, prioridade, ultimo_contato) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", [
+            ("João Silva", "Tech Solutions", "joao@tech.com", "(11) 98888-1111", "🆕 Novo Lead", "Google Ads", "", "2026-06-01", "Carlos", "🔴 Alta", "2026-08-09"),
+            ("Maria Silva", "Inova Corp", "maria@inova.com", "(11) 97777-2222", "✅ Venda Fechada", "Instagram", "", "2026-06-02", "Ana", "🟡 Média", "2026-08-08"),
+            ("Maria Oliveira", "Global Ltda", "maria.o@global.com", "(21) 96666-3333", "❌ Venda Perdida", "Indicação", "Preço Alto", "2026-06-03", "Carlos", "🟢 Baixa", "2026-08-01"),
+            ("Ana Paula", "Alpha Tech", "ana@alphatech.com", "(31) 95555-4444", "💬 Em Atendimento", "WhatsApp", "", "2026-06-04", "Ana", "🔴 Alta", "2026-08-10"),
         ])
 
-    cursor.execute("SELECT COUNT(*) FROM atividades")
+    cursor.execute("SELECT COUNT(*) FROM historico_exportacoes")
     if cursor.fetchone()[0] == 0:
-        cursor.executemany("INSERT INTO atividades (tipo, descricao, contato, data, status) VALUES (?, ?, ?, ?, ?)", [
-            ("Ligação", "Retornar sobre orçamento enviado", "João Silva", "2026-08-11", "Pendente"),
-            ("E-mail", "Enviar documentação técnica", "Maria Silva", "2026-08-11", "Concluído")
-        ])
-
-    cursor.execute("SELECT COUNT(*) FROM propostas")
-    if cursor.fetchone()[0] == 0:
-        cursor.executemany("INSERT INTO propostas (cliente, valor, validade, status) VALUES (?, ?, ?, ?)", [
-            ("Tech Solutions", 18000.0, "2026-08-30", "Enviada"),
-            ("Inova Corp", 32000.0, "2026-09-05", "Aceita")
-        ])
-
-    cursor.execute("SELECT COUNT(*) FROM metas")
-    if cursor.fetchone()[0] == 0:
-        cursor.executemany("INSERT INTO metas (vendedor, meta, realizado) VALUES (?, ?, ?)", [
-            ("Carlos", 75000.0, 60000.0),
-            ("Ana", 75000.0, 65000.0)
-        ])
-
-    cursor.execute("SELECT COUNT(*) FROM campanhas")
-    if cursor.fetchone()[0] == 0:
-        cursor.executemany("INSERT INTO campanhas (nome, canal, disparos, status) VALUES (?, ?, ?, ?)", [
-            ("Promoção Inverno", "E-mail Marketing", 1250, "Concluído"),
-            ("Follow-up Leads Frios", "WhatsApp", 420, "Ativo")
+        cursor.executemany("INSERT INTO historico_exportacoes (data, relatorio, formato, usuario) VALUES (?, ?, ?, ?)", [
+            ("10/08", "Vendas", "PDF", "Admin"),
+            ("09/08", "Clientes", "Excel", "Larissa"),
+            ("08/08", "Receita", "CSV", "Admin"),
         ])
 
     conn.commit()
@@ -181,6 +163,7 @@ with st.sidebar:
             st.session_state.selected = label
             st.rerun()
 
+    # PRINCIPAL
     st.markdown('<p class="sidebar-section-title">Principal</p>', unsafe_allow_html=True)
     menu_button("Dashboard", "🏠", "nav_dashboard")
     menu_button("Clientes", "👥", "nav_clientes")
@@ -188,6 +171,7 @@ with st.sidebar:
     menu_button("Agenda", "📅", "nav_agenda")
     menu_button("Atividades", "📞", "nav_atividades")
 
+    # COMERCIAL
     st.markdown('<p class="sidebar-section-title">Comercial</p>', unsafe_allow_html=True)
     menu_button("Pipeline", "📈", "nav_pipeline")
     menu_button("Vendas", "💰", "nav_vendas")
@@ -195,10 +179,12 @@ with st.sidebar:
     menu_button("Relatórios", "📊", "nav_relatorios")
     menu_button("Metas", "🎯", "nav_metas")
 
+    # MARKETING
     st.markdown('<p class="sidebar-section-title">Marketing</p>', unsafe_allow_html=True)
     menu_button("Campanhas", "📧", "nav_campanhas")
     menu_button("WhatsApp", "💬", "nav_whatsapp")
 
+    # SISTEMA
     st.markdown('<p class="sidebar-section-title">Sistema</p>', unsafe_allow_html=True)
     menu_button("Integrações", "🔌", "nav_integracoes")
     menu_button("Usuários", "👤", "nav_usuarios")
@@ -211,6 +197,37 @@ selected = st.session_state.selected
 def conectar():
     return sqlite3.connect("crm.db")
 
+def disparar_email_automatico(destinatario, arquivo_bytes, nome_arquivo):
+    servidor_smtp = "smtp.gmail.com"
+    porta = 587
+    remetente = "sergiolmendes2026@gmail.com"
+    senha = "kmpcpmhvrutcuifw"
+
+    try:
+        msg = MIMEMultipart()
+        msg['From'] = remetente
+        msg['To'] = destinatario
+        msg['Subject'] = "📊 Relatório Automático - CRM Pro"
+
+        corpo = "Olá! Segue em anexo o relatório comercial configurado no painel de exportações do seu CRM."
+        msg.attach(MIMEText(corpo, 'plain'))
+
+        parte = MIMEBase('application', 'octet-stream')
+        parte.set_payload(arquivo_bytes)
+        encoders.encode_base64(parte)
+        parte.add_header('Content-Disposition', f'attachment; filename="{nome_arquivo}"')
+        msg.attach(parte)
+
+        servidor = smtplib.SMTP(servidor_smtp, porta)
+        servidor.starttls()
+        servidor.login(remetente, senha)
+        servidor.sendmail(remetente, destinatario, msg.as_string())
+        servidor.quit()
+        return True
+    except Exception as e:
+        print(f"Erro ao disparar e-mail: {e}")
+        return False
+
 @st.cache_data(ttl=1)
 def carregar_dados():
     conn = conectar()
@@ -218,15 +235,10 @@ def carregar_dados():
     df_clientes = pd.read_sql("SELECT * FROM clientes", conn) if "clientes" in tabelas else pd.DataFrame()
     df_pipeline = pd.read_sql("SELECT * FROM pipeline", conn) if "pipeline" in tabelas else pd.DataFrame()
     df_vendas = pd.read_sql("SELECT * FROM vendas", conn) if "vendas" in tabelas else pd.DataFrame()
-    df_agenda = pd.read_sql("SELECT * FROM agenda", conn) if "agenda" in tabelas else pd.DataFrame()
-    df_atividades = pd.read_sql("SELECT * FROM atividades", conn) if "atividades" in tabelas else pd.DataFrame()
-    df_propostas = pd.read_sql("SELECT * FROM propostas", conn) if "propostas" in tabelas else pd.DataFrame()
-    df_metas = pd.read_sql("SELECT * FROM metas", conn) if "metas" in tabelas else pd.DataFrame()
-    df_campanhas = pd.read_sql("SELECT * FROM campanhas", conn) if "campanhas" in tabelas else pd.DataFrame()
     conn.close()
-    return df_clientes, df_pipeline, df_vendas, df_agenda, df_atividades, df_propostas, df_metas, df_campanhas
+    return df_clientes, df_pipeline, df_vendas
 
-df_clientes, df_pipeline, df_vendas, df_agenda, df_atividades, df_propostas, df_metas, df_campanhas = carregar_dados()
+df_clientes, df_pipeline, df_vendas = carregar_dados()
 
 # --- BARRA DE PESQUISA GLOBAL ÚNICA NO TOPO ---
 col_busca1, col_busca2, col_busca3 = st.columns([6, 1, 1])
@@ -253,10 +265,16 @@ if termo_busca and len(termo_busca.strip()) > 0:
         if not res_vendas.empty:
             st.markdown("##### 🏆 Vendas Encontradas")
             st.dataframe(res_vendas, use_container_width=True, hide_index=True)
+
+    if not df_pipeline.empty and "titulo" in df_pipeline.columns:
+        res_pipe = df_pipeline[df_pipeline['titulo'].str.contains(termo_busca, case=False, na=False)]
+        if not res_pipe.empty:
+            st.markdown("##### 📈 Pipeline Encontrado")
+            st.dataframe(res_pipe, use_container_width=True, hide_index=True)
             
     st.divider()
 
-# --- RENDERIZAÇÃO DAS PÁGINAS ---
+# --- RENDERIZAÇÃO COMPLETA DE CADA PÁGINA ---
 
 if selected == "Dashboard":
     st.markdown("### 📊 Dashboard de Performance Comercial")
@@ -327,9 +345,8 @@ if selected == "Dashboard":
             if not df_vendas.empty and "responsavel" in df_vendas.columns:
                 df_vend = df_vendas.groupby("responsavel")["valor"].sum().reset_index()
                 cores_vendedores = {"Ana": "#38BDF8", "Carlos": "#1D4ED8", "Pedro": "#F59E0B", "Julia": "#065CF6"}
-                fig_vend = px.bar(df_vend, x="responsavel", y="valor", color="responsavel", color_discrete_map=cores_vendedores, text="valor")
-                fig_vend.update_traces(marker_line_color="white", marker_line_width=1, texttemplate="R$ %{y:,.0f}", textposition="outside")
-                fig_vend.update_layout(showlegend=False, paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font=dict(color=text_app))
+                fig_vend = px.bar(df_vend, x="responsavel", y="valor", color="responsavel", color_discrete_map=cores_vendedores)
+                fig_vend.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font=dict(color=text_app))
                 st.plotly_chart(fig_vend, use_container_width=True)
             else:
                 st.info("Sem dados de vendedores.")
@@ -338,28 +355,20 @@ if selected == "Dashboard":
             st.markdown("#### 📦 7. Produtos Mais Vendidos")
             if not df_vendas.empty and "produto" in df_vendas.columns:
                 df_prod = df_vendas.groupby("produto")["valor"].sum().reset_index()
-                cores_produtos = {"Software A": "#2563EB", "Software B": "#38BDF8", "Consultoria": "#60A5FA"}
-                fig_prod = px.bar(df_prod, x="valor", y="produto", orientation="h", color="produto", color_discrete_map=cores_produtos, text="valor")
-                fig_prod.update_traces(marker_line_color="white", marker_line_width=1, texttemplate="R$ %{x:,.0f}", textposition="outside")
-                fig_prod.update_layout(showlegend=False, paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font=dict(color=text_app), yaxis=dict(autorange="reversed"))
+                cores_produtos = ["#2563EB", "#38BDF8", "#60A5FA", "#93C5FD"]
+                fig_prod = px.bar(df_prod, x="valor", y="produto", orientation="h", color="produto", color_discrete_sequence=cores_produtos)
+                fig_prod.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font=dict(color=text_app), yaxis=dict(autorange="reversed"))
                 st.plotly_chart(fig_prod, use_container_width=True)
             else:
                 st.info("Sem dados de produtos.")
 
     with tab2:
         c_p1, c_p2 = st.columns(2)
-        
         with c_p1:
             st.markdown("#### 📊 3. Funil de Vendas")
             if not df_pipeline.empty and "estagio" in df_pipeline.columns:
-                cores_funil = ["#2563EB", "#38BDF8", "#8B5CF6", "#F59E0B"]
-                fig_funil = px.funnel(df_pipeline, x="valor", y="estagio", color="estagio", color_discrete_sequence=cores_funil)
-                fig_funil.update_layout(
-                    paper_bgcolor="rgba(0,0,0,0)", 
-                    plot_bgcolor="rgba(0,0,0,0)", 
-                    font=dict(color=text_app),
-                    margin=dict(l=10, r=10, t=10, b=10)
-                )
+                fig_funil = px.funnel(df_pipeline, x="valor", y="estagio", color_discrete_sequence=[cor_hex])
+                fig_funil.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font=dict(color=text_app))
                 st.plotly_chart(fig_funil, use_container_width=True)
             else:
                 st.info("Sem dados no pipeline.")
@@ -368,31 +377,8 @@ if selected == "Dashboard":
             st.markdown("#### 📈 Valor do Pipeline por Etapa")
             if not df_pipeline.empty and "estagio" in df_pipeline.columns:
                 df_pipe_bar = df_pipeline.groupby("estagio")["valor"].sum().reset_index()
-                
-                ordem = ["Prospecção", "Qualificação", "Proposta", "Negociação", "Fechado"]
-                df_pipe_bar["estagio"] = pd.Categorical(df_pipe_bar["estagio"], categories=ordem, ordered=True)
-                df_pipe_bar = df_pipe_bar.sort_values("estagio")
-
-                cores = {
-                    "Prospecção": "#38BDF4",
-                    "Qualificação": "#8B5CF6",
-                    "Proposta": "#F59E0B",
-                    "Negociação": "#F97316",
-                    "Fechado": "#22C55E"
-                }
-
-                fig_bar_pipe = px.bar(df_pipe_bar, x="valor", y="estagio", orientation="h", color="estagio", color_discrete_map=cores, text="valor")
-                fig_bar_pipe.update_traces(marker_line_color="white", marker_line_width=1, texttemplate="R$ %{x:,.0f}", textposition="outside")
-                fig_bar_pipe.update_layout(
-                    showlegend=False,
-                    paper_bgcolor="rgba(0,0,0,0)", 
-                    plot_bgcolor="rgba(0,0,0,0)", 
-                    font=dict(color=text_app),
-                    xaxis_title="Valor (R$)",
-                    yaxis_title="",
-                    yaxis=dict(autorange="reversed"),
-                    margin=dict(l=30, r=20, t=20, b=10)
-                )
+                fig_bar_pipe = px.bar(df_pipe_bar, x="valor", y="estagio", orientation="h", color_discrete_sequence=[cor_hex])
+                fig_bar_pipe.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font=dict(color=text_app), yaxis=dict(autorange="reversed"))
                 st.plotly_chart(fig_bar_pipe, use_container_width=True)
             else:
                 st.info("Sem dados no pipeline.")
@@ -478,143 +464,302 @@ elif selected == "Clientes":
         st.info("Nenhum cliente cadastrado.")
 
 elif selected == "Leads":
-    st.markdown("### 🎯 Gestão de Leads")
-    if not df_clientes.empty:
-        st.dataframe(df_clientes, use_container_width=True, hide_index=True)
-    else:
-        st.info("Nenhum lead encontrado.")
+    col_topo_l1, col_topo_l2 = st.columns([4, 1])
+    with col_topo_l1:
+        st.markdown("### 🎯 Gestão de Leads")
+    with col_topo_l2:
+        if st.button("➕ Novo Lead", use_container_width=True):
+            st.session_state.modal_novo_lead = True
 
-elif selected == "Agenda":
-    st.markdown("### 📅 Agenda de Compromissos")
-    with st.form("form_agenda"):
-        c_ag1, c_ag2 = st.columns(2)
-        with c_ag1:
-            titulo_ag = st.text_input("Título do Compromisso")
-            data_ag = st.date_input("Data", value=date.today())
-        with c_ag2:
-            horario_ag = st.text_input("Horário (ex: 14:00)")
-            resp_ag = st.text_input("Responsável", value="Carlos")
-        sub_ag = st.form_submit_button("Agendar Compromisso")
-        if sub_ag and titulo_ag:
-            conn = conectar()
-            conn.execute("INSERT INTO agenda (titulo, data, horario, responsavel, status) VALUES (?, ?, ?, ?, ?)", (titulo_ag, str(data_ag), horario_ag, resp_ag, "Pendente"))
-            conn.commit()
-            conn.close()
-            st.success("Compromisso agendado com sucesso!")
-            st.rerun()
-    st.markdown("#### 📋 Seus Compromissos")
-    if not df_agenda.empty:
-        st.dataframe(df_agenda, use_container_width=True, hide_index=True)
-    else:
-        st.info("Nenhum compromisso agendado.")
+    total_leads_count = len(df_clientes) if not df_clientes.empty else 0
+    atendimento_count = len(df_clientes[df_clientes["status"].str.contains("Atendimento|Novo|Contato", case=False, na=False)]) if not df_clientes.empty else 0
+    proposta_count = len(df_clientes[df_clientes["status"].str.contains("Proposta|Negociação", case=False, na=False)]) if not df_clientes.empty else 0
+    fechados_count = len(df_clientes[df_clientes["status"].str.contains("Fechada", case=False, na=False)]) if not df_clientes.empty else 0
+    perdidos_count = len(df_clientes[df_clientes["status"].str.contains("Perdida", case=False, na=False)]) if not df_clientes.empty else 0
 
-elif selected == "Atividades":
-    st.markdown("### 📞 Registro de Atividades")
-    with st.form("form_ativ"):
-        c_at1, c_at2 = st.columns(2)
-        with c_at1:
-            tipo_at = st.selectbox("Tipo de Atividade", ["Ligação", "E-mail", "Reunião", "WhatsApp"])
-            contato_at = st.text_input("Nome do Contato / Empresa")
-        with c_at2:
-            desc_at = st.text_input("Descrição da Atividade")
-            data_at = st.date_input("Data", value=date.today())
-        sub_at = st.form_submit_button("Registrar Atividade")
-        if sub_at and desc_at:
-            conn = conectar()
-            conn.execute("INSERT INTO atividades (tipo, descricao, contato, data, status) VALUES (?, ?, ?, ?, ?)", (tipo_at, desc_at, contato_at, str(data_at), "Pendente"))
-            conn.commit()
-            conn.close()
-            st.success("Atividade registrada!")
-            st.rerun()
-    st.markdown("#### 📋 Histórico de Atividades")
-    if not df_atividades.empty:
-        st.dataframe(df_atividades, use_container_width=True, hide_index=True)
+    mc1, mc2, mc3, mc4, mc5 = st.columns(5)
+    mc1.metric("📊 Total de Leads", total_leads_count)
+    mc2.metric("💬 Em Atendimento", atendimento_count)
+    mc3.metric("📋 Em Proposta", proposta_count)
+    mc4.metric("❌ Perdidos", perdidos_count)
+    mc5.metric("✅ Fechados", fechados_count)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    if st.session_state.get("modal_novo_lead", False):
+        with st.expander("📝 Adicionar Novo Lead", expanded=True):
+            with st.form("form_novo_lead_rapido"):
+                nc1, nc2, nc3 = st.columns(3)
+                with nc1:
+                    l_nome = st.text_input("Nome do Lead *")
+                    l_empresa = st.text_input("Empresa", value="Empresa Exemplo")
+                with nc2:
+                    l_email = st.text_input("E-mail", value="lead@email.com")
+                    l_tel = st.text_input("Telefone", value="(11) 99999-9999")
+                with nc3:
+                    l_origem = st.selectbox("Origem", ["Google Ads", "Instagram", "WhatsApp", "Indicação", "Site"])
+                    l_prioridade = st.selectbox("Prioridade", ["🔴 Alta", "🟡 Média", "🟢 Baixa"])
+                
+                col_btn_nl1, col_btn_nl2 = st.columns(2)
+                with col_btn_nl1:
+                    salvar_lead = st.form_submit_button("Salvar Lead", use_container_width=True)
+                with col_btn_nl2:
+                    fechar_modal = st.form_submit_button("Cancelar", use_container_width=True)
+
+                if salvar_lead:
+                    if l_nome:
+                        conn = conectar()
+                        conn.execute("""
+                            INSERT INTO clientes (nome, empresa, email, telefone, status, origem, motivo_perda, data, responsavel, prioridade, ultimo_contato)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        """, (l_nome, l_empresa, l_email, l_tel, "🆕 Novo Lead", l_origem, "", str(date.today()), "Carlos", l_prioridade, str(date.today())))
+                        conn.commit()
+                        conn.close()
+                        st.session_state.modal_novo_lead = False
+                        st.success("Lead adicionado com sucesso!")
+                        st.rerun()
+                    else:
+                        st.error("Informe o nome do lead.")
+                if fechar_modal:
+                    st.session_state.modal_novo_lead = False
+                    st.rerun()
+
+    with st.expander("🔍 Filtros Avançados", expanded=True):
+        f_col1, f_col2, f_col3, f_col4, f_col5 = st.columns(5)
+        
+        status_unicos = ["Todos"] + list(df_clientes["status"].dropna().unique()) if not df_clientes.empty and "status" in df_clientes.columns else ["Todos"]
+        origem_unicas = ["Todas"] + list(df_clientes["origem"].dropna().unique()) if not df_clientes.empty and "origem" in df_clientes.columns else ["Todas"]
+        resp_unicos = ["Todos"] + list(df_clientes["responsavel"].dropna().unique()) if not df_clientes.empty and "responsavel" in df_clientes.columns else ["Todos"]
+        empresa_unicas = ["Todas"] + list(df_clientes["empresa"].dropna().unique()) if not df_clientes.empty and "empresa" in df_clientes.columns else ["Todas"]
+
+        with f_col1:
+            filtro_status = st.selectbox("Status", status_unicos)
+        with f_col2:
+            filtro_origem = st.selectbox("Origem", origem_unicas)
+        with f_col3:
+            filtro_resp = st.selectbox("Responsável", resp_unicos)
+        with f_col4:
+            filtro_data = st.date_input("Período (Data)", value=[])
+        with f_col5:
+            filtro_empresa = st.selectbox("Empresa", empresa_unicas)
+
+        btn_col1, btn_col2, _ = st.columns([1, 1, 4])
+        with btn_col1:
+            aplicar_filtro = st.button("Aplicar", use_container_width=True)
+        with btn_col2:
+            limpar_filtro = st.button("Limpar", use_container_width=True)
+            if limpar_filtro:
+                st.rerun()
+
+    df_leads_filtered = df_clientes.copy() if not df_clientes.empty else pd.DataFrame()
+
+    if not df_leads_filtered.empty:
+        if filtro_status != "Todos":
+            df_leads_filtered = df_leads_filtered[df_leads_filtered["status"] == filtro_status]
+        if filtro_origem != "Todas":
+            df_leads_filtered = df_leads_filtered[df_leads_filtered["origem"] == filtro_origem]
+        if filtro_resp != "Todos":
+            df_leads_filtered = df_leads_filtered[df_leads_filtered["responsavel"] == filtro_resp]
+        if filtro_empresa != "Todas":
+            df_leads_filtered = df_leads_filtered[df_leads_filtered["empresa"] == filtro_empresa]
+        
+        if len(filtro_data) == 2:
+            inicio, fim = filtro_data
+            df_leads_filtered['data_dt'] = pd.to_datetime(df_leads_filtered['data'], errors='coerce').dt.date
+            df_leads_filtered = df_leads_filtered[(df_leads_filtered['data_dt'] >= inicio) & (df_leads_filtered['data_dt'] <= fim)]
+
+        total_filtrados = len(df_leads_filtered)
+        total_geral = len(df_clientes)
+        st.markdown(f"<p style='color: #94a3b8; font-size: 13px; margin-bottom: 8px;'>Mostrando {total_filtrados} de {total_geral} leads</p>", unsafe_allow_html=True)
+
+        if not df_leads_filtered.empty:
+            colunas_mostrar = [c for c in ["nome", "empresa", "email", "telefone", "prioridade", "origem", "status", "ultimo_contato", "responsavel", "data"] if c in df_leads_filtered.columns]
+            st.dataframe(df_leads_filtered[colunas_mostrar], use_container_width=True, hide_index=True)
+        else:
+            st.info("Nenhum lead encontrado com os filtros selecionados.")
     else:
-        st.info("Nenhuma atividade registrada.")
+        st.info("Nenhum lead cadastrado no momento.")
 
 elif selected == "Pipeline":
     st.markdown("### 📈 Pipeline Comercial")
+    
+    with st.form("form_novo_pipeline"):
+        st.markdown("##### Adicionar Novo Negócio ao Pipeline")
+        p_col1, p_col2 = st.columns(2)
+        with p_col1:
+            p_titulo = st.text_input("Título do Negócio *")
+            p_estagio = st.selectbox("Estágio", ["Prospecção", "Qualificação", "Proposta", "Fechamento"])
+            p_valor = st.number_input("Valor (R$)", min_value=0.0, value=10000.0, step=1000.0)
+        with p_col2:
+            p_empresa = st.text_input("Empresa", value="Empresa Exemplo")
+            p_resp = st.text_input("Responsável", value="Carlos")
+            p_contato = st.text_input("Contato", value="Nome do Contato")
+        
+        btn_add_pipe = st.form_submit_button("Salvar no Pipeline")
+        if btn_add_pipe:
+            if p_titulo:
+                conn = conectar()
+                conn.execute("INSERT INTO pipeline (titulo, estagio, valor, empresa, responsavel, contato) VALUES (?, ?, ?, ?, ?, ?)", 
+                             (p_titulo, p_estagio, p_valor, p_empresa, p_resp, p_contato))
+                conn.commit()
+                conn.close()
+                st.success("Negócio adicionado ao pipeline com sucesso!")
+                st.rerun()
+            else:
+                st.error("Informe o título do negócio.")
+
+    st.markdown("<br>", unsafe_allow_html=True)
     if not df_pipeline.empty:
         st.dataframe(df_pipeline, use_container_width=True, hide_index=True)
     else:
-        st.info("Nenhum dado no pipeline.")
+        st.info("Nenhum negócio no pipeline.")
 
 elif selected == "Vendas":
-    st.markdown("### 💰 Gestão de Vendas")
+    st.markdown("### 🏆 Histórico de Vendas Realizadas")
+    
+    with st.form("form_nova_venda"):
+        st.markdown("##### Registrar Nova Venda")
+        v_col1, v_col2 = st.columns(2)
+        with v_col1:
+            v_cliente = st.text_input("Cliente / Empresa *")
+            v_valor = st.number_input("Valor da Venda (R$)", min_value=0.0, value=5000.0, step=500.0)
+            v_produto = st.text_input("Produto / Serviço", value="Software A")
+        with v_col2:
+            v_data = st.text_input("Data da Venda", value=str(date.today()))
+            v_resp = st.text_input("Responsável", value="Carlos")
+            v_status = st.selectbox("Status", ["Pago", "Pendente", "Cancelado"])
+            
+        btn_add_venda = st.form_submit_button("Registrar Venda")
+        if btn_add_venda:
+            if v_cliente:
+                conn = conectar()
+                conn.execute("INSERT INTO vendas (cliente, valor, data, responsavel, status, produto) VALUES (?, ?, ?, ?, ?, ?)",
+                             (v_cliente, v_valor, v_data, v_resp, v_status, v_produto))
+                conn.commit()
+                conn.close()
+                st.success("Venda registrada com sucesso!")
+                st.rerun()
+            else:
+                st.error("Informe o nome do cliente.")
+
+    st.markdown("<br>", unsafe_allow_html=True)
     if not df_vendas.empty:
         st.dataframe(df_vendas, use_container_width=True, hide_index=True)
     else:
         st.info("Nenhuma venda registrada.")
 
-elif selected == "Propostas":
-    st.markdown("### 📄 Gestão de Propostas Comerciais")
-    with st.form("form_prop"):
-        c_pr1, c_pr2 = st.columns(2)
-        with c_pr1:
-            cli_prop = st.text_input("Cliente / Empresa")
-            val_prop = st.number_input("Valor da Proposta (R$)", min_value=0.0, value=10000.0)
-        with c_pr2:
-            val_data = st.text_input("Validade (ex: 2026-09-30)", value="2026-09-30")
-            status_prop = st.selectbox("Status", ["Enviada", "Aceita", "Rejeitada"])
-        sub_prop = st.form_submit_button("Salvar Proposta")
-        if sub_prop and cli_prop:
-            conn = conectar()
-            conn.execute("INSERT INTO propostas (cliente, valor, validade, status) VALUES (?, ?, ?, ?)", (cli_prop, val_prop, val_data, status_prop))
-            conn.commit()
-            conn.close()
-            st.success("Proposta salva com sucesso!")
-            st.rerun()
-    st.markdown("#### 📋 Propostas Emitidas")
-    if not df_propostas.empty:
-        st.dataframe(df_propostas, use_container_width=True, hide_index=True)
-    else:
-        st.info("Nenhuma proposta cadastrada.")
-
 elif selected == "Relatórios":
-    st.markdown("### 📊 Relatórios Gerenciais de Vendas")
-    st.info("Gere relatórios consolidados em formato analítico abaixo.")
-    if not df_vendas.empty:
-        st.markdown("#### Resumo de Vendas por Vendedor")
-        df_rel_vend = df_vendas.groupby("responsavel")["valor"].agg(['count', 'sum', 'mean']).reset_index()
-        df_rel_vend.columns = ['Vendedor', 'Qtd Vendas', 'Total (R$)', 'Ticket Médio (R$)']
-        st.dataframe(df_rel_vend, use_container_width=True, hide_index=True)
+    st.markdown("### 📄 Relatórios e Exportações")
+    st.markdown("Selecione o tipo de relatório e o formato desejado para exportação.")
+    
+    r_col1, r_col2 = st.columns(2)
+    with r_col1:
+        tipo_rel = st.selectbox("Tipo de Relatório", ["Vendas", "Clientes", "Pipeline"])
+        formato_rel = st.selectbox("Formato", ["CSV", "Excel", "PDF"])
+    with r_col2:
+        dest_email = st.text_input("Enviar por E-mail (Opcional)", value="sergiolmendes2026@gmail.com")
+        
+    if st.button("Gerar e Exportar Relatório", use_container_width=True):
+        if tipo_rel == "Vendas":
+            df_export = df_vendas.copy()
+        elif tipo_rel == "Clientes":
+            df_export = df_clientes.copy()
+        else:
+            df_export = df_pipeline.copy()
+
+        buffer = io.BytesIO()
+        
+        if formato_rel == "Excel":
+            try:
+                with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
+                    df_export.to_excel(writer, index=False, sheet_name=tipo_rel)
+                mime_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                file_extension = "xlsx"
+            except Exception:
+                st.warning("A biblioteca 'openpyxl' não está instalada no ambiente. Exportando em formato CSV alternativo.")
+                buffer.write(df_export.to_csv(index=False).encode('utf-8'))
+                mime_type = "text/csv"
+                file_extension = "csv"
+        elif formato_rel == "PDF":
+            try:
+                from fpdf import FPDF
+                pdf = FPDF()
+                pdf.add_page()
+                pdf.set_font("Arial", size=12)
+                pdf.cell(200, 10, txt=f"Relatorio de {tipo_rel} - CRM Pro", ln=1, align="c")
+                pdf.ln(10)
+                pdf.set_font("Arial", size=8)
+                for index, row in df_export.iterrows():
+                    linha_txt = " | ".join([str(val) for val in row.values])
+                    pdf.cell(200, 8, txt=linha_txt, ln=1)
+                pdf_output = pdf.output(dest='S').encode('latin1')
+                buffer.write(pdf_output)
+            except Exception:
+                buffer.write(df_export.to_string().encode('utf-8'))
+            mime_type = "application/pdf"
+            file_extension = "pdf"
+        else:
+            buffer.write(df_export.to_csv(index=False).encode('utf-8'))
+            mime_type = "text/csv"
+            file_extension = "csv"
+
+        nome_arq = f"relatorio_{tipo_rel.lower()}_{date.today()}.{file_extension}"
+        
+        st.download_button(
+            label=f"📥 Baixar Arquivo Gerado ({file_extension.upper()})",
+            data=buffer.getvalue(),
+            file_name=nome_arq,
+            mime=mime_type
+        )
+        
+        if dest_email:
+            sucesso_email = disparar_email_automatico(dest_email, buffer.getvalue(), nome_arq)
+            if sucesso_email:
+                st.success(f"Relatório enviado com sucesso para {dest_email}!")
+            else:
+                st.warning("Relatório gerado, mas houve um erro ao enviar por e-mail.")
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown("#### 📜 Histórico de Exportações")
+    conn = conectar()
+    df_hist = pd.read_sql("SELECT * FROM historico_exportacoes", conn)
+    conn.close()
+    if not df_hist.empty:
+        st.dataframe(df_hist, use_container_width=True, hide_index=True)
     else:
-        st.info("Sem dados suficientes para relatórios.")
+        st.info("Nenhum histórico de exportação.")
 
-elif selected == "Metas":
-    st.markdown("### 🎯 Metas da Equipe Comercial")
-    if not df_metas.empty:
-        for index, row in df_metas.iterrows():
-            vendedor = row['vendedor']
-            meta = row['meta']
-            realizado = row['realizado']
-            progresso = min(int((realizado / meta) * 100), 100)
-            st.markdown(f"**{vendedor}** — Realizado: R$ {realizado:,.0f} / Meta: R$ {meta:,.0f} ({progresso}%)")
-            st.progress(progresso)
-    else:
-        st.info("Nenhuma meta cadastrada.")
+elif selected == "Integrações":
+    st.markdown("### 🔌 Integrações e Automações do Sistema")
+    st.markdown("Configure aqui suas chaves de API, webhooks e disparos automáticos.")
+    
+    with st.form("form_integracoes"):
+        st.markdown("##### Configurações SMTP / E-mail")
+        i_servidor = st.text_input("Servidor SMTP", value="smtp.gmail.com")
+        i_porta = st.number_input("Porta SMTP", value=587)
+        i_remetente = st.text_input("E-mail Remetente", value="sergiolmendes2026@gmail.com")
+        i_senha = st.text_input("Senha de Aplicativo", type="password", value="kmpcpmhvrutcuifw")
+        
+        st.markdown("##### Webhooks e APIs")
+        i_webhook = st.text_input("URL do Webhook (WhatsApp / Leads)", value="https://api.crmpro.com/webhook/v1")
+        
+        btn_salvar_int = st.form_submit_button("Salvar Configurações de Integração")
+        if btn_salvar_int:
+            st.success("Configurações de integração salvas com sucesso!")
 
-elif selected == "Campanhas":
-    st.markdown("### 📧 Campanhas de Marketing")
-    if not df_campanhas.empty:
-        st.dataframe(df_campanhas, use_container_width=True, hide_index=True)
-    else:
-        st.info("Nenhuma campanha cadastrada.")
-
-elif selected == "WhatsApp":
-    st.markdown("### 💬 Disparador Rápido WhatsApp")
-    with st.form("form_whats"):
-        tel_w = st.text_input("Número do WhatsApp (com DDD)", value="(11) 99999-9999")
-        msg_w = st.text_area("Mensagem Personalizada", value="Olá! Gostaria de retomar nosso contato comercial sobre nossos softwares.")
-        sub_w = st.form_submit_button("Gerar Link de Disparo")
-        if sub_w:
-            st.success(f"Link gerado com sucesso para o número {tel_w}!")
-            st.code(f"https://wa.me/55{tel_w.replace('(', '').replace(')', '').replace(' ', '').replace('-', '')}?text={msg_w}")
-
-elif selected in ["Integrações", "Usuários", "Permissões", "Notificações", "Configurações"]:
-    st.markdown(f"### ⚙️ Painel de {selected}")
-    st.markdown(f"Configurações e parâmetros gerais para o módulo de **{selected}** do CRM LMB Pro.")
-    st.toggle(f"Ativar notificações de {selected}", value=True)
-    st.text_input("Chave de API / Credencial de Acesso", value="crm_token_secr_998877")
-    if st.button("Salvar Configurações"):
-        st.success("Alterações salvas com sucesso!")
+elif selected == "Configurações":
+    st.markdown("### ⚙️ Configurações do Sistema")
+    
+    c_conf1, c_conf2 = st.columns(2)
+    with c_conf1:
+        st.markdown("#### Aparência")
+        novo_tema = st.selectbox("Tema do Sistema", ["🌙 Escuro", "☀️ Claro"], index=0 if "Escuro" in st.session_state.tema_sistema else 1)
+        if novo_tema != st.session_state.tema_sistema:
+            st.session_state.tema_sistema = novo_tema
+            st.rerun()
+            
+    with c_conf2:
+        st.markdown("#### Informações da Empresa")
+        st.text_input("Nome da Organização", value="LMB Pro Solutions")
+        st.text_input("CNPJ / ID", value="00.000.000/0001-00")
+        st.button("Salvar Alterações Gerais")
