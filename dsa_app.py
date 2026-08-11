@@ -362,13 +362,17 @@ if selected == "Dashboard":
             else:
                 st.info("Sem dados de produtos.")
 
-         with tab2:
+    st.plotly_chart(fig_prod, use_container_width=True)
+        else:
+            st.info("Sem dados de produtos.")
+
+        with tab2:
             c_p1, c_p2 = st.columns(2)
             with c_p1:
                 st.markdown("#### 📊 3. Funil de Vendas")
                 if not df_pipeline.empty and "estagio" in df_pipeline.columns:
                     fig_funil = px.funnel(df_pipeline, x="valor", y="estagio", color_discrete_sequence=[cor_hex])
-                    fig_funil.update_layout(
+                    fig_funnel.update_layout(
                         paper_bgcolor="rgba(0,0,0,0)", 
                         plot_bgcolor="rgba(0,0,0,0)", 
                         font=dict(color=text_app),
