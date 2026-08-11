@@ -236,7 +236,6 @@ with col_busca3:
 
 st.markdown("<hr style='margin-top: 0px; margin-bottom: 20px; border-color: #334155;'>", unsafe_allow_html=True)
 
-# Resultados da busca global (se houver texto digitado)
 if termo_busca and len(termo_busca.strip()) > 0:
     st.markdown(f"### 🔎 Resultados da Busca Global para: *'{termo_busca}'*")
     
@@ -646,26 +645,54 @@ elif selected == "Relatórios":
         dest_email = st.text_input("Enviar por E-mail (Opcional)", value="sergiolmendes2026@gmail.com")
         
     if st.button("Gerar e Exportar Relatório", use_container_width=True):
-        nome_arq = f"relatorio_{tipo_rel.lower()}.csv"
-        
-        if tipo_rel == "Vendas" and not df_vendas.empty:
-            dados_export = df_vendas.to_csv(index=False).encode('utf-8')
-        elif tipo_rel == "Clientes" and not df_clientes.empty:
-            dados_export = df_clientes.to_csv(index=False).encode('utf-8')
-        elif tipo_rel == "Pipeline" and not df_pipeline.empty:
-            dados_export = df_pipeline.to_csv(index=False).encode('utf-8')
+        if tipo_rel == "Vendas":
+            df_export = df_vendas.copy()
+        elif tipo_rel == "Clientes":
+            df_export = df_clientes.copy()
         else:
-            dados_export = b"id,nome\n1,Exemplo"
-            
+            df_export = df_pipeline.copy()
+
+        buffer = io.BytesIO()
+        
+        if formato_rel == "Excel":
+            with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
+                df_export.to_excel(writer, index=False, sheet_name=tipo_rel)
+            mime_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            file_extension = "xlsx"
+        elif formato_rel == "PDF":
+            try:
+                from fpdf import FPDF
+                pdf = FPDF()
+                pdf.add_page()
+                pdf.set_font("Arial", size=12)
+                pdf.cell(200, 10, txt=f"Relatorio de {tipo_rel} - CRM Pro", ln=1, align="c")
+                pdf.ln(10)
+                pdf.set_font("Arial", size=8)
+                for index, row in df_export.iterrows():
+                    linha_txt = " | ".join([str(val) for val in row.values])
+                    pdf.cell(200, 8, txt=linha_txt, ln=1)
+                pdf_output = pdf.output(dest='S').encode('latin1')
+                buffer.write(pdf_output)
+            except Exception:
+                buffer.write(df_export.to_string().encode('utf-8'))
+            mime_type = "application/pdf"
+            file_extension = "pdf"
+        else:
+            buffer.write(df_export.to_csv(index=False).encode('utf-8'))
+            mime_type = "text/csv"
+            file_extension = "csv"
+
+        nome_arq = f"relatorio_{tipo_rel.lower()}_{date.today()}.{file_extension}"
+        
         st.download_button(
-            label="📥 Baixar Arquivo Gerado",
-            data=dados_export,
+            label=f"📥 Baixar Arquivo Gerado ({file_extension.upper()})",
+            data=buffer.getvalue(),
             file_name=nome_arq,
-            mime="text/csv"
+            mime=mime_type
         )
         
         if dest_email:
-            sucesso_email = disparar_email_automatico(dest_email, dados_export, nome_arq)
+            sucesso_email = disparar_email_automatico(dest_email, buffer.getvalue(), nome_arq)
             if sucesso_email:
                 st.success(f"Relatório enviado com sucesso para {dest_email}!")
             else:
