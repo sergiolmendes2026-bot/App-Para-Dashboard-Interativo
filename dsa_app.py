@@ -197,37 +197,6 @@ selected = st.session_state.selected
 def conectar():
     return sqlite3.connect("crm.db")
 
-def disparar_email_automatico(destinatario, arquivo_bytes, nome_arquivo):
-    servidor_smtp = "smtp.gmail.com"
-    porta = 587
-    remetente = "sergiolmendes2026@gmail.com"
-    senha = "kmpcpmhvrutcuifw"
-
-    try:
-        msg = MIMEMultipart()
-        msg['From'] = remetente
-        msg['To'] = destinatario
-        msg['Subject'] = "📊 Relatório Automático - CRM Pro"
-
-        corpo = "Olá! Segue em anexo o relatório comercial configurado no painel de exportações do seu CRM."
-        msg.attach(MIMEText(corpo, 'plain'))
-
-        parte = MIMEBase('application', 'octet-stream')
-        parte.set_payload(arquivo_bytes)
-        encoders.encode_base64(parte)
-        parte.add_header('Content-Disposition', f'attachment; filename="{nome_arquivo}"')
-        msg.attach(parte)
-
-        servidor = smtplib.SMTP(servidor_smtp, porta)
-        servidor.starttls()
-        servidor.login(remetente, senha)
-        servidor.sendmail(remetente, destinatario, msg.as_string())
-        servidor.quit()
-        return True
-    except Exception as e:
-        print(f"Erro ao disparar e-mail: {e}")
-        return False
-
 @st.cache_data(ttl=1)
 def carregar_dados():
     conn = conectar()
@@ -362,13 +331,12 @@ if selected == "Dashboard":
             else:
                 st.info("Sem dados de produtos.")
 
-     with tab2:
+    with tab2:
         c_p1, c_p2 = st.columns(2)
         
         with c_p1:
             st.markdown("#### 📊 3. Funil de Vendas")
             if not df_pipeline.empty and "estagio" in df_pipeline.columns:
-                # Adicionado color="estagio" e uma lista de cores para cada bloco
                 cores_funil = ["#2563EB", "#38BDF8", "#8B5CF6", "#F59E0B"]
                 fig_funil = px.funnel(df_pipeline, x="valor", y="estagio", color="estagio", color_discrete_sequence=cores_funil)
                 fig_funil.update_layout(
@@ -385,7 +353,8 @@ if selected == "Dashboard":
             st.markdown("#### 📈 Valor do Pipeline por Etapa")
             if not df_pipeline.empty and "estagio" in df_pipeline.columns:
                 df_pipe_bar = df_pipeline.groupby("estagio")["valor"].sum().reset_index()
-                fig_bar_pipe = px.bar(df_pipe_bar, x="valor", y="estagio", orientation="h", color_discrete_sequence=["#8B5CF6"])
+                cores_barras = ["#2563EB", "#38BDF8", "#8B5CF6", "#F59E0B"]
+                fig_bar_pipe = px.bar(df_pipe_bar, x="valor", y="estagio", orientation="h", color="estagio", color_discrete_sequence=cores_barras)
                 fig_bar_pipe.update_layout(
                     paper_bgcolor="rgba(0,0,0,0)", 
                     plot_bgcolor="rgba(0,0,0,0)", 
