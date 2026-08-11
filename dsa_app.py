@@ -362,14 +362,15 @@ if selected == "Dashboard":
             else:
                 st.info("Sem dados de produtos.")
 
-    with tab2:
+  with tab2:
         c_p1, c_p2 = st.columns(2)
         
         with c_p1:
             st.markdown("#### 📊 3. Funil de Vendas")
             if not df_pipeline.empty and "estagio" in df_pipeline.columns:
-                # Cor alterada para destacar visualmente
-                fig_funil = px.funnel(df_pipeline, x="valor", y="estagio", color_discrete_sequence=["#8B5CF6"])
+                # Adicionado color="estagio" e uma lista de cores para cada bloco
+                cores_funil = ["#2563EB", "#38BDF8", "#8B5CF6", "#F59E0B"]
+                fig_funil = px.funnel(df_pipeline, x="valor", y="estagio", color="estagio", color_discrete_sequence=cores_funil)
                 fig_funil.update_layout(
                     paper_bgcolor="rgba(0,0,0,0)", 
                     plot_bgcolor="rgba(0,0,0,0)", 
