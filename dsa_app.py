@@ -141,7 +141,7 @@ def inicializar_banco():
             ("Projeto W", "Fechamento", 15000.0, "Ana"),
         ])
 
-     cursor.execute("SELECT COUNT(*) FROM clientes")
+    cursor.execute("SELECT COUNT(*) FROM clientes")
     if cursor.fetchone()[0] == 0:
         cursor.executemany("INSERT INTO clientes (nome, empresa, email, telefone, status, origem, motivo_perda, data, responsavel, prioridade, ultimo_contato) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", [
             ("João Silva", "Tech Solutions", "joao@tech.com", "(11) 98888-1111", "🆕 Novo Lead", "Google Ads", "", "2026-06-01", "Carlos", "🔴 Alta", "2026-08-09"),
