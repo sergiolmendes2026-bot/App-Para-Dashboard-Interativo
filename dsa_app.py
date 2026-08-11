@@ -395,7 +395,7 @@ if selected == "Dashboard":
                 st.info("Sem dados de origem.")
 
         with c_l2:
-           st.markdown("#### 📋 6. Clientes por Status")
+            st.markdown("#### 📋 6. Clientes por Status")
             if not df_clientes.empty and "status" in df_clientes.columns:
                 df_status = df_clientes.groupby("status").size().reset_index(name="quantidade")
                 
