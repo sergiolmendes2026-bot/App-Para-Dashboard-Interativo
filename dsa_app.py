@@ -55,7 +55,6 @@ text_app = "#ffffff" if is_escuro else "#1e293b"
 sidebar_bg = "#0b0f19" if is_escuro else "#f8fafc"
 
 # --- CSS E ESTILIZAÇÃO DO MENU E PAINEIS ---
-# --- CSS E ESTILIZAÇÃO DO MENU E PAINEIS ---
 st.markdown(f"""
     <style>
         .stApp {{ background-color: {bg_app}; color: {text_app}; }}
@@ -66,27 +65,27 @@ st.markdown(f"""
         }}
         h1, h2, h3, h4 {{ color: {text_app}; }}
         
-        /* Ajuste do menu da Sidebar: letras maiores e sombra */
+        /* Força o aumento da letra e a sombra em todos os textos dos botões da sidebar */
+        [data-testid="stSidebar"] button div p {{
+            font-size: 17px !important;
+            font-weight: 600 !important;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9) !important;
+        }}
+
         [data-testid="stSidebar"] div.stButton > button {{
             width: 100%; 
             text-align: left; 
             background-color: transparent !important;
-            color: #cbd5e1 !important; /* Cor um pouco mais clara para melhorar o destaque */
+            color: #ffffff !important; 
             border: none !important; 
             border-radius: 8px !important;
-            padding: 10px 14px !important; 
-            font-size: 16px !important; /* Aumentado para 16px */
-            font-weight: 500 !important;
-            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.6) !important; /* Adicionado designer de sombra */
-            margin-bottom: 4px;
+            padding: 10px 12px !important; 
+            margin-bottom: 2px;
             transition: all 0.2s ease-in-out;
         }}
         
         [data-testid="stSidebar"] div.stButton > button:hover {{ 
             background-color: rgba(255, 255, 255, 0.08) !important; 
-            color: #ffffff !important; 
-            text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.9) !important;
-            transform: translateX(3px); /* Pequeno efeito visual ao passar o mouse */
         }}
         
         .sidebar-section-title {{
@@ -98,7 +97,7 @@ st.markdown(f"""
             margin-top: 18px;
             margin-bottom: 6px;
             padding-left: 12px;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5); /* Sombra também nos títulos das seções */
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.6);
         }}
     </style>
 """, unsafe_allow_html=True)
