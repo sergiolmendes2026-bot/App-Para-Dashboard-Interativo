@@ -339,61 +339,28 @@ if selected == "Dashboard":
             fig_gauge.update_layout(paper_bgcolor="rgba(0,0,0,0)", font=dict(color=text_app), height=260)
             st.plotly_chart(fig_gauge, use_container_width=True)
 
-     c_v3, c_v4 = st.columns(2)
-    with c_v3:
-        st.markdown("#### 🏆 4. Receita por Vendedor")
-        if not df_vendas.empty and "responsavel" in df_vendas.columns:
-            df_vend = df_vendas.groupby("responsavel")["valor"].sum().reset_index()
-            cores_vendedores = {"Ana": "#38BDF8", "Carlos": "#1D4ED8", "Pedro": "#F59E0B", "Julia": "#065CF6"}
-            fig_vend = px.bar(df_vend, x="responsavel", y="valor", color="responsavel", color_discrete_map=cores_vendedores)
-            fig_vend.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font=dict(color=text_app))
-            st.plotly_chart(fig_vend, use_container_width=True)
-        else:
-            st.info("Sem dados de vendedores.")
-
-    with c_v4:
-        st.markdown("#### 📦 7. Produtos Mais Vendidos")
-        if not df_vendas.empty and "produto" in df_vendas.columns:
-            df_prod = df_vendas.groupby("produto")["valor"].sum().reset_index()
-            cores_produtos = ["#2563EB", "#38BDF8", "#60A5FA", "#93C5FD"]
-            fig_prod = px.bar(df_prod, x="valor", y="produto", orientation="h", color="produto", color_discrete_sequence=cores_produtos)
-            fig_prod.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font=dict(color=text_app), yaxis=dict(autorange="reversed"))
-            st.plotly_chart(fig_prod, use_container_width=True)
-        else:
-            st.info("Sem dados de produtos.")
-
-    with tab2:
-        c_p1, c_p2 = st.columns(2)
-        
-        with c_p1:
-            st.markdown("#### 📊 3. Funil de Vendas")
-            if not df_pipeline.empty and "estagio" in df_pipeline.columns:
-                fig_funil = px.funnel(df_pipeline, x="valor", y="estagio", color_discrete_sequence=[cor_hex])
-                fig_funil.update_layout(
-                    paper_bgcolor="rgba(0,0,0,0)", 
-                    plot_bgcolor="rgba(0,0,0,0)", 
-                    font=dict(color=text_app),
-                    margin=dict(l=10, r=10, t=10, b=10)
-                )
-                st.plotly_chart(fig_funil, use_container_width=True)
+        c_v3, c_v4 = st.columns(2)
+        with c_v3:
+            st.markdown("#### 🏆 4. Receita por Vendedor")
+            if not df_vendas.empty and "responsavel" in df_vendas.columns:
+                df_vend = df_vendas.groupby("responsavel")["valor"].sum().reset_index()
+                cores_vendedores = {"Ana": "#38BDF8", "Carlos": "#1D4ED8", "Pedro": "#F59E0B", "Julia": "#065CF6"}
+                fig_vend = px.bar(df_vend, x="responsavel", y="valor", color="responsavel", color_discrete_map=cores_vendedores)
+                fig_vend.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font=dict(color=text_app))
+                st.plotly_chart(fig_vend, use_container_width=True)
             else:
-                st.info("Sem dados no pipeline.")
+                st.info("Sem dados de vendedores.")
 
-        with c_p2:
-            st.markdown("#### 📈 Valor do Pipeline por Etapa")
-            if not df_pipeline.empty and "estagio" in df_pipeline.columns:
-                df_pipe_bar = df_pipeline.groupby("estagio")["valor"].sum().reset_index()
-                fig_bar_pipe = px.bar(df_pipe_bar, x="valor", y="estagio", orientation="h", color_discrete_sequence=[cor_hex])
-                fig_bar_pipe.update_layout(
-                    paper_bgcolor="rgba(0,0,0,0)", 
-                    plot_bgcolor="rgba(0,0,0,0)", 
-                    font=dict(color=text_app), 
-                    yaxis=dict(autorange="reversed"),
-                    margin=dict(l=10, r=10, t=10, b=10)
-                )
-                st.plotly_chart(fig_bar_pipe, use_container_width=True)
+        with c_v4:
+            st.markdown("#### 📦 7. Produtos Mais Vendidos")
+            if not df_vendas.empty and "produto" in df_vendas.columns:
+                df_prod = df_vendas.groupby("produto")["valor"].sum().reset_index()
+                cores_produtos = ["#2563EB", "#38BDF8", "#60A5FA", "#93C5FD"]
+                fig_prod = px.bar(df_prod, x="valor", y="produto", orientation="h", color="produto", color_discrete_sequence=cores_produtos)
+                fig_prod.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font=dict(color=text_app), yaxis=dict(autorange="reversed"))
+                st.plotly_chart(fig_prod, use_container_width=True)
             else:
-                st.info("Sem dados no pipeline.")
+                st.info("Sem dados de produtos.")
 
     with tab2:
         c_p1, c_p2 = st.columns(2)
@@ -651,160 +618,4 @@ elif selected == "Pipeline":
                 st.success("Negócio adicionado ao pipeline com sucesso!")
                 st.rerun()
             else:
-                st.error("Informe o título do negócio.")
-
-    st.markdown("<br>", unsafe_allow_html=True)
-    if not df_pipeline.empty:
-        st.dataframe(df_pipeline, use_container_width=True, hide_index=True)
-    else:
-        st.info("Nenhum negócio no pipeline.")
-
-elif selected == "Vendas":
-    st.markdown("### 🏆 Histórico de Vendas Realizadas")
-    
-    with st.form("form_nova_venda"):
-        st.markdown("##### Registrar Nova Venda")
-        v_col1, v_col2 = st.columns(2)
-        with v_col1:
-            v_cliente = st.text_input("Cliente / Empresa *")
-            v_valor = st.number_input("Valor da Venda (R$)", min_value=0.0, value=5000.0, step=500.0)
-            v_produto = st.text_input("Produto / Serviço", value="Software A")
-        with v_col2:
-            v_data = st.text_input("Data da Venda", value=str(date.today()))
-            v_resp = st.text_input("Responsável", value="Carlos")
-            v_status = st.selectbox("Status", ["Pago", "Pendente", "Cancelado"])
-            
-        btn_add_venda = st.form_submit_button("Registrar Venda")
-        if btn_add_venda:
-            if v_cliente:
-                conn = conectar()
-                conn.execute("INSERT INTO vendas (cliente, valor, data, responsavel, status, produto) VALUES (?, ?, ?, ?, ?, ?)",
-                             (v_cliente, v_valor, v_data, v_resp, v_status, v_produto))
-                conn.commit()
-                conn.close()
-                st.success("Venda registrada com sucesso!")
-                st.rerun()
-            else:
-                st.error("Informe o nome do cliente.")
-
-    st.markdown("<br>", unsafe_allow_html=True)
-    if not df_vendas.empty:
-        st.dataframe(df_vendas, use_container_width=True, hide_index=True)
-    else:
-        st.info("Nenhuma venda registrada.")
-
-elif selected == "Relatórios":
-    st.markdown("### 📄 Relatórios e Exportações")
-    st.markdown("Selecione o tipo de relatório e o formato desejado para exportação.")
-    
-    r_col1, r_col2 = st.columns(2)
-    with r_col1:
-        tipo_rel = st.selectbox("Tipo de Relatório", ["Vendas", "Clientes", "Pipeline"])
-        formato_rel = st.selectbox("Formato", ["CSV", "Excel", "PDF"])
-    with r_col2:
-        dest_email = st.text_input("Enviar por E-mail (Opcional)", value="sergiolmendes2026@gmail.com")
-        
-    if st.button("Gerar e Exportar Relatório", use_container_width=True):
-        if tipo_rel == "Vendas":
-            df_export = df_vendas.copy()
-        elif tipo_rel == "Clientes":
-            df_export = df_clientes.copy()
-        else:
-            df_export = df_pipeline.copy()
-
-        buffer = io.BytesIO()
-        
-        if formato_rel == "Excel":
-            try:
-                with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
-                    df_export.to_excel(writer, index=False, sheet_name=tipo_rel)
-                mime_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                file_extension = "xlsx"
-            except Exception:
-                st.warning("A biblioteca 'openpyxl' não está instalada no ambiente. Exportando em formato CSV alternativo.")
-                buffer.write(df_export.to_csv(index=False).encode('utf-8'))
-                mime_type = "text/csv"
-                file_extension = "csv"
-        elif formato_rel == "PDF":
-            try:
-                from fpdf import FPDF
-                pdf = FPDF()
-                pdf.add_page()
-                pdf.set_font("Arial", size=12)
-                pdf.cell(200, 10, txt=f"Relatorio de {tipo_rel} - CRM Pro", ln=1, align="c")
-                pdf.ln(10)
-                pdf.set_font("Arial", size=8)
-                for index, row in df_export.iterrows():
-                    linha_txt = " | ".join([str(val) for val in row.values])
-                    pdf.cell(200, 8, txt=linha_txt, ln=1)
-                pdf_output = pdf.output(dest='S').encode('latin1')
-                buffer.write(pdf_output)
-            except Exception:
-                buffer.write(df_export.to_string().encode('utf-8'))
-            mime_type = "application/pdf"
-            file_extension = "pdf"
-        else:
-            buffer.write(df_export.to_csv(index=False).encode('utf-8'))
-            mime_type = "text/csv"
-            file_extension = "csv"
-
-        nome_arq = f"relatorio_{tipo_rel.lower()}_{date.today()}.{file_extension}"
-        
-        st.download_button(
-            label=f"📥 Baixar Arquivo Gerado ({file_extension.upper()})",
-            data=buffer.getvalue(),
-            file_name=nome_arq,
-            mime=mime_type
-        )
-        
-        if dest_email:
-            sucesso_email = disparar_email_automatico(dest_email, buffer.getvalue(), nome_arq)
-            if sucesso_email:
-                st.success(f"Relatório enviado com sucesso para {dest_email}!")
-            else:
-                st.warning("Relatório gerado, mas houve um erro ao enviar por e-mail.")
-
-    st.markdown("<br>", unsafe_allow_html=True)
-    st.markdown("#### 📜 Histórico de Exportações")
-    conn = conectar()
-    df_hist = pd.read_sql("SELECT * FROM historico_exportacoes", conn)
-    conn.close()
-    if not df_hist.empty:
-        st.dataframe(df_hist, use_container_width=True, hide_index=True)
-    else:
-        st.info("Nenhum histórico de exportação.")
-
-elif selected == "Integrações":
-    st.markdown("### 🔌 Integrações e Automações do Sistema")
-    st.markdown("Configure aqui suas chaves de API, webhooks e disparos automáticos.")
-    
-    with st.form("form_integracoes"):
-        st.markdown("##### Configurações SMTP / E-mail")
-        i_servidor = st.text_input("Servidor SMTP", value="smtp.gmail.com")
-        i_porta = st.number_input("Porta SMTP", value=587)
-        i_remetente = st.text_input("E-mail Remetente", value="sergiolmendes2026@gmail.com")
-        i_senha = st.text_input("Senha de Aplicativo", type="password", value="kmpcpmhvrutcuifw")
-        
-        st.markdown("##### Webhooks e APIs")
-        i_webhook = st.text_input("URL do Webhook (WhatsApp / Leads)", value="https://api.crmpro.com/webhook/v1")
-        
-        btn_salvar_int = st.form_submit_button("Salvar Configurações de Integração")
-        if btn_salvar_int:
-            st.success("Configurações de integração salvas com sucesso!")
-
-elif selected == "Configurações":
-    st.markdown("### ⚙️ Configurações do Sistema")
-    
-    c_conf1, c_conf2 = st.columns(2)
-    with c_conf1:
-        st.markdown("#### Aparência")
-        novo_tema = st.selectbox("Tema do Sistema", ["🌙 Escuro", "☀️ Claro"], index=0 if "Escuro" in st.session_state.tema_sistema else 1)
-        if novo_tema != st.session_state.tema_sistema:
-            st.session_state.tema_sistema = novo_tema
-            st.rerun()
-            
-    with c_conf2:
-        st.markdown("#### Informações da Empresa")
-        st.text_input("Nome da Organização", value="LMB Pro Solutions")
-        st.text_input("CNPJ / ID", value="00.000.000/0001-00")
-        st.button("Salvar Alterações Gerais")
+                st.error("Informe ao menos o Título do Negócio.")
