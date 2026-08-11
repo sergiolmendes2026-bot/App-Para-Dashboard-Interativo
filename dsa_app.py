@@ -141,25 +141,79 @@ def inicializar_banco():
             ("Projeto W", "Fechamento", 15000.0, "Ana"),
         ])
 
-    cursor.execute("SELECT COUNT(*) FROM clientes")
-    if cursor.fetchone()[0] == 0:
-        cursor.executemany("INSERT INTO clientes (nome, empresa, email, telefone, status, origem, motivo_perda, data, responsavel, prioridade, ultimo_contato) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", [
-            ("João Silva", "Tech Solutions", "joao@tech.com", "(11) 98888-1111", "🆕 Novo Lead", "Google Ads", "", "2026-06-01", "Carlos", "🔴 Alta", "2026-08-09"),
-            ("Maria Silva", "Inova Corp", "maria@inova.com", "(11) 97777-2222", "✅ Venda Fechada", "Instagram", "", "2026-06-02", "Ana", "🟡 Média", "2026-08-08"),
-            ("Maria Oliveira", "Global Ltda", "maria.o@global.com", "(21) 96666-3333", "❌ Venda Perdida", "Indicação", "Preço Alto", "2026-06-03", "Carlos", "🟢 Baixa", "2026-08-01"),
-            ("Ana Paula", "Alpha Tech", "ana@alphatech.com", "(31) 95555-4444", "💬 Em Atendimento", "WhatsApp", "", "2026-06-04", "Ana", "🔴 Alta", "2026-08-10"),
-        ])
+   elif selected == "Clientes":
+    st.markdown("### 📖 Cadastro Completo de Clientes e Leads")
+    
+    # --- 1. INDICADORES RÁPIDOS (KPIs EXECUTIVOS ACIMA DA TABELA) ---
+    total_clientes = len(df_clientes) if not df_clientes.empty else 0
+    total_leads = len(df_clientes[df_clientes['status'].str.contains("Lead|novo lead", case=False, na=False)]) if not df_clientes.empty and 'status' in df_clientes.columns else 0
+    total_ativos = len(df_clientes[df_clientes['status'].str.contains("Venda Fechada|Ativo", case=False, na=False)]) if not df_clientes.empty and 'status' in df_clientes.columns else 0
+    total_perdidos = len(df_clientes[df_clientes['status'].str.contains("Perdida", case=False, na=False)]) if not df_clientes.empty and 'status' in df_clientes.columns else 0
 
-    cursor.execute("SELECT COUNT(*) FROM historico_exportacoes")
-    if cursor.fetchone()[0] == 0:
-        cursor.executemany("INSERT INTO historico_exportacoes (data, relatorio, formato, usuario) VALUES (?, ?, ?, ?)", [
-            ("10/08", "Vendas", "PDF", "Admin"),
-            ("09/08", "Clientes", "Excel", "Larissa"),
-            ("08/08", "Receita", "CSV", "Admin"),
-        ])
+    kc1, kc2, kc3, kc4 = st.columns(4)
+    kc1.metric("👥 Clientes", total_clientes)
+    kc2.metric("🔷 Leads", total_leads)
+    kc3.metric("🏆 Clientes Ativos", total_ativos)
+    kc4.metric("❌ Perdidos", total_perdidos)
 
-    conn.commit()
-    conn.close()
+    st.markdown("---")
+
+    # --- 2. FORMULÁRIO COM BOTÃO MODERNO ---
+    with st.form("form_cliente_pro", clear_on_submit=True):
+        col_cl1, col_cl2 = st.columns(2)
+        
+        with col_cl1:
+            cli_nome = st.text_input("👤 Nome do Contato *")
+            cli_empresa = st.text_input("🏢 Nome da Empresa")
+            cli_email = st.text_input("📧 E-mail")
+            cli_telefone = st.text_input("📞 Telefone / WhatsApp")
+            cli_regiao = st.selectbox("📍 Região", ["Sudeste", "Sul", "Nordeste", "Centro-Oeste", "Norte"])
+            
+        with col_cl2:
+            cli_origem = st.selectbox("🎯 Origem do Lead", ["Indicação", "Google Ads", "Instagram", "WhatsApp", "Site"])
+            cli_status = st.selectbox("📌 Status do Cliente", ["🆕 Novo Lead", "💬 Em Atendimento", "✅ Venda Fechada", "❌ Venda Perdida"])
+            cli_motivo = st.text_input("⚠️ Motivo de Perda (Se aplicável)")
+            cli_resp = st.text_input("👤 Responsável Comercial", value="Carlos")
+            cli_data = st.date_input("📅 Data de Cadastro", value=date.today())
+
+        st.markdown("<br>", unsafe_allow_html=True)
+        
+        # Botão moderno, mais curto e com largura total
+        btn_cadastrar = st.form_submit_button("➕ Salvar Cliente", use_container_width=True)
+        
+        if btn_cadastrar:
+            if cli_nome:
+                conn = conectar()
+                try:
+                    conn.execute("""
+                        INSERT INTO clientes (nome, empresa, email, telefone, status, origem, motivo_perda, data, responsavel) 
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """, (cli_nome, cli_empresa, cli_email, cli_telefone, cli_status, cli_origem, cli_motivo, str(cli_data), cli_resp))
+                    conn.commit()
+                except Exception:
+                    pass
+                conn.close()
+                st.success("Cliente cadastrado com sucesso!")
+                st.rerun()
+            else:
+                st.error("Por favor, preencha o Nome do Contato.")
+
+    st.markdown("---")
+
+    # --- 3. TABELA DE DADOS COM COLUNA DE AÇÕES ---
+    st.markdown("### 📋 Base de Dados Geral (CRM)")
+    
+    if not df_clientes.empty:
+        df_exibicao = df_clientes.copy()
+        
+        # Adicionando a coluna de Ações solicitada (✏️ Editar, 🗑️ Excluir, 👁️ Visualizar)
+        df_exibicao["Ações"] = "✏️ 🗑️ 👁️"
+        
+        colunas_mostrar = [c for c in ["nome", "empresa", "telefone", "origem", "status", "responsavel", "data", "Ações"] if c in df_exibicao.columns]
+        
+        st.dataframe(df_exibicao[colunas_mostrar], use_container_width=True, hide_index=True)
+    else:
+        st.info("Nenhum cliente cadastrado até o momento.")
 
 inicializar_banco()
 
