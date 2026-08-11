@@ -440,6 +440,29 @@ elif selected == "Clientes":
                 st.error("Por favor, preencha ao menos o Nome do Contato.")
 
     st.markdown("<div style='margin-top: 35px;'></div>", unsafe_allow_html=True)
+
+    # --- INDICADORES RÁPIDOS ANTES DA TABELA ---
+    total_cli = len(df_clientes) if not df_clientes.empty else 0
+    leads_cli = len(df_clientes[df_clientes["status"].str.contains("Novo|Lead", case=False, na=False)]) if not df_clientes.empty else 0
+    ativos_cli = len(df_clientes[df_clientes["status"].str.contains("Fechada|Atendimento|Negociação", case=False, na=False)]) if not df_clientes.empty else 0
+    perdidos_cli = len(df_clientes[df_clientes["status"].str.contains("Perdida", case=False, na=False)]) if not df_clientes.empty else 0
+
+    m1, m2, m3, m4 = st.columns(4)
+    m1.metric("👥 Clientes", total_cli)
+    m2.metric("🆕 Leads", leads_cli)
+    m3.metric("🏆 Clientes Ativos", ativos_cli)
+    m4.metric("❌ Perdidos", perdidos_cli)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown("### 📋 Base de Dados Geral (CRM)")
+    if not df_clientes.empty:
+        colunas_mostrar = [c for c in ['nome', 'empresa', 'telefone', 'origem', 'status', 'responsavel', 'data'] if c in df_clientes.columns]
+        st.dataframe(df_clientes[colunas_mostrar], use_container_width=True, hide_index=True)
+    else:
+        st.info("Nenhum cliente cadastrado.")
+                st.error("Por favor, preencha ao menos o Nome do Contato.")
+
+    st.markdown("<div style='margin-top: 35px;'></div>", unsafe_allow_html=True)
     st.markdown("### 📋 Base de Dados Geral (CRM)")
     if not df_clientes.empty:
         colunas_mostrar = [c for c in ['nome', 'empresa', 'telefone', 'origem', 'status', 'responsavel', 'data'] if c in df_clientes.columns]
