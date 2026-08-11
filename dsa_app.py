@@ -856,7 +856,7 @@ elif selected == "Configurações":
         with st.container():
             st.markdown(f"""
                 <div style="background-color: rgba(239, 68, 68, 0.05); border: 1px dashed rgba(239, 68, 68, 0.3); padding: 20px; border-radius: 12px; margin-bottom: 15px;">
-                    <div style="font-size: 16px; font-weight: 600; color: #f87171; margin-bottom: 4px;">🗑️ Zona de Perigo / Limpeza de Dados</div>
+                    <div style="font-size: 16px; font-weight: 600; color: #f87171; margin-bottom: 4px;">🗑️  Limpeza de Dados</div>
                     <div style="font-size: 12px; color: #94a3b8; font-style: italic;">Atenção: Esta ação removerá permanentemente todos os registros salvos na tabela de clientes do banco de dados.</div>
                 </div>
             """, unsafe_allow_html=True)
