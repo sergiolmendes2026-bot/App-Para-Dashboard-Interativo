@@ -65,39 +65,43 @@ st.markdown(f"""
         }}
         h1, h2, h3, h4 {{ color: {text_app}; }}
         
-        /* Força o aumento da letra e a sombra em todos os textos dos botões da sidebar */
+        /* Letras maiores com sombra suave e elegante (sem efeito duplicado) */
         [data-testid="stSidebar"] button div p {{
-            font-size: 17px !important;
+            font-size: 16px !important;
             font-weight: 600 !important;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9) !important;
+            text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.7) !important;
         }}
 
+        /* Estilo elegante para os botões do menu */
         [data-testid="stSidebar"] div.stButton > button {{
             width: 100%; 
             text-align: left; 
             background-color: transparent !important;
-            color: #ffffff !important; 
+            color: #f1f5f9 !important; 
             border: none !important; 
-            border-radius: 8px !important;
-            padding: 10px 12px !important; 
-            margin-bottom: 2px;
-            transition: all 0.2s ease-in-out;
+            border-radius: 10px !important;
+            padding: 10px 14px !important; 
+            margin-bottom: 4px;
+            transition: all 0.25s ease-in-out;
         }}
         
+        /* Efeito ao passar o mouse: ilumina o fundo e desloca levemente para a direita */
         [data-testid="stSidebar"] div.stButton > button:hover {{ 
-            background-color: rgba(255, 255, 255, 0.08) !important; 
+            background-color: rgba(37, 99, 235, 0.15) !important; /* Toque sutil da cor azul do CRM */
+            color: #ffffff !important;
+            transform: translateX(4px);
         }}
         
         .sidebar-section-title {{
-            color: #94a3b8;
+            color: #64748b;
             font-size: 11px;
             font-weight: 700;
-            letter-spacing: 0.8px;
+            letter-spacing: 1px;
             text-transform: uppercase;
-            margin-top: 18px;
-            margin-bottom: 6px;
-            padding-left: 12px;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.6);
+            margin-top: 22px;
+            margin-bottom: 8px;
+            padding-left: 14px;
+            text-shadow: 0px 1px 2px rgba(0, 0, 0, 0.5);
         }}
     </style>
 """, unsafe_allow_html=True)
