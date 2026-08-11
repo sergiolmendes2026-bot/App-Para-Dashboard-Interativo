@@ -55,6 +55,7 @@ text_app = "#ffffff" if is_escuro else "#1e293b"
 sidebar_bg = "#0b0f19" if is_escuro else "#f8fafc"
 
 # --- CSS E ESTILIZAÇÃO DO MENU E PAINEIS ---
+# --- CSS E ESTILIZAÇÃO DO MENU E PAINEIS ---
 st.markdown(f"""
     <style>
         .stApp {{ background-color: {bg_app}; color: {text_app}; }}
@@ -65,34 +66,39 @@ st.markdown(f"""
         }}
         h1, h2, h3, h4 {{ color: {text_app}; }}
         
+        /* Ajuste do menu da Sidebar: letras maiores e sombra */
         [data-testid="stSidebar"] div.stButton > button {{
             width: 100%; 
             text-align: left; 
             background-color: transparent !important;
-            color: #94a3b8 !important; 
+            color: #cbd5e1 !important; /* Cor um pouco mais clara para melhorar o destaque */
             border: none !important; 
             border-radius: 8px !important;
-            padding: 8px 12px !important; 
-            font-size: 14px !important; 
+            padding: 10px 14px !important; 
+            font-size: 16px !important; /* Aumentado para 16px */
             font-weight: 500 !important;
-            margin-bottom: 2px;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.6) !important; /* Adicionado designer de sombra */
+            margin-bottom: 4px;
             transition: all 0.2s ease-in-out;
         }}
         
         [data-testid="stSidebar"] div.stButton > button:hover {{ 
-            background-color: rgba(255, 255, 255, 0.05) !important; 
+            background-color: rgba(255, 255, 255, 0.08) !important; 
             color: #ffffff !important; 
+            text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.9) !important;
+            transform: translateX(3px); /* Pequeno efeito visual ao passar o mouse */
         }}
         
         .sidebar-section-title {{
-            color: #64748b;
-            font-size: 10px;
+            color: #94a3b8;
+            font-size: 11px;
             font-weight: 700;
             letter-spacing: 0.8px;
             text-transform: uppercase;
             margin-top: 18px;
             margin-bottom: 6px;
             padding-left: 12px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5); /* Sombra também nos títulos das seções */
         }}
     </style>
 """, unsafe_allow_html=True)
