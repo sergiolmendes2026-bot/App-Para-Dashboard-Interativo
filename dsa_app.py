@@ -368,7 +368,8 @@ if selected == "Dashboard":
         with c_p1:
             st.markdown("#### 📊 3. Funil de Vendas")
             if not df_pipeline.empty and "estagio" in df_pipeline.columns:
-                fig_funil = px.funnel(df_pipeline, x="valor", y="estagio", color_discrete_sequence=[cor_hex])
+                # Cor alterada para destacar visualmente
+                fig_funil = px.funnel(df_pipeline, x="valor", y="estagio", color_discrete_sequence=["#8B5CF6"])
                 fig_funil.update_layout(
                     paper_bgcolor="rgba(0,0,0,0)", 
                     plot_bgcolor="rgba(0,0,0,0)", 
@@ -383,7 +384,7 @@ if selected == "Dashboard":
             st.markdown("#### 📈 Valor do Pipeline por Etapa")
             if not df_pipeline.empty and "estagio" in df_pipeline.columns:
                 df_pipe_bar = df_pipeline.groupby("estagio")["valor"].sum().reset_index()
-                fig_bar_pipe = px.bar(df_pipe_bar, x="valor", y="estagio", orientation="h", color_discrete_sequence=[cor_hex])
+                fig_bar_pipe = px.bar(df_pipe_bar, x="valor", y="estagio", orientation="h", color_discrete_sequence=["#8B5CF6"])
                 fig_bar_pipe.update_layout(
                     paper_bgcolor="rgba(0,0,0,0)", 
                     plot_bgcolor="rgba(0,0,0,0)", 
