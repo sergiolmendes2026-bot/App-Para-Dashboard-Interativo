@@ -57,55 +57,42 @@ sidebar_bg = "#0b0f19" if is_escuro else "#f8fafc"
 # --- CSS E ESTILIZAÇÃO DO MENU E PAINEIS ---
 st.markdown(f"""
     <style>
-        /* Cor de fundo do app - um cinza muito escuro elegante */
-        .stApp {{ 
-            background-color: #0b0f19 !important; 
-            color: #e2e8f0 !important; 
-        }}
-        
-        /* Sidebar mantém o azul profundo definido antes */
+        .stApp {{ background-color: {bg_app}; color: {text_app}; }}
         [data-testid="stSidebar"] {{ 
-            background-color: #111827 !important; 
+            background-color: {sidebar_bg}; 
+            border-right: 1px solid #1e293b;
+            padding-top: 10px;
         }}
-
-        /* Estilização dos Containers (Abas e cartões) - Fundo cinza médio */
-        div[data-testid="stVerticalBlock"] {{
-            background-color: #1e293b !important;
-            padding: 20px !important;
-            border-radius: 12px !important;
-            border: 1px solid #334155 !important;
-        }}
-
-        /* Ajuste específico para as abas (tabs) */
-        div[data-testid="stTabs"] [data-baseweb="tab-list"] {{
-            background-color: #111827 !important;
-            border-bottom: 2px solid #2563eb !important;
-        }}
+        h1, h2, h3, h4 {{ color: {text_app}; }}
         
-        div[data-testid="stTabs"] [data-baseweb="tab"] {{
-            color: #94a3b8 !important;
-        }}
-        
-        div[data-testid="stTabs"] [aria-selected="true"] {{
-            color: #ffffff !important;
-            background-color: #1e293b !important;
-        }}
-
-        /* Ajuste de cabeçalhos e textos */
-        h1, h2, h3, h4 {{ 
-            color: #f8fafc !important; 
-        }}
-
-        /* Ajuste dos botões da sidebar */
         [data-testid="stSidebar"] div.stButton > button {{
+            width: 100%; 
+            text-align: left; 
             background-color: transparent !important;
-            border: none !important;
-            color: #cbd5e1 !important;
+            color: #94a3b8 !important; 
+            border: none !important; 
+            border-radius: 8px !important;
+            padding: 8px 12px !important; 
+            font-size: 14px !important; 
+            font-weight: 500 !important;
+            margin-bottom: 2px;
+            transition: all 0.2s ease-in-out;
         }}
         
-        [data-testid="stSidebar"] div.stButton > button:hover {{
-            background-color: #334155 !important;
-            color: #ffffff !important;
+        [data-testid="stSidebar"] div.stButton > button:hover {{ 
+            background-color: rgba(255, 255, 255, 0.05) !important; 
+            color: #ffffff !important; 
+        }}
+        
+        .sidebar-section-title {{
+            color: #64748b;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            margin-top: 18px;
+            margin-bottom: 6px;
+            padding-left: 12px;
         }}
     </style>
 """, unsafe_allow_html=True)
