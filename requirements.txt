@@ -4,3 +4,5 @@ pyarrow
 plotly
 fpdf2
 streamlit-option-menu
+pandas
+openpyxl
