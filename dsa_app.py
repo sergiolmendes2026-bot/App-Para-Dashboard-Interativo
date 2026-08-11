@@ -71,11 +71,12 @@ st.markdown(f"""
     </style>
 """, unsafe_allow_html=True)
 
-# --- BANCO DE DADOS E CORREÇÃO DE ESQUEMA ---
+# --- BANCO DE DADOS E CORREÇÃO DE ESQUEMA ROBUSTA ---
 def inicializar_banco():
     conn = sqlite3.connect("crm.db")
     cursor = conn.cursor()
     
+    # Criação das tabelas base
     cursor.execute("CREATE TABLE IF NOT EXISTS clientes (id INTEGER PRIMARY KEY AUTOINCREMENT, nome TEXT, empresa TEXT, email TEXT, telefone TEXT, regiao TEXT, status TEXT, origem TEXT, motivo_perda TEXT, data TEXT, data_fechamento TEXT, responsavel TEXT, prioridade TEXT, ultimo_contato TEXT)")
     cursor.execute("CREATE TABLE IF NOT EXISTS pipeline (id INTEGER PRIMARY KEY AUTOINCREMENT, titulo TEXT, estagio TEXT, valor REAL, empresa TEXT, contato TEXT, telefone TEXT, email TEXT, responsavel TEXT, origem TEXT)")
     cursor.execute("CREATE TABLE IF NOT EXISTS vendas (id INTEGER PRIMARY KEY AUTOINCREMENT, cliente TEXT, valor REAL, data TEXT, responsavel TEXT, status TEXT, produto TEXT)")
@@ -85,16 +86,24 @@ def inicializar_banco():
     cursor.execute("CREATE TABLE IF NOT EXISTS metas (id INTEGER PRIMARY KEY AUTOINCREMENT, vendedor TEXT, meta REAL, realizado REAL)")
     cursor.execute("CREATE TABLE IF NOT EXISTS campanhas (id INTEGER PRIMARY KEY AUTOINCREMENT, nome TEXT, canal TEXT, disparos INTEGER, status TEXT)")
     
+    # Migrações seguras de colunas caso já existam tabelas antigas
     tinfo_clientes = [col[1] for col in cursor.execute("PRAGMA table_info(clientes)").fetchall()]
-    if "prioridade" not in tinfo_clientes:
-        cursor.execute("ALTER TABLE clientes ADD COLUMN prioridade TEXT DEFAULT 'Média'")
-    if "ultimo_contato" not in tinfo_clientes:
-        cursor.execute("ALTER TABLE clientes ADD COLUMN ultimo_contato TEXT DEFAULT '2026-08-08'")
-    if "responsavel" not in tinfo_clientes:
-        cursor.execute("ALTER TABLE clientes ADD COLUMN responsavel TEXT DEFAULT 'Carlos'")
-    if "empresa" not in tinfo_clientes:
-        cursor.execute("ALTER TABLE clientes ADD COLUMN empresa TEXT DEFAULT 'Empresa Exemplo'")
+    if "prioridade" not in tinfo_clientes: cursor.execute("ALTER TABLE clientes ADD COLUMN prioridade TEXT DEFAULT 'Média'")
+    if "ultimo_contato" not in tinfo_clientes: cursor.execute("ALTER TABLE clientes ADD COLUMN ultimo_contato TEXT DEFAULT '2026-08-08'")
+    if "responsavel" not in tinfo_clientes: cursor.execute("ALTER TABLE clientes ADD COLUMN responsavel TEXT DEFAULT 'Carlos'")
+    if "empresa" not in tinfo_clientes: cursor.execute("ALTER TABLE clientes ADD COLUMN empresa TEXT DEFAULT 'Empresa Exemplo'")
 
+    tinfo_ativ = [col[1] for col in cursor.execute("PRAGMA table_info(atividades)").fetchall()]
+    if "status" not in tinfo_ativ: cursor.execute("ALTER TABLE atividades ADD COLUMN status TEXT DEFAULT 'Pendente'")
+    if "tipo" not in tinfo_ativ: cursor.execute("ALTER TABLE atividades ADD COLUMN tipo TEXT DEFAULT 'Ligação'")
+    if "descricao" not in tinfo_ativ: cursor.execute("ALTER TABLE atividades ADD COLUMN descricao TEXT DEFAULT ''")
+    if "contato" not in tinfo_ativ: cursor.execute("ALTER TABLE atividades ADD COLUMN contato TEXT DEFAULT ''")
+    if "data" not in tinfo_ativ: cursor.execute("ALTER TABLE atividades ADD COLUMN data TEXT DEFAULT ''")
+
+    tinfo_agenda = [col[1] for col in cursor.execute("PRAGMA table_info(agenda)").fetchall()]
+    if "status" not in tinfo_agenda: cursor.execute("ALTER TABLE agenda ADD COLUMN status TEXT DEFAULT 'Pendente'")
+
+    # Inserção de dados iniciais se tabelas estiverem vazias
     cursor.execute("SELECT COUNT(*) FROM vendas")
     if cursor.fetchone()[0] == 0:
         cursor.executemany("INSERT INTO vendas (cliente, valor, data, responsavel, status, produto) VALUES (?, ?, ?, ?, ?, ?)", [
