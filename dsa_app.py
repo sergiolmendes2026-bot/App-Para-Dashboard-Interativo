@@ -351,7 +351,7 @@ if selected == "Dashboard":
             else:
                 st.info("Sem dados de vendedores.")
 
-        with c_v4:
+      with c_v4:
             st.markdown("#### 📦 7. Produtos Mais Vendidos")
             if not df_vendas.empty and "produto" in df_vendas.columns:
                 df_prod = df_vendas.groupby("produto")["valor"].sum().reset_index()
@@ -362,42 +362,38 @@ if selected == "Dashboard":
             else:
                 st.info("Sem dados de produtos.")
 
-    st.plotly_chart(fig_prod, use_container_width=True)
-        else:
-            st.info("Sem dados de produtos.")
+    with tab2:
+        c_p1, c_p2 = st.columns(2)
+        
+        with c_p1:
+            st.markdown("#### 📊 3. Funil de Vendas")
+            if not df_pipeline.empty and "estagio" in df_pipeline.columns:
+                fig_funil = px.funnel(df_pipeline, x="valor", y="estagio", color_discrete_sequence=[cor_hex])
+                fig_funil.update_layout(
+                    paper_bgcolor="rgba(0,0,0,0)", 
+                    plot_bgcolor="rgba(0,0,0,0)", 
+                    font=dict(color=text_app),
+                    margin=dict(l=10, r=10, t=10, b=10)
+                )
+                st.plotly_chart(fig_funil, use_container_width=True)
+            else:
+                st.info("Sem dados no pipeline.")
 
-       with tab2:
-            c_p1, c_p2 = st.columns(2)
-            
-            with c_p1:
-                st.markdown("#### 📊 3. Funil de Vendas")
-                if not df_pipeline.empty and "estagio" in df_pipeline.columns:
-                    fig_funil = px.funnel(df_pipeline, x="valor", y="estagio", color_discrete_sequence=[cor_hex])
-                    fig_funil.update_layout(
-                        paper_bgcolor="rgba(0,0,0,0)", 
-                        plot_bgcolor="rgba(0,0,0,0)", 
-                        font=dict(color=text_app),
-                        margin=dict(l=10, r=10, t=10, b=10)
-                    )
-                    st.plotly_chart(fig_funil, use_container_width=True)
-                else:
-                    st.info("Sem dados no pipeline.")
-
-            with c_p2:
-                st.markdown("#### 📈 Valor do Pipeline por Etapa")
-                if not df_pipeline.empty and "estagio" in df_pipeline.columns:
-                    df_pipe_bar = df_pipeline.groupby("estagio")["valor"].sum().reset_index()
-                    fig_bar_pipe = px.bar(df_pipe_bar, x="valor", y="estagio", orientation="h", color_discrete_sequence=[cor_hex])
-                    fig_bar_pipe.update_layout(
-                        paper_bgcolor="rgba(0,0,0,0)", 
-                        plot_bgcolor="rgba(0,0,0,0)", 
-                        font=dict(color=text_app), 
-                        yaxis=dict(autorange="reversed"),
-                        margin=dict(l=10, r=10, t=10, b=10)
-                    )
-                    st.plotly_chart(fig_bar_pipe, use_container_width=True)
-                else:
-                    st.info("Sem dados no pipeline.")
+        with c_p2:
+            st.markdown("#### 📈 Valor do Pipeline por Etapa")
+            if not df_pipeline.empty and "estagio" in df_pipeline.columns:
+                df_pipe_bar = df_pipeline.groupby("estagio")["valor"].sum().reset_index()
+                fig_bar_pipe = px.bar(df_pipe_bar, x="valor", y="estagio", orientation="h", color_discrete_sequence=[cor_hex])
+                fig_bar_pipe.update_layout(
+                    paper_bgcolor="rgba(0,0,0,0)", 
+                    plot_bgcolor="rgba(0,0,0,0)", 
+                    font=dict(color=text_app), 
+                    yaxis=dict(autorange="reversed"),
+                    margin=dict(l=10, r=10, t=10, b=10)
+                )
+                st.plotly_chart(fig_bar_pipe, use_container_width=True)
+            else:
+                st.info("Sem dados no pipeline.")
 
     with tab3:
         c_l1, c_l2 = st.columns(2)
