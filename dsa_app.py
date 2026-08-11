@@ -11,8 +11,6 @@ from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 from email import encoders
 
-# ... (seus imports e função conectar() já existentes)
-
 def executar_automacao_evento(tipo_evento, dados_contexto=""):
     """Verifica no banco se a automação está ativa e executa."""
     conn = conectar()
@@ -34,8 +32,8 @@ def executar_automacao_evento(tipo_evento, dados_contexto=""):
     conn.close()
     
     if res and res[0] == 1:
-        # Aqui você pode adicionar o print ou lógica de envio real
         st.write(f"✅ Automação disparada: {tipo_evento} - {dados_contexto}")
+
 st.set_page_config(
     page_title="CRM LMB Pro - Workspace v2.0", page_icon="📊", layout="wide" 
 )
@@ -65,14 +63,12 @@ st.markdown(f"""
         }}
         h1, h2, h3, h4 {{ color: {text_app}; }}
         
-        /* Letras maiores com sombra suave e elegante (sem efeito duplicado) */
         [data-testid="stSidebar"] button div p {{
             font-size: 16px !important;
             font-weight: 600 !important;
             text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.7) !important;
         }}
 
-        /* Estilo elegante para os botões do menu */
         [data-testid="stSidebar"] div.stButton > button {{
             width: 100%; 
             text-align: left; 
@@ -80,14 +76,13 @@ st.markdown(f"""
             color: #f1f5f9 !important; 
             border: none !important; 
             border-radius: 10px !important;
-            padding: 10px 14px !important; 
-            margin-bottom: 4px;
+            padding: 8px 12px !important; 
+            margin-bottom: 2px;
             transition: all 0.25s ease-in-out;
         }}
         
-        /* Efeito ao passar o mouse: ilumina o fundo e desloca levemente para a direita */
         [data-testid="stSidebar"] div.stButton > button:hover {{ 
-            background-color: rgba(37, 99, 235, 0.15) !important; /* Toque sutil da cor azul do CRM */
+            background-color: rgba(37, 99, 235, 0.15) !important; 
             color: #ffffff !important;
             transform: translateX(4px);
         }}
@@ -98,9 +93,9 @@ st.markdown(f"""
             font-weight: 700;
             letter-spacing: 1px;
             text-transform: uppercase;
-            margin-top: 22px;
-            margin-bottom: 8px;
-            padding-left: 14px;
+            margin-top: 16px;
+            margin-bottom: 4px;
+            padding-left: 12px;
             text-shadow: 0px 1px 2px rgba(0, 0, 0, 0.5);
         }}
     </style>
@@ -116,8 +111,8 @@ def inicializar_banco():
     cursor.execute("CREATE TABLE IF NOT EXISTS vendas (id INTEGER PRIMARY KEY AUTOINCREMENT, cliente TEXT, valor REAL, data TEXT, responsavel TEXT, status TEXT, produto TEXT)")
     cursor.execute("CREATE TABLE IF NOT EXISTS agendamentos (id INTEGER PRIMARY KEY, ativo INTEGER, frequencia TEXT, destinatario TEXT)")
     cursor.execute("CREATE TABLE IF NOT EXISTS historico_exportacoes (id INTEGER PRIMARY KEY AUTOINCREMENT, data TEXT, relatorio TEXT, formato TEXT, usuario TEXT)")
+    cursor.execute("CREATE TABLE IF NOT EXISTS automacoes (id INTEGER PRIMARY KEY AUTOINCREMENT, chave TEXT, ativo INTEGER)")
     
-    # Migrações caso colunas novas faltem
     tinfo_clientes = [col[1] for col in cursor.execute("PRAGMA table_info(clientes)").fetchall()]
     if "prioridade" not in tinfo_clientes:
         cursor.execute("ALTER TABLE clientes ADD COLUMN prioridade TEXT DEFAULT 'Média'")
@@ -209,6 +204,7 @@ selected = st.session_state.selected
 
 def conectar():
     return sqlite3.connect("crm.db")
+
 def disparar_email_automatico(destinatario, arquivo_bytes, nome_arquivo):
     servidor_smtp = "smtp.gmail.com"
     porta = 587
@@ -316,7 +312,12 @@ if selected == "Dashboard":
                 df_temp['data'] = pd.to_datetime(df_temp['data'], errors='coerce')
                 df_v_linha = df_temp.groupby("data")["valor"].sum().reset_index()
                 df_v_linha = df_v_linha.sort_values("data")
-                fig_linha = px.line(df_v_linha, x="data", y="valor", markers=True, color_discrete_sequence=[cor_hex])
+                fig_linha = px.line(df_v_linha, x="data", y="valor", markers=True)
+                fig_linha.update_traces(
+                    line=dict(color="#38BDF8", width=3),
+                    fill='tozeroy',
+                    fillcolor="rgba(56, 189, 248, 0.15)"
+                )
                 fig_linha.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font=dict(color=text_app))
                 st.plotly_chart(fig_linha, use_container_width=True)
             else:
@@ -329,7 +330,20 @@ if selected == "Dashboard":
                 mode="gauge+number", value=receita_realizada,
                 domain={'x': [0, 1], 'y': [0, 1]},
                 title={'text': "Progresso de Vendas vs Meta"},
-                gauge={'axis': {'range': [None, meta_exemplo]}, 'bar': {'color': cor_hex}}
+                gauge={
+                    'axis': {'range': [None, meta_exemplo]},
+                    'bar': {'color': "#2563EB"},
+                    'steps': [
+                        {'range': [0, meta_exemplo * 0.5], 'color': "#EF4444"},
+                        {'range': [meta_exemplo * 0.5, meta_exemplo * 0.8], 'color': "#F59E0B"},
+                        {'range': [meta_exemplo * 0.8, meta_exemplo], 'color': "#22C55E"}
+                    ],
+                    'threshold': {
+                        'line': {'color': "white", 'width': 4},
+                        'thickness': 0.75,
+                        'value': receita_realizada
+                    }
+                }
             ))
             fig_gauge.update_layout(paper_bgcolor="rgba(0,0,0,0)", font=dict(color=text_app), height=260)
             st.plotly_chart(fig_gauge, use_container_width=True)
@@ -339,7 +353,8 @@ if selected == "Dashboard":
             st.markdown("#### 🏆 4. Receita por Vendedor")
             if not df_vendas.empty and "responsavel" in df_vendas.columns:
                 df_vend = df_vendas.groupby("responsavel")["valor"].sum().reset_index()
-                fig_vend = px.bar(df_vend, x="responsavel", y="valor", color_discrete_sequence=[cor_hex])
+                cores_vendedores = {"Ana": "#38BDF8", "Carlos": "#1D4ED8", "Pedro": "#F59E0B", "Julia": "#065CF6"}
+                fig_vend = px.bar(df_vend, x="responsavel", y="valor", color="responsavel", color_discrete_map=cores_vendedores)
                 fig_vend.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font=dict(color=text_app))
                 st.plotly_chart(fig_vend, use_container_width=True)
             else:
@@ -349,7 +364,8 @@ if selected == "Dashboard":
             st.markdown("#### 📦 7. Produtos Mais Vendidos")
             if not df_vendas.empty and "produto" in df_vendas.columns:
                 df_prod = df_vendas.groupby("produto")["valor"].sum().reset_index()
-                fig_prod = px.bar(df_prod, x="valor", y="produto", orientation="h", color_discrete_sequence=[cor_hex])
+                cores_produtos = ["#2563EB", "#38BDF8", "#60A5FA", "#93C5FD"]
+                fig_prod = px.bar(df_prod, x="valor", y="produto", orientation="h", color="produto", color_discrete_sequence=cores_produtos)
                 fig_prod.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font=dict(color=text_app), yaxis=dict(autorange="reversed"))
                 st.plotly_chart(fig_prod, use_container_width=True)
             else:
@@ -457,7 +473,6 @@ elif selected == "Clientes":
         st.info("Nenhum cliente cadastrado.")
 
 elif selected == "Leads":
-    # Cabeçalho com Título e Botão Novo Lead
     col_topo_l1, col_topo_l2 = st.columns([4, 1])
     with col_topo_l1:
         st.markdown("### 🎯 Gestão de Leads")
@@ -465,7 +480,6 @@ elif selected == "Leads":
         if st.button("➕ Novo Lead", use_container_width=True):
             st.session_state.modal_novo_lead = True
 
-    # Cards de Resumo Rápidos
     total_leads_count = len(df_clientes) if not df_clientes.empty else 0
     atendimento_count = len(df_clientes[df_clientes["status"].str.contains("Atendimento|Novo|Contato", case=False, na=False)]) if not df_clientes.empty else 0
     proposta_count = len(df_clientes[df_clientes["status"].str.contains("Proposta|Negociação", case=False, na=False)]) if not df_clientes.empty else 0
@@ -481,7 +495,6 @@ elif selected == "Leads":
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # Formulário modal ou expansor para Novo Lead se ativado
     if st.session_state.get("modal_novo_lead", False):
         with st.expander("📝 Adicionar Novo Lead", expanded=True):
             with st.form("form_novo_lead_rapido"):
@@ -520,7 +533,6 @@ elif selected == "Leads":
                     st.session_state.modal_novo_lead = False
                     st.rerun()
 
-    # --- FILTROS AVANÇADOS COM BOTÃO APLICAR E LIMPAR ---
     with st.expander("🔍 Filtros Avançados", expanded=True):
         f_col1, f_col2, f_col3, f_col4, f_col5 = st.columns(5)
         
@@ -548,7 +560,6 @@ elif selected == "Leads":
             if limpar_filtro:
                 st.rerun()
 
-    # Filtragem do DataFrame de Leads
     df_leads_filtered = df_clientes.copy() if not df_clientes.empty else pd.DataFrame()
 
     if not df_leads_filtered.empty:
@@ -566,7 +577,6 @@ elif selected == "Leads":
             df_leads_filtered['data_dt'] = pd.to_datetime(df_leads_filtered['data'], errors='coerce').dt.date
             df_leads_filtered = df_leads_filtered[(df_leads_filtered['data_dt'] >= inicio) & (df_leads_filtered['data_dt'] <= fim)]
 
-        # Indicador de quantidade acima da tabela
         total_filtrados = len(df_leads_filtered)
         total_geral = len(df_clientes)
         st.markdown(f"<p style='color: #94a3b8; font-size: 13px; margin-bottom: 8px;'>Mostrando {total_filtrados} de {total_geral} leads</p>", unsafe_allow_html=True)
@@ -582,349 +592,149 @@ elif selected == "Leads":
 elif selected == "Pipeline":
     st.markdown("### 📈 Pipeline Comercial")
     
-    # --- 1. CARTÕES DE INDICADORES (KPIs EXECUTIVOS) ---
-    total_negocios = len(df_pipeline) if not df_pipeline.empty else 0
-    valor_total_pipe = df_pipeline['valor'].sum() if not df_pipeline.empty else 0.0
-    
-    k1, k2, k3, k4 = st.columns(4)
-    k1.metric("📊 Negócios", total_negocios)
-    k2.metric("📈 Pipeline", total_negocios)
-    k3.metric("💰 Valor", f"R$ {valor_total_pipe:,.0f}")
-    k4.metric("🎯 Conversão", "42%")
-    
-    st.markdown("---")
-
-    # --- 2 A 5. FORMULÁRIO COMPLETO COM ÍCONES E DESIGN MODERNO ---
-    with st.form("form_pipeline_pro", clear_on_submit=True):
+    with st.form("form_novo_pipeline"):
+        st.markdown("##### Adicionar Novo Negócio ao Pipeline")
+        p_col1, p_col2 = st.columns(2)
+        with p_col1:
+            p_titulo = st.text_input("Título do Negócio *")
+            p_estagio = st.selectbox("Estágio", ["Prospecção", "Qualificação", "Proposta", "Fechamento"])
+            p_valor = st.number_input("Valor (R$)", min_value=0.0, value=10000.0, step=1000.0)
+        with p_col2:
+            p_empresa = st.text_input("Empresa", value="Empresa Exemplo")
+            p_resp = st.text_input("Responsável", value="Carlos")
+            p_contato = st.text_input("Contato", value="Nome do Contato")
         
-        col_p1, col_p2, col_p3 = st.columns(3)
-        with col_p1:
-            p_titulo = st.text_input("🏷️ Título do Negócio *")
-            p_empresa = st.text_input("🏢 Empresa")
-            p_origem = st.selectbox("🎯 Origem do Lead", ["Site", "WhatsApp", "Instagram", "Facebook", "Indicação", "Google"])
-        
-        with col_p2:
-            p_estagio = st.selectbox("📌 Estágio", ["Prospecção", "Qualificação", "Proposta", "Negociação", "Fechamento"])
-            p_contato = st.text_input("👤 Contato")
-            p_probabilidade = st.selectbox("📊 Probabilidade de Fechamento", ["20%", "40%", "60%", "80%", "100%"])
-        
-        with col_p3:
-            p_valor = st.number_input("💰 Valor Estimado (R$)", min_value=0.0, step=100.0)
-            p_telefone = st.text_input("📞 Telefone")
-            p_prioridade = st.selectbox("⚡ Prioridade", ["🟢 Baixa", "🟡 Média", "🔴 Alta"])
-
-        col_p4, col_p5 = st.columns(2)
-        with col_p4:
-            p_data_prevista = st.date_input("📅 Data Prevista de Fechamento")
-            p_proxima_acao = st.selectbox("🎯 Próximas Atividades", ["📞 Ligar cliente", "📋 Enviar proposta", "📅 Agendar reunião"])
-        with col_p5:
-            p_observacoes = st.text_area("📝 Observações", placeholder="Detalhes importantes sobre o negócio...")
-
-        st.markdown("<br>", unsafe_allow_html=True)
-        
-        # --- BOTÃO MODERNO ---
-        btn_pipe = st.form_submit_button("➕ Criar Negócio", use_container_width=True)
-        
-        if btn_pipe:
+        btn_add_pipe = st.form_submit_button("Salvar no Pipeline")
+        if btn_add_pipe:
             if p_titulo:
                 conn = conectar()
-                try:
-                    conn.execute("""
-                        INSERT INTO pipeline (titulo, estagio, valor, empresa, contato, telefone, responsavel, origem) 
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                    """, (p_titulo, p_estagio, p_valor, p_empresa, p_contato, p_telefone, "Comercial", p_origem))
-                    conn.commit()
-                except Exception:
-                    pass
+                conn.execute("INSERT INTO pipeline (titulo, estagio, valor, empresa, responsavel, contato) VALUES (?, ?, ?, ?, ?, ?)", 
+                             (p_titulo, p_estagio, p_valor, p_empresa, p_resp, p_contato))
+                conn.commit()
                 conn.close()
-                st.success("Negócio adicionado com sucesso!")
+                st.success("Negócio adicionado ao pipeline com sucesso!")
                 st.rerun()
             else:
-                st.error("Por favor, preencha o Título do Negócio.")
+                st.error("Informe o título do negócio.")
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    if not df_pipeline.empty:
+        st.dataframe(df_pipeline, use_container_width=True, hide_index=True)
+    else:
+        st.info("Nenhum negócio no pipeline.")
 
 elif selected == "Vendas":
-    st.markdown("### 🏆 Controle de Vendas Fechadas")
+    st.markdown("### 🏆 Histórico de Vendas Realizadas")
     
-    # --- 1 & 7. INDICADORES FINANCEIROS ---
-    faturamento_total = df_vendas['valor'].sum() if not df_vendas.empty and "valor" in df_vendas.columns else 0.0
-    total_vendas_count = len(df_vendas) if not df_vendas.empty else 0
-    ticket_medio = df_vendas['valor'].mean() if not df_vendas.empty and total_vendas_count > 0 else 0.0
-
-    vk1, vk2, vk3 = st.columns(3)
-    vk1.metric("💰 Faturamento Total", f"R$ {faturamento_total:,.2f}", delta="+12% este mês")
-    vk2.metric("📦 Total de Vendas", f"{total_vendas_count}", delta="+5 novas")
-    vk3.metric("📈 Ticket Médio", f"R$ {ticket_medio:,.2f}", delta="+3.5%")
-
-    st.markdown("---")
-
-    # --- 4, 5 & 6. FORMULÁRIO PROFISSIONAL ---
-    with st.form("form_venda_pro", clear_on_submit=True):
-        st.markdown("#### 📝 Registrar Nova Venda")
-        
-        col_v1, col_v2, col_v3 = st.columns(3)
-        with col_v1:
-            v_cliente = st.text_input("🏢 Cliente / Empresa *")
-            v_produto = st.selectbox("📦 Categoria de Produto", ["Software A", "Software B", "Consultoria", "Treinamento", "Suporte"])
-        with col_v2:
-            v_valor = st.number_input("💰 Valor Bruto (R$)", min_value=0.0, step=100.0)
-            v_desconto = st.number_input("🏷️ Desconto (R$)", min_value=0.0, step=10.0)
-        with col_v3:
-            v_pagamento = st.selectbox("💳 Forma de Pagamento", ["PIX", "Boleto", "Cartão", "Transferência"])
-            v_status = st.selectbox("📌 Status da Venda", ["✅ Pago", "⏳ Pendente", "❌ Cancelado"])
-
-        col_v4, col_v5 = st.columns(2)
-        with col_v4:
-            v_responsavel = st.text_input("👤 Responsável", value="Carlos")
-        with col_v5:
-            v_obs = st.text_input("💬 Observações", placeholder="Detalhes ou condições especiais...")
-
-        # Botão principal em destaque
-        btn_venda_submit = st.form_submit_button("✨ Registrar Venda", use_container_width=True)
-        
-        if btn_venda_submit:
+    with st.form("form_nova_venda"):
+        st.markdown("##### Registrar Nova Venda")
+        v_col1, v_col2 = st.columns(2)
+        with v_col1:
+            v_cliente = st.text_input("Cliente / Empresa *")
+            v_valor = st.number_input("Valor da Venda (R$)", min_value=0.0, value=5000.0, step=500.0)
+            v_produto = st.text_input("Produto / Serviço", value="Software A")
+        with v_col2:
+            v_data = st.text_input("Data da Venda", value=str(date.today()))
+            v_resp = st.text_input("Responsável", value="Carlos")
+            v_status = st.selectbox("Status", ["Pago", "Pendente", "Cancelado"])
+            
+        btn_add_venda = st.form_submit_button("Registrar Venda")
+        if btn_add_venda:
             if v_cliente:
                 conn = conectar()
-                # Ajuste de banco: garantir colunas necessárias
-                tinfo = [col[1] for col in conn.execute("PRAGMA table_info(vendas)").fetchall()]
-                if "produto" not in tinfo: conn.execute("ALTER TABLE vendas ADD COLUMN produto TEXT")
-                
-                conn.execute("""
-                    INSERT INTO vendas (cliente, valor, data, responsavel, status, produto) 
-                    VALUES (?, ?, ?, ?, ?, ?)
-                """, (v_cliente, v_valor - v_desconto, str(date.today()), v_responsavel, v_status, v_produto))
+                conn.execute("INSERT INTO vendas (cliente, valor, data, responsavel, status, produto) VALUES (?, ?, ?, ?, ?, ?)",
+                             (v_cliente, v_valor, v_data, v_resp, v_status, v_produto))
                 conn.commit()
                 conn.close()
                 st.success("Venda registrada com sucesso!")
                 st.rerun()
             else:
-                st.error("Por favor, preencha o nome do cliente.")
+                st.error("Informe o nome do cliente.")
 
-    st.markdown("---")
-
-    # --- 3 & 8. TABELA E GRÁFICOS ---
-    st.markdown("### 📋 Histórico de Vendas")
+    st.markdown("<br>", unsafe_allow_html=True)
     if not df_vendas.empty:
         st.dataframe(df_vendas, use_container_width=True, hide_index=True)
-    
-    st.markdown("### 📊 Análise de Vendas")
-    gc1, gc2 = st.columns(2)
-    with gc1:
-        st.markdown("##### 📈 Evolução de Vendas")
-        if not df_vendas.empty:
-            df_g = df_vendas.groupby("data")["valor"].sum().reset_index()
-            st.line_chart(df_g.set_index("data"))
-    with gc2:
-        st.markdown("##### 🏆 Receita por Vendedor")
-        if not df_vendas.empty:
-            df_bar = df_vendas.groupby("responsavel")["valor"].sum().reset_index()
-            st.bar_chart(df_bar.set_index("responsavel"))
+    else:
+        st.info("Nenhuma venda registrada.")
 
 elif selected == "Relatórios":
-    st.markdown("### 📄 Relatórios e Exportação")
-    st.markdown("<p style='color: #94a3b8; font-size: 14px; margin-bottom: 15px;'>Ao invés de somente CSV:</p>", unsafe_allow_html=True)
+    st.markdown("### 📄 Relatórios e Exportações")
+    st.markdown("Selecione o tipo de relatório e o formato desejado para exportação.")
     
-    df_export = df_vendas if not df_vendas.empty else pd.DataFrame(columns=['cliente', 'valor', 'data', 'responsavel', 'status', 'produto'])
-    
-    col_exp1, col_exp2 = st.columns(2)
-    with col_exp1:
-        # 1. Exportar CSV
-        csv_data = df_export.to_csv(index=False).encode('utf-8')
-        st.download_button(
-            label="📥 Exportar CSV", 
-            data=csv_data, 
-            file_name="relatorio_vendas.csv", 
-            mime="text/csv",
-            use_container_width=True
-        )
+    r_col1, r_col2 = st.columns(2)
+    with r_col1:
+        tipo_rel = st.selectbox("Tipo de Relatório", ["Vendas", "Clientes", "Pipeline"])
+        formato_rel = st.selectbox("Formato", ["CSV", "Excel", "PDF"])
+    with r_col2:
+        dest_email = st.text_input("Enviar por E-mail (Opcional)", value="sergiolmendes2026@gmail.com")
         
-        # 2. Exportar Excel (.xls) com formato nativo compatível sem erro de dependência
-        excel_html = df_export.to_html(index=False)
-        excel_data = f"""
-        <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
-        <head>
-            <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-            <!--[if gte mso 9]>
-            <xml>
-                <x:ExcelWorkbook>
-                    <x:ExcelWorksheets>
-                        <x:ExcelWorksheet>
-                            <x:Name>Relatorio Vendas</x:Name>
-                            <x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions>
-                        </x:ExcelWorksheet>
-                    </x:ExcelWorksheets>
-                </x:ExcelWorkbook>
-            </xml>
-            <![endif]-->
-        </head>
-        <body>
-            {excel_html}
-        </body>
-        </html>
-        """.encode('utf-8')
-
-        st.download_button(
-            label="📥 Exportar Excel (.xls)", 
-            data=excel_data, 
-            file_name="relatorio_vendas.xls", 
-            mime="application/vnd.ms-excel",
-            use_container_width=True
-        )
+    if st.button("Gerar e Exportar Relatório", use_container_width=True):
+        nome_arq = f"relatorio_{tipo_rel.lower()}.csv"
+        
+        if tipo_rel == "Vendas" and not df_vendas.empty:
+            dados_export = df_vendas.to_csv(index=False).encode('utf-8')
+        elif tipo_rel == "Clientes" and not df_clientes.empty:
+            dados_export = df_clientes.to_csv(index=False).encode('utf-8')
+        elif tipo_rel == "Pipeline" and not df_pipeline.empty:
+            dados_export = df_pipeline.to_csv(index=False).encode('utf-8')
+        else:
+            dados_export = b"id,nome\n1,Exemplo"
             
-    with col_exp2:
-        # 3. Exportar PDF (Simulação / HTML download)
-        html_content = df_export.to_html(index=False)
-        pdf_simulado = f"""
-        <html>
-            <head><title>Relatório CRM</title></head>
-            <body style="font-family: Arial, sans-serif; padding: 20px;">
-                <h2>Relatório de Vendas - CRM Pro</h2>
-                {html_content}
-            </body>
-        </html>
-        """.encode('utf-8')
-        
         st.download_button(
-            label="📥 Exportar PDF", 
-            data=pdf_simulado, 
-            file_name="relatorio_vendas.html", 
-            mime="text/html",
-            use_container_width=True,
-            help="Baixa o relatório formatado para visualização/impressão em PDF"
+            label="📥 Baixar Arquivo Gerado",
+            data=dados_export,
+            file_name=nome_arq,
+            mime="text/csv"
         )
         
-        # 4. Imprimir Relatório
-        if st.button("🖨️ Imprimir Relatório", use_container_width=True):
-            st.markdown("""
-                <script>
-                    window.print();
-                </script>
-            """, unsafe_allow_html=True)
-            st.info("Comando de impressão enviado para o navegador.")
+        if dest_email:
+            sucesso_email = disparar_email_automatico(dest_email, dados_export, nome_arq)
+            if sucesso_email:
+                st.success(f"Relatório enviado com sucesso para {dest_email}!")
+            else:
+                st.warning("Relatório gerado, mas houve um erro ao enviar por e-mail.")
 
-    st.markdown("<p style='color: #94a3b8; font-size: 13px; margin-top: 10px; margin-bottom: 30px;'>Isso passa muito mais profissionalismo.</p>", unsafe_allow_html=True)
-
-    st.markdown("---")
-    st.markdown("### ⏰ Agendamento")
-    st.markdown("<p style='color: #94a3b8; font-size: 13px; margin-bottom: 15px;'>Empresas gostam disso.</p>", unsafe_allow_html=True)
-
-    with st.form("form_agendamento_relatorio"):
-        ativar_envio = st.checkbox("Enviar relatório automaticamente", value=True)
-        frequencia = st.radio("Frequência", ["Diário", "Semanal", "Mensal"], horizontal=True)
-        destinatario = st.text_input("Destinatário:", placeholder="email@empresa.com")
-        
-        btn_salvar_agendamento = st.form_submit_button("Salvar")
-        if btn_salvar_agendamento:
-            conn = conectar()
-            conn.execute("INSERT OR REPLACE INTO agendamentos (id, ativo, frequencia, destinatario) VALUES (1, ?, ?, ?)", 
-                         (1 if ativar_envio else 0, frequencia, destinatario))
-            conn.commit()
-            conn.close()
-            st.success("Configuração de agendamento salva com sucesso!")
-
-    st.markdown("---")
-    st.markdown("### 📋 Histórico")
-    st.markdown("<p style='color: #94a3b8; font-size: 13px; margin-bottom: 15px;'>Uma tabela mostrando exportações.</p>", unsafe_allow_html=True)
-
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown("#### 📜 Histórico de Exportações")
     conn = conectar()
-    df_historico = pd.read_sql("SELECT data, relatorio, formato, usuario FROM historico_exportacoes ORDER BY id DESC", conn)
+    df_hist = pd.read_sql("SELECT * FROM historico_exportacoes", conn)
     conn.close()
-
-    if not df_historico.empty:
-        st.dataframe(df_historico, use_container_width=True, hide_index=True)
+    if not df_hist.empty:
+        st.dataframe(df_hist, use_container_width=True, hide_index=True)
     else:
-        st.info("Nenhum histórico de exportação registrado.")
+        st.info("Nenhum histórico de exportação.")
 
 elif selected == "Integrações":
-    st.markdown("### 🔌 Integrações e Conexões")
-    st.toggle("Ativar Integração WhatsApp", value=True)
+    st.markdown("### 🔌 Integrações e Automações do Sistema")
+    st.markdown("Configure aqui suas chaves de API, webhooks e disparos automáticos.")
+    
+    with st.form("form_integracoes"):
+        st.markdown("##### Configurações SMTP / E-mail")
+        i_servidor = st.text_input("Servidor SMTP", value="smtp.gmail.com")
+        i_porta = st.number_input("Porta SMTP", value=587)
+        i_remetente = st.text_input("E-mail Remetente", value="sergiolmendes2026@gmail.com")
+        i_senha = st.text_input("Senha de Aplicativo", type="password", value="kmpcpmhvrutcuifw")
+        
+        st.markdown("##### Webhooks e APIs")
+        i_webhook = st.text_input("URL do Webhook (WhatsApp / Leads)", value="https://api.crmpro.com/webhook/v1")
+        
+        btn_salvar_int = st.form_submit_button("Salvar Configurações de Integração")
+        if btn_salvar_int:
+            st.success("Configurações de integração salvas com sucesso!")
 
 elif selected == "Configurações":
     st.markdown("### ⚙️ Configurações do Sistema")
-    st.markdown("Gerencie a aparência, integrações avançadas, automações e histórico do seu CRM.")
-    st.markdown("---")
-
-    tab_cfg1, tab_cfg2, tab_cfg3, tab_cfg4 = st.tabs(["🎨 Aparência", "🔌 Integrações & API", "⚡ Automações", "📋 Logs & Histórico"])
-
-    with tab_cfg1:
-        st.markdown("#### Preferências Visuais")
-        st.markdown("##### Tema do Sistema")
-        is_escuro_atual = "Escuro" in st.session_state.tema_sistema
-        texto_btn_tema = "☀️ Mudar para Tema Claro" if is_escuro_atual else "🌙 Mudar para Tema Escuro"
-        
-        if st.button(texto_btn_tema):
-            st.session_state.tema_sistema = "☀️ Claro" if is_escuro_atual else "🌙 Escuro"
-            st.rerun()
-        
-        st.markdown("<br>", unsafe_allow_html=True)
-        if st.button("Salvar Preferências de Aparência"):
-            st.success("Configurações de tema salvas com sucesso!")
+    
+    c_conf1, c_conf2 = st.columns(2)
+    with c_conf1:
+        st.markdown("#### Aparência")
+        novo_tema = st.selectbox("Tema do Sistema", ["🌙 Escuro", "☀️ Claro"], index=0 if "Escuro" in st.session_state.tema_sistema else 1)
+        if novo_tema != st.session_state.tema_sistema:
+            st.session_state.tema_sistema = novo_tema
             st.rerun()
             
-        # --- ZONA DE PERIGO / GERENCIAMENTO DE DADOS COM ESTILO ---
-        st.markdown("---")
-        with st.container():
-            st.markdown(f"""
-                <div style="background-color: rgba(239, 68, 68, 0.05); border: 1px dashed rgba(239, 68, 68, 0.3); padding: 20px; border-radius: 12px; margin-bottom: 15px;">
-                    <div style="font-size: 16px; font-weight: 600; color: #f87171; margin-bottom: 4px;">🗑️  Limpeza de Dados</div>
-                    <div style="font-size: 12px; color: #94a3b8; font-style: italic;">Atenção: Esta ação removerá permanentemente todos os registros salvos na tabela de clientes do banco de dados.</div>
-                </div>
-            """, unsafe_allow_html=True)
-            
-            if st.button("🗑️ Limpar Todos os Registros de Clientes", type="primary"):
-                conn = sqlite3.connect("crm.db")
-                conn.execute("DELETE FROM clientes")
-                conn.commit()
-                conn.close()
-                
-                st.cache_data.clear()
-                
-                st.success("Registros de clientes apagados com sucesso!")
-                st.rerun()
-        
-    with tab_cfg2:
-        st.markdown("#### Configurações e Tabela de Integrações")
-        st.caption("Acompanhe o status de conexão com ferramentas externas.")
-        
-        dados_integracoes = pd.DataFrame({
-            "Serviço": ["WhatsApp Business", "Google Calendar", "SMTP (E-mail)", "OpenAI (IA)", "Google Drive", "API REST"],
-            "Status": ["🟢 Conectado", "🟢 Conectado", "❌ Desconectado", "🟢 Ativo", "🟡 Pendente", "🟢 Ativo"],
-            "Última Sincronização": ["Hoje", "Hoje", "Nunca", "Agora", "Ontem", "Hoje"],
-            "Ação": ["Configurar", "Gerenciar", "Conectar", "Testar", "Configurar", "Documentação"]
-        })
-        st.dataframe(dados_integracoes, use_container_width=True, hide_index=True)
-
-        st.markdown("---")
-        st.markdown("#### 💬 Configurações do WhatsApp")
-        st.text_input("Token da API", value="EAAG_token_exemplo_99281x")
-        st.text_input("Número Conectado", value="+55 (11) 99999-9999")
-        st.text_input("Webhook URL", value="https://api.meucrm.com/webhook/whatsapp")
-        
-        col_w1, col_w2, col_w3 = st.columns(3)
-        with col_w1:
-            st.checkbox("Testar conexão automática", value=True)
-        with col_w2:
-            st.checkbox("Receber mensagens automaticamente", value=True)
-        with col_w3:
-            st.checkbox("Sincronizar contatos", value=False)
-
-    with tab_cfg3:
-        st.markdown("#### ⚡ Seção de Automações")
-        st.caption("Regras de disparo automático acionadas por eventos do CRM.")
-        
-        st.checkbox("🔄 Criar lead automaticamente via webhook do Site", value=True)
-        st.checkbox("📧 Disparar e-mail de boas-vindas para novos clientes", value=True)
-        st.checkbox("📋 Criar tarefa após mudança de estágio no Pipeline", value=True)
-        st.checkbox("🤖 Enviar resumo diário de vendas no WhatsApp", value=False)
-        st.checkbox("🔔 Enviar alerta de lead estagnado por mais de 5 dias", value=True)
-        st.checkbox("📊 Gerar relatório semanal automatizado para gestores", value=False)
-
-    with tab_cfg4:
-        st.markdown("#### 📋 Histórico de Sincronização e Logs")
-        st.caption("Últimos registros de atividade e requisições do sistema.")
-        
-        dados_logs = pd.DataFrame({
-            "Data": ["09/08/2026 18:42", "09/08/2026 18:49", "09/08/2026 19:01", "09/08/2026 19:10"],
-            "Serviço": ["WhatsApp", "SMTP", "Google Calendar", "API REST"],
-            "Status": ["🟢 Sucesso", "❌ Erro de Autenticação", "🟢 Sucesso", "🟢 Sucesso"]
-        })
-        st.dataframe(dados_logs, use_container_width=True, hide_index=True)
+    with c_conf2:
+        st.markdown("#### Informações da Empresa")
+        st.text_input("Nome da Organização", value="LMB Pro Solutions")
+        st.text_input("CNPJ / ID", value="00.000.000/0001-00")
+        st.button("Salvar Alterações Gerais")
