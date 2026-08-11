@@ -482,7 +482,7 @@ elif selected == "Clientes":
         st.dataframe(df_clientes[colunas_mostrar], use_container_width=True, hide_index=True)
     else:
         st.info("Nenhum cliente cadastrado.")
-                st.error("Por favor, preencha ao menos o Nome do Contato.")
+        st.error("Por favor, preencha ao menos o Nome do Contato.")
 
     st.markdown("<div style='margin-top: 35px;'></div>", unsafe_allow_html=True)
     st.markdown("### 📋 Base de Dados Geral (CRM)")
