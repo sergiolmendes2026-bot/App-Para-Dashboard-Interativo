@@ -83,6 +83,7 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 # --- BANCO DE DADOS E CORREÇÃO DE ESQUEMA ---
+# --- BANCO DE DADOS E CORREÇÃO DE ESQUEMA ---
 def inicializar_banco():
     conn = sqlite3.connect("crm.db")
     cursor = conn.cursor()
@@ -94,7 +95,7 @@ def inicializar_banco():
     cursor.execute("CREATE TABLE IF NOT EXISTS historico_exportacoes (id INTEGER PRIMARY KEY AUTOINCREMENT, data TEXT, relatorio TEXT, formato TEXT, usuario TEXT)")
     cursor.execute("CREATE TABLE IF NOT EXISTS automacoes (id INTEGER PRIMARY KEY AUTOINCREMENT, chave TEXT, ativo INTEGER)")
     
-    # Nova tabela de Atividades estruturada
+    # Cria a tabela de atividades se não existir
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS atividades (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -110,6 +111,17 @@ def inicializar_banco():
         )
     """)
     
+    # Garante que colunas adicionais existam caso a tabela já estivesse criada
+    tinfo_atividades = [col[1] for col in cursor.execute("PRAGMA table_info(atividades)").fetchall()]
+    colunas_necessarias = {
+        "tipo": "TEXT", "cliente": "TEXT", "responsavel": "TEXT", 
+        "data": "TEXT", "hora": "TEXT", "prioridade": "TEXT", 
+        "status": "TEXT", "descricao": "TEXT", "lembrete": "TEXT"
+    }
+    for col, tipo_col in colunas_necessarias.items():
+        if col not in tinfo_atividades:
+            cursor.execute(f"ALTER TABLE atividades ADD COLUMN {col} {tipo_col}")
+
     tinfo_clientes = [col[1] for col in cursor.execute("PRAGMA table_info(clientes)").fetchall()]
     if "prioridade" not in tinfo_clientes:
         cursor.execute("ALTER TABLE clientes ADD COLUMN prioridade TEXT DEFAULT 'Média'")
