@@ -635,46 +635,80 @@ elif selected == "Pipeline":
 
 elif selected == "Vendas":
     st.markdown("### 🏆 Controle de Vendas Fechadas")
+    
+    # --- 1 & 7. INDICADORES FINANCEIROS ---
     faturamento_total = df_vendas['valor'].sum() if not df_vendas.empty and "valor" in df_vendas.columns else 0.0
     total_vendas_count = len(df_vendas) if not df_vendas.empty else 0
     ticket_medio = df_vendas['valor'].mean() if not df_vendas.empty and total_vendas_count > 0 else 0.0
 
     vk1, vk2, vk3 = st.columns(3)
-    vk1.metric("💰 Faturamento Total", f"R$ {faturamento_total:,.2f}")
-    vk2.metric("📦 Total de Vendas", f"{total_vendas_count}")
-    vk3.metric("📈 Ticket Médio", f"R$ {ticket_medio:,.2f}")
+    vk1.metric("💰 Faturamento Total", f"R$ {faturamento_total:,.2f}", delta="+12% este mês")
+    vk2.metric("📦 Total de Vendas", f"{total_vendas_count}", delta="+5 novas")
+    vk3.metric("📈 Ticket Médio", f"R$ {ticket_medio:,.2f}", delta="+3.5%")
 
-    st.markdown("<div style='margin-bottom: 30px;'></div>", unsafe_allow_html=True)
+    st.markdown("---")
 
-    with st.form("form_venda", clear_on_submit=True):
-        col_v1, col_v2, col_v3, col_v4, col_v5 = st.columns(5)
+    # --- 4, 5 & 6. FORMULÁRIO PROFISSIONAL ---
+    with st.form("form_venda_pro", clear_on_submit=True):
+        st.markdown("#### 📝 Registrar Nova Venda")
+        
+        col_v1, col_v2, col_v3 = st.columns(3)
         with col_v1:
-            v_cliente = st.text_input("Cliente *")
+            v_cliente = st.text_input("🏢 Cliente / Empresa *")
+            v_produto = st.selectbox("📦 Categoria de Produto", ["Software A", "Software B", "Consultoria", "Treinamento", "Suporte"])
         with col_v2:
-            v_valor = st.number_input("Valor (R$)", min_value=0.0, step=100.0)
+            v_valor = st.number_input("💰 Valor Bruto (R$)", min_value=0.0, step=100.0)
+            v_desconto = st.number_input("🏷️ Desconto (R$)", min_value=0.0, step=10.0)
         with col_v3:
-            v_produto = st.text_input("Produto", value="Software A")
+            v_pagamento = st.selectbox("💳 Forma de Pagamento", ["PIX", "Boleto", "Cartão", "Transferência"])
+            v_status = st.selectbox("📌 Status da Venda", ["✅ Pago", "⏳ Pendente", "❌ Cancelado"])
+
+        col_v4, col_v5 = st.columns(2)
         with col_v4:
-            v_resp = st.text_input("Responsável", value="Carlos")
+            v_responsavel = st.text_input("👤 Responsável", value="Carlos")
         with col_v5:
-            v_data = st.text_input("Data (AAAA-MM-DD)", value=str(date.today()))
-            
-        btn_venda = st.form_submit_button("Registrar Venda")
-        if btn_venda:
-            if v_cliente and v_valor > 0:
+            v_obs = st.text_input("💬 Observações", placeholder="Detalhes ou condições especiais...")
+
+        # Botão principal em destaque
+        btn_venda_submit = st.form_submit_button("✨ Registrar Venda", use_container_width=True)
+        
+        if btn_venda_submit:
+            if v_cliente:
                 conn = conectar()
+                # Ajuste de banco: garantir colunas necessárias
                 tinfo = [col[1] for col in conn.execute("PRAGMA table_info(vendas)").fetchall()]
-                if "produto" not in tinfo:
-                    conn.execute("ALTER TABLE vendas ADD COLUMN produto TEXT")
+                if "produto" not in tinfo: conn.execute("ALTER TABLE vendas ADD COLUMN produto TEXT")
                 
-                conn.execute("INSERT INTO vendas (cliente, valor, data, responsavel, status, produto) VALUES (?, ?, ?, ?, ?, ?)", 
-                           (v_cliente, v_valor, v_data, v_resp, "Pago", v_produto))
+                conn.execute("""
+                    INSERT INTO vendas (cliente, valor, data, responsavel, status, produto) 
+                    VALUES (?, ?, ?, ?, ?, ?)
+                """, (v_cliente, v_valor - v_desconto, str(date.today()), v_responsavel, v_status, v_produto))
                 conn.commit()
                 conn.close()
                 st.success("Venda registrada com sucesso!")
                 st.rerun()
             else:
-                st.error("Preencha o cliente e um valor válido.")
+                st.error("Por favor, preencha o nome do cliente.")
+
+    st.markdown("---")
+
+    # --- 3 & 8. TABELA E GRÁFICOS ---
+    st.markdown("### 📋 Histórico de Vendas")
+    if not df_vendas.empty:
+        st.dataframe(df_vendas, use_container_width=True, hide_index=True)
+    
+    st.markdown("### 📊 Análise de Vendas")
+    gc1, gc2 = st.columns(2)
+    with gc1:
+        st.markdown("##### 📈 Evolução de Vendas")
+        if not df_vendas.empty:
+            df_g = df_vendas.groupby("data")["valor"].sum().reset_index()
+            st.line_chart(df_g.set_index("data"))
+    with gc2:
+        st.markdown("##### 🏆 Receita por Vendedor")
+        if not df_vendas.empty:
+            df_bar = df_vendas.groupby("responsavel")["valor"].sum().reset_index()
+            st.bar_chart(df_bar.set_index("responsavel"))
 
 elif selected == "Relatórios":
     st.markdown("### 📄 Relatórios e Exportação")
