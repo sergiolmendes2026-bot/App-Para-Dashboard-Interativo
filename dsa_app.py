@@ -65,14 +65,14 @@ st.markdown(f"""
         }}
         h1, h2, h3, h4 {{ color: {text_app}; }}
         
-        /* Letras maiores com sombra suave e elegante (sem efeito duplicado) */
+        /* Letras maiores com sombra suave e elegante nos menus */
         [data-testid="stSidebar"] button div p {{
             font-size: 16px !important;
             font-weight: 600 !important;
             text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.7) !important;
         }}
 
-        /* Estilo elegante para os botões do menu */
+        /* Estilo para os botões do menu */
         [data-testid="stSidebar"] div.stButton > button {{
             width: 100%; 
             text-align: left; 
@@ -80,14 +80,13 @@ st.markdown(f"""
             color: #f1f5f9 !important; 
             border: none !important; 
             border-radius: 10px !important;
-            padding: 10px 14px !important; 
-            margin-bottom: 4px;
+            padding: 8px 12px !important; 
+            margin-bottom: 2px;
             transition: all 0.25s ease-in-out;
         }}
         
-        /* Efeito ao passar o mouse: ilumina o fundo e desloca levemente para a direita */
         [data-testid="stSidebar"] div.stButton > button:hover {{ 
-            background-color: rgba(37, 99, 235, 0.15) !important; /* Toque sutil da cor azul do CRM */
+            background-color: rgba(37, 99, 235, 0.15) !important; 
             color: #ffffff !important;
             transform: translateX(4px);
         }}
@@ -98,13 +97,58 @@ st.markdown(f"""
             font-weight: 700;
             letter-spacing: 1px;
             text-transform: uppercase;
-            margin-top: 22px;
-            margin-bottom: 8px;
-            padding-left: 14px;
+            margin-top: 16px;
+            margin-bottom: 4px;
+            padding-left: 12px;
             text-shadow: 0px 1px 2px rgba(0, 0, 0, 0.5);
         }}
     </style>
 """, unsafe_allow_html=True)
+
+# --- BARRA LATERAL ---
+with st.sidebar:
+    st.markdown(f"""
+        <div style="padding: 5px 4px 10px 4px; display: flex; align-items: center; gap: 10px;">
+            <div>
+                <div style="font-weight: 700; font-size: 15px; color: {text_app}; letter-spacing: 0.5px;">CRM PRO</div>
+                <div style="font-size: 11px; color: #64748b; font-weight: 500;">Workspace v2.0</div>
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
+    
+    st.divider()
+
+    def menu_button(label, icon, key):
+        if st.button(f"{icon}  {label}", key=key, use_container_width=True):
+            st.session_state.selected = label
+            st.rerun()
+
+    st.markdown('<p class="sidebar-section-title">Principal</p>', unsafe_allow_html=True)
+    menu_button("Dashboard", "🏠", "nav_dashboard")
+    menu_button("Clientes", "👥", "nav_clientes")
+    menu_button("Leads", "🎯", "nav_leads")
+    menu_button("Agenda", "📅", "nav_agenda")
+    menu_button("Atividades", "📞", "nav_atividades")
+
+    st.markdown('<p class="sidebar-section-title">Comercial</p>', unsafe_allow_html=True)
+    menu_button("Pipeline", "📈", "nav_pipeline")
+    menu_button("Vendas", "💰", "nav_vendas")
+    menu_button("Propostas", "📄", "nav_propostas")
+    menu_button("Relatórios", "📊", "nav_relatorios")
+    menu_button("Metas", "🎯", "nav_metas")
+
+    st.markdown('<p class="sidebar-section-title">Marketing</p>', unsafe_allow_html=True)
+    menu_button("Campanhas", "📢", "nav_campanhas")
+    menu_button("WhatsApp", "💬", "nav_whatsapp")
+
+    st.markdown('<p class="sidebar-section-title">Sistema</p>', unsafe_allow_html=True)
+    menu_button("Integrações", "🔌", "nav_integracoes")
+    menu_button("Usuários", "👤", "nav_usuarios")
+    menu_button("Permissões", "🔒", "nav_permissoes")
+    menu_button("Notificações", "🔔", "nav_notificacoes")
+    menu_button("Configurações", "⚙️", "nav_configuracoes")
+
+selected = st.session_state.selected
 
 # --- BANCO DE DADOS E CORREÇÃO DE ESQUEMA ---
 def inicializar_banco():
