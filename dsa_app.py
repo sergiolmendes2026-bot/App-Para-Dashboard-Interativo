@@ -655,10 +655,16 @@ elif selected == "Relatórios":
         buffer = io.BytesIO()
         
         if formato_rel == "Excel":
-            with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
-                df_export.to_excel(writer, index=False, sheet_name=tipo_rel)
-            mime_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            file_extension = "xlsx"
+            try:
+                with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
+                    df_export.to_excel(writer, index=False, sheet_name=tipo_rel)
+                mime_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                file_extension = "xlsx"
+            except Exception:
+                st.warning("A biblioteca 'openpyxl' não está instalada no ambiente. Exportando em formato CSV alternativo.")
+                buffer.write(df_export.to_csv(index=False).encode('utf-8'))
+                mime_type = "text/csv"
+                file_extension = "csv"
         elif formato_rel == "PDF":
             try:
                 from fpdf import FPDF
