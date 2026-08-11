@@ -395,11 +395,39 @@ if selected == "Dashboard":
                 st.info("Sem dados de origem.")
 
         with c_l2:
-            st.markdown("#### 📋 6. Clientes por Status")
+           st.markdown("#### 📋 6. Clientes por Status")
             if not df_clientes.empty and "status" in df_clientes.columns:
                 df_status = df_clientes.groupby("status").size().reset_index(name="quantidade")
-                fig_status = px.bar(df_status, x="status", y="quantidade", color_discrete_sequence=[cor_hex])
-                fig_status.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font=dict(color=text_app))
+                
+                # Mapeamento de cores personalizadas para cada status
+                cores_status = {
+                    "🆕 Novo Lead": "#38BDF8",
+                    "📞 Primeiro Contato": "#60A5FA",
+                    "💬 Em Atendimento": "#8B5CF6",
+                    "📋 Proposta Enviada": "#F59E0B",
+                    "⏳ Aguardando Resposta": "#FBBF24",
+                    "🤝 Negociação": "#F97316",
+                    "✅ Venda Fechada": "#22C55E",
+                    "❌ Venda Perdida": "#EF4444",
+                    "🔄 Pós-Venda": "#10B981"
+                }
+                
+                fig_status = px.bar(
+                    df_status, 
+                    x="status", 
+                    y="quantidade", 
+                    color="status", 
+                    color_discrete_map=cores_status,
+                    text="quantidade"
+                )
+                fig_status.update_traces(texttemplate='%{y}', textposition='outside')
+                fig_status.update_layout(
+                    showlegend=False,
+                    paper_bgcolor="rgba(0,0,0,0)", 
+                    plot_bgcolor="rgba(0,0,0,0)", 
+                    font=dict(color=text_app),
+                    margin=dict(t=30, b=10)
+                )
                 st.plotly_chart(fig_status, use_container_width=True)
             else:
                 st.info("Sem dados de status.")
