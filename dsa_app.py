@@ -17,7 +17,7 @@ st.set_page_config(
 
 # --- INICIALIZAÇÃO DO ESTADO ---
 if "tema_sistema" not in st.session_state:
-    st.session_state.tema_sistema = "🌙 Escuro"
+    st.session_state.tema_sistema = "🌙 Escuro" 
 if "selected" not in st.session_state:
     st.session_state.selected = "Dashboard"
 
