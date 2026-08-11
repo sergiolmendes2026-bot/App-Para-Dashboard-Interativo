@@ -15,7 +15,6 @@ if "tema_sistema" not in st.session_state:
 if "selected" not in st.session_state:
     st.session_state.selected = "Dashboard"
 
-# Cor principal fixa do sistema
 cor_hex = "#2563EB"
 is_escuro = "Escuro" in st.session_state.tema_sistema
 
@@ -296,8 +295,9 @@ if selected == "Dashboard":
             if not df_vendas.empty and "responsavel" in df_vendas.columns:
                 df_vend = df_vendas.groupby("responsavel")["valor"].sum().reset_index()
                 cores_vendedores = {"Ana": "#38BDF8", "Carlos": "#1D4ED8", "Pedro": "#F59E0B", "Julia": "#065CF6"}
-                fig_vend = px.bar(df_vend, x="responsavel", y="valor", color="responsavel", color_discrete_map=cores_vendedores)
-                fig_vend.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font=dict(color=text_app))
+                fig_vend = px.bar(df_vend, x="responsavel", y="valor", color="responsavel", color_discrete_map=cores_vendedores, text="valor")
+                fig_vend.update_traces(marker_line_color="white", marker_line_width=1, texttemplate="R$ %{y:,.0f}", textposition="outside")
+                fig_vend.update_layout(showlegend=False, paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font=dict(color=text_app))
                 st.plotly_chart(fig_vend, use_container_width=True)
             else:
                 st.info("Sem dados de vendedores.")
@@ -306,9 +306,10 @@ if selected == "Dashboard":
             st.markdown("#### 📦 7. Produtos Mais Vendidos")
             if not df_vendas.empty and "produto" in df_vendas.columns:
                 df_prod = df_vendas.groupby("produto")["valor"].sum().reset_index()
-                cores_produtos = ["#2563EB", "#38BDF8", "#60A5FA", "#93C5FD"]
-                fig_prod = px.bar(df_prod, x="valor", y="produto", orientation="h", color="produto", color_discrete_sequence=cores_produtos)
-                fig_prod.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font=dict(color=text_app), yaxis=dict(autorange="reversed"))
+                cores_produtos = {"Software A": "#2563EB", "Software B": "#38BDF8", "Consultoria": "#60A5FA"}
+                fig_prod = px.bar(df_prod, x="valor", y="produto", orientation="h", color="produto", color_discrete_map=cores_produtos, text="valor")
+                fig_prod.update_traces(marker_line_color="white", marker_line_width=1, texttemplate="R$ %{x:,.0f}", textposition="outside")
+                fig_prod.update_layout(showlegend=False, paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font=dict(color=text_app), yaxis=dict(autorange="reversed"))
                 st.plotly_chart(fig_prod, use_container_width=True)
             else:
                 st.info("Sem dados de produtos.")
@@ -334,29 +335,12 @@ if selected == "Dashboard":
         with c_p2:
             st.markdown("#### 📈 Valor do Pipeline por Etapa")
             if not df_pipeline.empty and "estagio" in df_pipeline.columns:
-                df_pipe_bar = (
-                    df_pipeline.groupby("estagio")["valor"]
-                    .sum()
-                    .reset_index()
-                )
+                df_pipe_bar = df_pipeline.groupby("estagio")["valor"].sum().reset_index()
                 
-                # Ordem das etapas
-                ordem = [
-                    "Prospecção",
-                    "Qualificação",
-                    "Proposta",
-                    "Negociação",
-                    "Fechado"
-                ]
-                
-                df_pipe_bar["estagio"] = pd.Categorical(
-                    df_pipe_bar["estagio"],
-                    categories=ordem,
-                    ordered=True
-                )
+                ordem = ["Prospecção", "Qualificação", "Proposta", "Negociação", "Fechado"]
+                df_pipe_bar["estagio"] = pd.Categorical(df_pipe_bar["estagio"], categories=ordem, ordered=True)
                 df_pipe_bar = df_pipe_bar.sort_values("estagio")
 
-                # Cores por etapa
                 cores = {
                     "Prospecção": "#38BDF4",
                     "Qualificação": "#8B5CF6",
@@ -365,23 +349,8 @@ if selected == "Dashboard":
                     "Fechado": "#22C55E"
                 }
 
-                fig_bar_pipe = px.bar(
-                    df_pipe_bar,
-                    x="valor",
-                    y="estagio",
-                    orientation="h",
-                    color="estagio",
-                    color_discrete_map=cores,
-                    text="valor"
-                )
-                
-                fig_bar_pipe.update_traces(
-                    marker_line_color="white",
-                    marker_line_width=1,
-                    texttemplate="R$ %{x:,.0f}",
-                    textposition="outside"
-                )
-                
+                fig_bar_pipe = px.bar(df_pipe_bar, x="valor", y="estagio", orientation="h", color="estagio", color_discrete_map=cores, text="valor")
+                fig_bar_pipe.update_traces(marker_line_color="white", marker_line_width=1, texttemplate="R$ %{x:,.0f}", textposition="outside")
                 fig_bar_pipe.update_layout(
                     showlegend=False,
                     paper_bgcolor="rgba(0,0,0,0)", 
