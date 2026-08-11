@@ -339,28 +339,61 @@ if selected == "Dashboard":
             fig_gauge.update_layout(paper_bgcolor="rgba(0,0,0,0)", font=dict(color=text_app), height=260)
             st.plotly_chart(fig_gauge, use_container_width=True)
 
-        c_v3, c_v4 = st.columns(2)
-        with c_v3:
-            st.markdown("#### 🏆 4. Receita por Vendedor")
-            if not df_vendas.empty and "responsavel" in df_vendas.columns:
-                df_vend = df_vendas.groupby("responsavel")["valor"].sum().reset_index()
-                cores_vendedores = {"Ana": "#38BDF8", "Carlos": "#1D4ED8", "Pedro": "#F59E0B", "Julia": "#065CF6"}
-                fig_vend = px.bar(df_vend, x="responsavel", y="valor", color="responsavel", color_discrete_map=cores_vendedores)
-                fig_vend.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font=dict(color=text_app))
-                st.plotly_chart(fig_vend, use_container_width=True)
-            else:
-                st.info("Sem dados de vendedores.")
+     c_v3, c_v4 = st.columns(2)
+    with c_v3:
+        st.markdown("#### 🏆 4. Receita por Vendedor")
+        if not df_vendas.empty and "responsavel" in df_vendas.columns:
+            df_vend = df_vendas.groupby("responsavel")["valor"].sum().reset_index()
+            cores_vendedores = {"Ana": "#38BDF8", "Carlos": "#1D4ED8", "Pedro": "#F59E0B", "Julia": "#065CF6"}
+            fig_vend = px.bar(df_vend, x="responsavel", y="valor", color="responsavel", color_discrete_map=cores_vendedores)
+            fig_vend.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font=dict(color=text_app))
+            st.plotly_chart(fig_vend, use_container_width=True)
+        else:
+            st.info("Sem dados de vendedores.")
 
-      with c_v4:
-            st.markdown("#### 📦 7. Produtos Mais Vendidos")
-            if not df_vendas.empty and "produto" in df_vendas.columns:
-                df_prod = df_vendas.groupby("produto")["valor"].sum().reset_index()
-                cores_produtos = ["#2563EB", "#38BDF8", "#60A5FA", "#93C5FD"]
-                fig_prod = px.bar(df_prod, x="valor", y="produto", orientation="h", color="produto", color_discrete_sequence=cores_produtos)
-                fig_prod.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font=dict(color=text_app), yaxis=dict(autorange="reversed"))
-                st.plotly_chart(fig_prod, use_container_width=True)
+    with c_v4:
+        st.markdown("#### 📦 7. Produtos Mais Vendidos")
+        if not df_vendas.empty and "produto" in df_vendas.columns:
+            df_prod = df_vendas.groupby("produto")["valor"].sum().reset_index()
+            cores_produtos = ["#2563EB", "#38BDF8", "#60A5FA", "#93C5FD"]
+            fig_prod = px.bar(df_prod, x="valor", y="produto", orientation="h", color="produto", color_discrete_sequence=cores_produtos)
+            fig_prod.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font=dict(color=text_app), yaxis=dict(autorange="reversed"))
+            st.plotly_chart(fig_prod, use_container_width=True)
+        else:
+            st.info("Sem dados de produtos.")
+
+    with tab2:
+        c_p1, c_p2 = st.columns(2)
+        
+        with c_p1:
+            st.markdown("#### 📊 3. Funil de Vendas")
+            if not df_pipeline.empty and "estagio" in df_pipeline.columns:
+                fig_funil = px.funnel(df_pipeline, x="valor", y="estagio", color_discrete_sequence=[cor_hex])
+                fig_funil.update_layout(
+                    paper_bgcolor="rgba(0,0,0,0)", 
+                    plot_bgcolor="rgba(0,0,0,0)", 
+                    font=dict(color=text_app),
+                    margin=dict(l=10, r=10, t=10, b=10)
+                )
+                st.plotly_chart(fig_funil, use_container_width=True)
             else:
-                st.info("Sem dados de produtos.")
+                st.info("Sem dados no pipeline.")
+
+        with c_p2:
+            st.markdown("#### 📈 Valor do Pipeline por Etapa")
+            if not df_pipeline.empty and "estagio" in df_pipeline.columns:
+                df_pipe_bar = df_pipeline.groupby("estagio")["valor"].sum().reset_index()
+                fig_bar_pipe = px.bar(df_pipe_bar, x="valor", y="estagio", orientation="h", color_discrete_sequence=[cor_hex])
+                fig_bar_pipe.update_layout(
+                    paper_bgcolor="rgba(0,0,0,0)", 
+                    plot_bgcolor="rgba(0,0,0,0)", 
+                    font=dict(color=text_app), 
+                    yaxis=dict(autorange="reversed"),
+                    margin=dict(l=10, r=10, t=10, b=10)
+                )
+                st.plotly_chart(fig_bar_pipe, use_container_width=True)
+            else:
+                st.info("Sem dados no pipeline.")
 
     with tab2:
         c_p1, c_p2 = st.columns(2)
