@@ -57,53 +57,55 @@ sidebar_bg = "#0b0f19" if is_escuro else "#f8fafc"
 # --- CSS E ESTILIZAÇÃO DO MENU E PAINEIS ---
 st.markdown(f"""
     <style>
-        /* Fundo principal do app */
-        .stApp {{ background-color: #F8FAFC; color: #1F2937; }}
+        /* Cor de fundo do app - um cinza muito escuro elegante */
+        .stApp {{ 
+            background-color: #0b0f19 !important; 
+            color: #e2e8f0 !important; 
+        }}
         
-        /* Sidebar (Cor #111827) */
+        /* Sidebar mantém o azul profundo definido antes */
         [data-testid="stSidebar"] {{ 
             background-color: #111827 !important; 
         }}
-        
-        /* Ajuste do texto dentro da sidebar (Ícones e labels ficam brancos) */
-        [data-testid="stSidebar"] span, [data-testid="stSidebar"] div {{ 
-            color: #FFFFFF !important; 
+
+        /* Estilização dos Containers (Abas e cartões) - Fundo cinza médio */
+        div[data-testid="stVerticalBlock"] {{
+            background-color: #1e293b !important;
+            padding: 20px !important;
+            border-radius: 12px !important;
+            border: 1px solid #334155 !important;
         }}
 
-        /* Botões da Sidebar - Padrão Profissional */
+        /* Ajuste específico para as abas (tabs) */
+        div[data-testid="stTabs"] [data-baseweb="tab-list"] {{
+            background-color: #111827 !important;
+            border-bottom: 2px solid #2563eb !important;
+        }}
+        
+        div[data-testid="stTabs"] [data-baseweb="tab"] {{
+            color: #94a3b8 !important;
+        }}
+        
+        div[data-testid="stTabs"] [aria-selected="true"] {{
+            color: #ffffff !important;
+            background-color: #1e293b !important;
+        }}
+
+        /* Ajuste de cabeçalhos e textos */
+        h1, h2, h3, h4 {{ 
+            color: #f8fafc !important; 
+        }}
+
+        /* Ajuste dos botões da sidebar */
         [data-testid="stSidebar"] div.stButton > button {{
             background-color: transparent !important;
             border: none !important;
-            color: #FFFFFF !important;
-            text-align: left !important;
-            width: 100% !important;
-            border-radius: 6px !important;
-            padding: 10px 15px !important;
-            transition: all 0.2s ease;
+            color: #cbd5e1 !important;
         }}
         
-        /* Efeito Hover (#374151) e Ativo (#2563EB) */
         [data-testid="stSidebar"] div.stButton > button:hover {{
-            background-color: #374151 !important;
-        }}
-        
-        /* Marcação de Seções na Sidebar */
-        .sidebar-section-title {{
-            color: #9CA3AF;
-            font-size: 11px;
-            font-weight: 700;
-            text-transform: uppercase;
-            margin-top: 20px;
-            margin-bottom: 8px;
-            padding-left: 15px;
-        }}
-        
-        /* Estilização dos Cartões (Container) */
-        div[data-testid="stVerticalBlock"] > [style*="background-color"] {{
-            background-color: #FFFFFF !important;
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            background-color: #334155 !important;
+            color: #ffffff !important;
         }}
     </style>
 """, unsafe_allow_html=True)
