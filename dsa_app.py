@@ -362,7 +362,7 @@ if selected == "Dashboard":
             else:
                 st.info("Sem dados de produtos.")
 
-  with tab2:
+   with tab2:
         c_p1, c_p2 = st.columns(2)
         
         with c_p1:
