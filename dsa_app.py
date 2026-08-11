@@ -374,14 +374,73 @@ if selected == "Dashboard":
                 st.info("Sem dados no pipeline.")
 
         with c_p2:
-            st.markdown("#### 📈 Valor do Pipeline por Etapa")
-            if not df_pipeline.empty and "estagio" in df_pipeline.columns:
-                df_pipe_bar = df_pipeline.groupby("estagio")["valor"].sum().reset_index()
-                fig_bar_pipe = px.bar(df_pipe_bar, x="valor", y="estagio", orientation="h", color_discrete_sequence=[cor_hex])
-                fig_bar_pipe.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font=dict(color=text_app), yaxis=dict(autorange="reversed"))
-                st.plotly_chart(fig_bar_pipe, use_container_width=True)
-            else:
-                st.info("Sem dados no pipeline.")
+           st.markdown("#### 📈 Valor do Pipeline por Etapa")
+
+if not df_pipeline.empty and "estagio" in df_pipeline.columns:
+
+    df_pipe_bar = (
+        df_pipeline
+        .groupby("estagio")["valor"]
+        .sum()
+        .reset_index()
+    )
+
+    # Ordem das etapas
+    ordem = [
+        "Prospecção",
+        "Qualificação",
+        "Proposta",
+        "Negociação",
+        "Fechado"
+    ]
+
+    df_pipe_bar["estagio"] = pd.Categorical(
+        df_pipe_bar["estagio"],
+        categories=ordem,
+        ordered=True
+    )
+
+    df_pipe_bar = df_pipe_bar.sort_values("estagio")
+
+    # Cores por etapa
+    cores = {
+        "Prospecção": "#3B82F6",      # Azul
+        "Qualificação": "#8B5CF6",    # Roxo
+        "Proposta": "#F59E0B",        # Amarelo
+        "Negociação": "#F97316",      # Laranja
+        "Fechado": "#22C55E"          # Verde
+    }
+
+    fig_bar_pipe = px.bar(
+        df_pipe_bar,
+        x="valor",
+        y="estagio",
+        orientation="h",
+        color="estagio",
+        color_discrete_map=cores,
+        text="valor"
+    )
+
+    fig_bar_pipe.update_traces(
+        texttemplate="R$ %{x:,.0f}",
+        textposition="outside"
+    )
+
+    fig_bar_pipe.update_layout(
+        showlegend=False,
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        font=dict(color=text_app),
+        xaxis_title="Valor (R$)",
+        yaxis_title="",
+        yaxis=dict(autorange="reversed"),
+        margin=dict(l=20, r=20, t=20, b=20)
+    )
+
+    st.plotly_chart(fig_bar_pipe, use_container_width=True)
+
+else:
+    st.info("Sem dados no pipeline.")
 
     with tab3:
         c_l1, c_l2 = st.columns(2)
