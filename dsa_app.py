@@ -38,47 +38,44 @@ sidebar_bg = "#0b0f19" if is_escuro else "#f8fafc"
 st.markdown(f"""
     <style>
         .stApp {{ background-color: {bg_app}; color: {text_app}; }}
+        
+        /* Ajuste do Sidebar Container */
         [data-testid="stSidebar"] {{ 
             background-color: {sidebar_bg}; 
             border-right: 1px solid #1e293b;
-            padding-top: 10px;
+            padding: 0 !important;
         }}
-        h1, h2, h3, h4 {{ color: {text_app}; }}
         
-        [data-testid="stSidebar"] button div p {{
-            font-size: 16px !important;
-            font-weight: 600 !important;
-            text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.7) !important;
-        }}
-
+        /* Estilização dos Botões */
         [data-testid="stSidebar"] div.stButton > button {{
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 12px;
             width: 100%; 
-            text-align: left; 
             background-color: transparent !important;
-            color: #f1f5f9 !important; 
+            color: #94a3b8 !important; 
             border: none !important; 
-            border-radius: 10px !important;
-            padding: 8px 12px !important; 
+            border-radius: 8px !important;
+            padding: 10px 16px !important; 
             margin-bottom: 2px;
-            transition: all 0.25s ease-in-out;
+            transition: all 0.2s ease;
+            font-size: 14px !important;
+            font-weight: 500 !important;
         }}
         
         [data-testid="stSidebar"] div.stButton > button:hover {{ 
-            background-color: rgba(37, 99, 235, 0.15) !important; 
+            background-color: #1e293b !important; 
             color: #ffffff !important;
-            transform: translateX(4px);
         }}
         
         .sidebar-section-title {{
-            color: #64748b;
-            font-size: 11px;
+            color: #475569;
+            font-size: 10px;
             font-weight: 700;
-            letter-spacing: 1px;
+            letter-spacing: 0.05em;
             text-transform: uppercase;
-            margin-top: 16px;
-            margin-bottom: 4px;
-            padding-left: 12px;
-            text-shadow: 0px 1px 2px rgba(0, 0, 0, 0.5);
+            margin: 20px 0 8px 16px;
         }}
     </style>
 """, unsafe_allow_html=True)
