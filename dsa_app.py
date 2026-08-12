@@ -146,22 +146,22 @@ def inicializar_banco():
 
 inicializar_banco()
 
-# --- BARRA LATERAL ---
+# --- NOVA BARRA LATERAL ---
 with st.sidebar:
+    # Cabeçalho
     st.markdown(f"""
-        <div style="padding: 5px 4px 15px 4px; display: flex; align-items: center; gap: 10px;">
-            <div style="background-color: {cor_hex}; width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 16px;">📊</div>
-            <div>
-                <div style="font-weight: 700; font-size: 16px; color: {text_app}; line-height: 1.2;">CRM PRO</div>
-                <div style="font-size: 11px; color: #64748b; font-weight: 500;">Workspace v2.0</div>
+        <div style="padding: 20px 16px 20px 16px; display: flex; align-items: center; justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <div style="background: linear-gradient(135deg, #3b82f6, #4f46e5); width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">📊</div>
+                <span style="font-weight: 700; font-size: 18px; color: white;">CRM PRO</span>
             </div>
+            <span style="color: #475569;">«</span>
         </div>
     """, unsafe_allow_html=True)
-    
-    st.divider()
 
     def menu_button(label, icon, key):
-        if st.button(f"{icon}  {label}", key=key, use_container_width=True):
+        # Usamos o emoji ou ícone dentro do label do botão
+        if st.button(f"{icon} {label}", key=key):
             st.session_state.selected = label
             st.rerun()
 
@@ -171,26 +171,26 @@ with st.sidebar:
     menu_button("Clientes", "👥", "nav_clientes")
     menu_button("Leads", "🎯", "nav_leads")
     menu_button("Agenda", "📅", "nav_agenda")
-    menu_button("Atividades", "📞", "nav_atividades")
+    menu_button("Atividades", "📋", "nav_atividades")
 
     # COMERCIAL
     st.markdown('<p class="sidebar-section-title">Comercial</p>', unsafe_allow_html=True)
-    menu_button("Pipeline", "📈", "nav_pipeline")
+    menu_button("Pipeline", "🔄", "nav_pipeline")
     menu_button("Vendas", "💰", "nav_vendas")
     menu_button("Propostas", "📄", "nav_propostas")
     menu_button("Relatórios", "📊", "nav_relatorios")
-    menu_button("Metas", "🎯", "nav_metas")
+    menu_button("Metas", "🏔️", "nav_metas")
 
     # MARKETING
     st.markdown('<p class="sidebar-section-title">Marketing</p>', unsafe_allow_html=True)
-    menu_button("Campanhas", "📧", "nav_campanhas")
+    menu_button("Campanhas", "📣", "nav_campanhas")
     menu_button("WhatsApp", "💬", "nav_whatsapp")
 
     # SISTEMA
     st.markdown('<p class="sidebar-section-title">Sistema</p>', unsafe_allow_html=True)
     menu_button("Integrações", "🔌", "nav_integracoes")
     menu_button("Usuários", "👤", "nav_usuarios")
-    menu_button("Permissões", "🔒", "nav_permissoes")
+    menu_button("Permissões", "🛡️", "nav_permissoes")
     menu_button("Notificações", "🔔", "nav_notificacoes")
     menu_button("Configurações", "⚙️", "nav_configuracoes")
 
