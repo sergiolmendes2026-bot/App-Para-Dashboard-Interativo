@@ -836,7 +836,9 @@ elif selected == "Atividades":
     with col_atv_t2:
         if st.button("➕ Nova Atividade", use_container_width=True):
             st.session_state.modal_nova_atividade = True
-            st.rerun()
+
+    if "filtro_atividades" not in st.session_state:
+        st.session_state.filtro_atividades = "Todas as atividades"
 
     cols_filtros = st.columns(7)
     opcoes_menu_atv = [
@@ -850,10 +852,10 @@ elif selected == "Atividades":
                 st.session_state.filtro_atividades = op
                 st.rerun()
 
-    st.markdown(f"##### 📌 Exibindo: *{st.session_state.get('filtro_atividades', 'Todas as atividades')}*")
+    st.markdown(f"##### 📌 Exibindo: *{st.session_state.filtro_atividades}*")
 
     hoje_str = str(date.today())
-    df_atv_view = df_atividades.copy() if 'df_atividades' in globals() and not df_atividades.empty else pd.DataFrame()
+    df_atv_view = df_atividades.copy() if 'df_atividades' in locals() and not df_atividades.empty else pd.DataFrame()
 
     total_atv = len(df_atv_view)
     pendentes_atv = len(df_atv_view[df_atv_view["status"] == "Pendente"]) if not df_atv_view.empty else 0
@@ -938,39 +940,3 @@ elif selected == "Atividades":
         st.dataframe(df_atv_view[colunas_exibir], use_container_width=True, hide_index=True)
     else:
         st.info("Nenhuma atividade encontrada para este filtro.")
-
-# <--- FIM DO BLOCO PARA COLAR --->
-
-
-    st.markdown("### ⚙️ Configurações do Sistema")
-    
-    # --- Colunas Principais ---
-    c_conf1, c_conf2 = st.columns(2)
-    
-    with c_conf1:
-        st.markdown("#### 🎨 Aparência")
-        novo_tema = st.selectbox("Tema do Sistema", ["🌙 Escuro", "☀️ Claro"], 
-                                 index=0 if "Escuro" in st.session_state.get("tema_sistema", "Escuro") else 1)
-        if novo_tema != st.session_state.get("tema_sistema", "Escuro"):
-            st.session_state.tema_sistema = novo_tema
-            st.rerun()
-
-        st.markdown("---")
-        st.markdown("#### 🌐 Preferências Regionais")
-        st.selectbox("Moeda Padrão", ["Real (R$)", "Dólar ($)", "Euro (€)"])
-        st.selectbox("Formato de Data", ["DD/MM/AAAA", "MM/DD/AAAA", "AAAA-MM-DD"])
-
-    with c_conf2:
-        st.markdown("#### 🏢 Informações da Empresa")
-        st.text_input("Nome da Organização", value="LMB Pro Solutions")
-        st.text_input("CNPJ / ID", value="00.000.000/0001-00")
-        
-        st.markdown("---")
-        st.markdown("#### 🔌 Chaves de Integração (API)")
-        st.text_input("Token API WhatsApp", type="password", placeholder="Cole seu token aqui")
-        st.text_input("Chave Google Sheets API", type="password", placeholder="Cole sua chave aqui")
-
-    # Botão de salvar no rodapé
-    st.markdown("---")
-    if st.button("💾 Salvar Alterações Gerais", use_container_width=True):
-        st.success("Configurações do sistema atualizadas com sucesso!") 
