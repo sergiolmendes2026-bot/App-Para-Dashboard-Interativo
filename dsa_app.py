@@ -190,23 +190,23 @@ with st.sidebar:
         </div>
     """, unsafe_allow_html=True)
 
-    # Menu com divisões
+    # Menu atualizado (sem WhatsApp e Integrações)
     selected = option_menu(
         menu_title=None,
         options=["Dashboard", "Clientes", "Leads", "Agenda", "Atividades", 
                  "---", 
                  "Pipeline", "Vendas", "Propostas", "Relatórios", "Metas",
                  "---",
-                 "Campanhas", "WhatsApp",
+                 "Campanhas", 
                  "---",
-                 "Integrações", "Usuários", "Permissões", "Notificações", "Configurações"],
+                 "Usuários", "Permissões", "Notificações", "Configurações"],
         icons=["house", "people", "target", "calendar-event", "clipboard-data", 
                None, 
                "arrow-repeat", "currency-dollar", "file-earmark-text", "graph-up", "mountain",
                None,
-               "megaphone", "chat-dots",
+               "megaphone", 
                None,
-               "plug", "person", "shield-lock", "bell", "gear"],
+               "person", "shield-lock", "bell", "gear"],
         menu_icon="cast",
         default_index=0,
         styles={
