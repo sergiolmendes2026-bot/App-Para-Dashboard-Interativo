@@ -980,4 +980,4 @@ elif selected == "Configurações":
     # Botão de salvar no rodapé
     st.markdown("---")
     if st.button("💾 Salvar Alterações Gerais", use_container_width=True):
-        st.success("Configurações do sistema atualizadas com sucesso!")
+        st.success("Configurações do sistema atualizadas com sucesso!") 
