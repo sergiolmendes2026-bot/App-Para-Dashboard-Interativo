@@ -177,54 +177,54 @@ def inicializar_banco():
 
 inicializar_banco()
 
-# --- NOVA BARRA LATERAL ---
+from streamlit_option_menu import option_menu
+
 with st.sidebar:
-    # Cabeçalho
+    # 1. Cabeçalho
     st.markdown(f"""
-        <div style="padding: 20px 16px 20px 16px; display: flex; align-items: center; justify-content: space-between;">
-            <div style="display: flex; align-items: center; gap: 12px;">
-                <div style="background: linear-gradient(135deg, #3b82f6, #4f46e5); width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">📊</div>
-                <span style="font-weight: 700; font-size: 18px; color: white;">CRM PRO</span>
-            </div>
-            <span style="color: #475569;">«</span>
+        <div style="padding: 10px 0px 30px 0px; display: flex; align-items: center; gap: 12px;">
+            <div style="background: linear-gradient(135deg, #3b82f6, #4f46e5); width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">📊</div>
+            <span style="font-weight: 700; font-size: 18px; color: white;">CRM PRO</span>
         </div>
     """, unsafe_allow_html=True)
 
-    def menu_button(label, icon, key):
-        # Usamos o emoji ou ícone dentro do label do botão
-        if st.button(f"{icon} {label}", key=key):
-            st.session_state.selected = label
-            st.rerun()
+    # 2. Menu Principal
+    selected = option_menu(
+        menu_title=None,
+        options=[
+            "Dashboard", "Clientes", "Leads", "Agenda", "Atividades",
+            "Pipeline", "Vendas", "Propostas", "Relatórios", "Metas",
+            "Campanhas", "WhatsApp", 
+            "Integrações", "Usuários", "Permissões", "Notificações", "Configurações"
+        ],
+        icons=[
+            "house", "people", "target", "calendar-event", "clipboard-data",
+            "arrow-repeat", "currency-dollar", "file-earmark-text", "graph-up", "mountain",
+            "megaphone", "chat-dots",
+            "plug", "person", "shield-lock", "bell", "gear"
+        ],
+        menu_icon="cast",
+        default_index=0,
+        styles={
+            "container": {"padding": "0!important", "background-color": "transparent"},
+            "icon": {"color": "#94a3b8", "font-size": "16px"}, 
+            "nav-link": {
+                "font-size": "14px", 
+                "text-align": "left", 
+                "margin": "2px 0px", 
+                "color": "#94a3b8",
+                "--hover-color": "#1e293b"
+            },
+            "nav-link-selected": {
+                "background-color": "#1e293b", 
+                "color": "white",
+                "border-left": "4px solid #3b82f6"
+            },
+        }
+    )
 
-    # PRINCIPAL
-    st.markdown('<p class="sidebar-section-title">Principal</p>', unsafe_allow_html=True)
-    menu_button("Dashboard", "🏠", "nav_dashboard")
-    menu_button("Clientes", "👥", "nav_clientes")
-    menu_button("Leads", "🎯", "nav_leads")
-    menu_button("Agenda", "📅", "nav_agenda")
-    menu_button("Atividades", "📋", "nav_atividades")
-
-    # COMERCIAL
-    st.markdown('<p class="sidebar-section-title">Comercial</p>', unsafe_allow_html=True)
-    menu_button("Pipeline", "🔄", "nav_pipeline")
-    menu_button("Vendas", "💰", "nav_vendas")
-    menu_button("Propostas", "📄", "nav_propostas")
-    menu_button("Relatórios", "📊", "nav_relatorios")
-    menu_button("Metas", "🏔️", "nav_metas")
-
-    # MARKETING
-    st.markdown('<p class="sidebar-section-title">Marketing</p>', unsafe_allow_html=True)
-    menu_button("Campanhas", "📣", "nav_campanhas")
-    menu_button("WhatsApp", "💬", "nav_whatsapp")
-
-    # SISTEMA
-    st.markdown('<p class="sidebar-section-title">Sistema</p>', unsafe_allow_html=True)
-    menu_button("Integrações", "🔌", "nav_integracoes")
-    menu_button("Usuários", "👤", "nav_usuarios")
-    menu_button("Permissões", "🛡️", "nav_permissoes")
-    menu_button("Notificações", "🔔", "nav_notificacoes")
-    menu_button("Configurações", "⚙️", "nav_configuracoes")
-
+    # Atualiza o estado
+    st.session_state.selected = selected
 selected = st.session_state.selected
 
 def conectar():
