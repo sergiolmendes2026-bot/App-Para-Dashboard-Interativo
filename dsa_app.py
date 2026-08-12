@@ -830,6 +830,28 @@ elif selected == "Relatórios":
         st.info("Nenhum histórico de exportação.")
 
 elif selected == "Atividades":
+    # Garante que a tabela de atividades existe no banco de dados com as colunas corretas
+    try:
+        conn = conectar()
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS atividades (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                tipo TEXT,
+                cliente TEXT,
+                responsavel TEXT,
+                data TEXT,
+                hora TEXT,
+                prioridade TEXT,
+                status TEXT,
+                descricao TEXT,
+                lembrete TEXT
+            )
+        """)
+        conn.commit()
+        conn.close()
+    except Exception:
+        pass
+
     col_atv_t1, col_atv_t2 = st.columns([4, 1])
     with col_atv_t1:
         st.markdown("### 📞 Painel de Atividades")
@@ -854,7 +876,6 @@ elif selected == "Atividades":
 
     st.markdown(f"##### 📌 Exibindo: *{st.session_state.filtro_atividades}*")
 
-    # Carrega os dados do banco de dados com segurança
     try:
         conn = conectar()
         df_atv_view = pd.read_sql("SELECT * FROM atividades", conn)
@@ -881,7 +902,7 @@ elif selected == "Atividades":
 
     if st.session_state.get("modal_nova_atividade", False):
         with st.expander("📝 Cadastrar Nova Atividade", expanded=True):
-            with st.form("form_nova_atividade", clear_on_submit=True):
+            with st.form("form_nova_atividade"):
                 fa1, fa2, fa3 = st.columns(3)
                 with fa1:
                     atv_tipo = st.selectbox("Tipo", ["Ligação", "Reunião", "WhatsApp", "E-mail", "Compromisso", "Tarefa", "Proposta", "Follow-up"])
@@ -909,16 +930,19 @@ elif selected == "Atividades":
 
                 if submit_atv:
                     if atv_cliente:
-                        conn = conectar()
-                        conn.execute("""
-                            INSERT INTO atividades (tipo, cliente, responsavel, data, hora, prioridade, status, descricao, lembrete)
-                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                        """, (atv_tipo, atv_cliente, atv_respons, str(atv_data), atv_hora, atv_prioridade, atv_status, atv_desc, atv_lembrete))
-                        conn.commit()
-                        conn.close()
-                        st.session_state.modal_nova_atividade = False
-                        st.success("Atividade cadastrada com sucesso!")
-                        st.rerun()
+                        try:
+                            conn = conectar()
+                            conn.execute("""
+                                INSERT INTO atividades (tipo, cliente, responsavel, data, hora, prioridade, status, descricao, lembrete)
+                                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                            """, (atv_tipo, atv_cliente, atv_respons, str(atv_data), atv_hora, atv_prioridade, atv_status, atv_desc, atv_lembrete))
+                            conn.commit()
+                            conn.close()
+                            st.session_state.modal_nova_atividade = False
+                            st.success("Atividade cadastrada com sucesso!")
+                            st.rerun()
+                        except Exception as e:
+                            st.error(f"Erro ao salvar no banco de dados: {e}")
                     else:
                         st.error("Informe o nome do cliente ou lead.")
 
