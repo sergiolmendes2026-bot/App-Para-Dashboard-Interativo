@@ -801,18 +801,7 @@ elif selected == "Atividades":
     with col_atv_t2:
         if st.button("➕ Nova Atividade", use_container_width=True):
             st.session_state.modal_nova_atividade = True
-
-    cols_filtros = st.columns(7)
-    opcoes_menu_atv = [
-        "Todas as atividades", "Minhas atividades", "Pendentes", 
-        "Concluídas", "Atrasadas", "Hoje", "Próximas atividades"
-    ]
-    
-    for i, op in enumerate(opcoes_menu_atv):
-        with cols_filtros[i]:
-            if st.button(op, use_container_width=True, key=f"btn_filtro_atv_{i}"):
-                st.session_state.filtro_atividades = op
-                st.rerun()
+            st.rerun()  # <--- Adicionado para forçar o Streamlit a abrir o formulário na hora!
 
     st.markdown(f"##### 📌 Exibindo: *{st.session_state.filtro_atividades}*")
 
