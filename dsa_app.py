@@ -183,37 +183,51 @@ inicializar_banco()
 from streamlit_option_menu import option_menu
 
 with st.sidebar:
-    # Cabeçalho
+    # Cabeçalho da Sidebar
     st.markdown("""
         <div style="padding: 10px 0px 20px 10px;">
             <span style="font-weight: 700; font-size: 20px; color: white;">📊 CRM PRO</span>
         </div>
     """, unsafe_allow_html=True)
 
-    # Menu atualizado (sem WhatsApp e Integrações)
+    # Menu lateral limpo (Sem WhatsApp e sem Integrações duplicadas)
     selected = option_menu(
         menu_title=None,
-        options=["Dashboard", "Clientes", "Leads", "Agenda", "Atividades", 
-                 "---", 
-                 "Pipeline", "Vendas", "Propostas", "Relatórios", "Metas",
-                 "---",
-                 "Campanhas", 
-                 "---",
-                 "Usuários", "Permissões", "Notificações", "Configurações"],
-        icons=["house", "people", "target", "calendar-event", "clipboard-data", 
-               None, 
-               "arrow-repeat", "currency-dollar", "file-earmark-text", "graph-up", "mountain",
-               None,
-               "megaphone", 
-               None,
-               "person", "shield-lock", "bell", "gear"],
+        options=[
+            "Dashboard", "Clientes", "Leads", "Agenda", "Atividades", 
+            "---", 
+            "Pipeline", "Vendas", "Propostas", "Relatórios", "Metas",
+            "---",
+            "Campanhas", 
+            "---",
+            "Usuários", "Permissões", "Notificações", "Configurações"
+        ],
+        icons=[
+            "house", "people", "target", "calendar-event", "clipboard-data", 
+            None, 
+            "arrow-repeat", "currency-dollar", "file-earmark-text", "graph-up", "mountain",
+            None,
+            "megaphone", 
+            None,
+            "person", "shield-lock", "bell", "gear"
+        ],
         menu_icon="cast",
         default_index=0,
         styles={
-            "container": {"padding": "5!important", "background-color": "#0b0f19"},
+            "container": {"padding": "5!important", "background-color": sidebar_bg},
             "icon": {"color": "#64748b", "font-size": "16px"}, 
-            "nav-link": {"font-size": "14px", "text-align": "left", "margin": "0px", "color": "#94a3b8", "--hover-color": "#1e293b"},
-            "nav-link-selected": {"background-color": "#1e293b", "color": "white", "border-left": "4px solid #3b82f6"},
+            "nav-link": {
+                "font-size": "14px", 
+                "text-align": "left", 
+                "margin": "0px", 
+                "color": "#94a3b8", 
+                "--hover-color": "#1e293b"
+            },
+            "nav-link-selected": {
+                "background-color": "#1e293b", 
+                "color": "white", 
+                "border-left": "4px solid #3b82f6"
+            },
         }
     )
     st.session_state.selected = selected
