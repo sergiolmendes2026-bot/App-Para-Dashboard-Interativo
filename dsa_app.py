@@ -183,50 +183,41 @@ inicializar_banco()
 from streamlit_option_menu import option_menu
 
 with st.sidebar:
-    # 1. Cabeçalho
-    st.markdown(f"""
-        <div style="padding: 10px 0px 30px 0px; display: flex; align-items: center; gap: 12px;">
-            <div style="background: linear-gradient(135deg, #3b82f6, #4f46e5); width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">📊</div>
-            <span style="font-weight: 700; font-size: 18px; color: white;">CRM PRO</span>
+    # Cabeçalho
+    st.markdown("""
+        <div style="padding: 10px 0px 20px 10px;">
+            <span style="font-weight: 700; font-size: 20px; color: white;">📊 CRM PRO</span>
         </div>
     """, unsafe_allow_html=True)
 
-    # 2. Menu Principal
+    # Menu com divisões
     selected = option_menu(
         menu_title=None,
-        options=[
-            "Dashboard", "Clientes", "Leads", "Agenda", "Atividades",
-            "Pipeline", "Vendas", "Propostas", "Relatórios", "Metas",
-            "Campanhas", "WhatsApp", 
-            "Integrações", "Usuários", "Permissões", "Notificações", "Configurações"
-        ],
-        icons=[
-            "house", "people", "target", "calendar-event", "clipboard-data",
-            "arrow-repeat", "currency-dollar", "file-earmark-text", "graph-up", "mountain",
-            "megaphone", "chat-dots",
-            "plug", "person", "shield-lock", "bell", "gear"
-        ],
+        options=["Dashboard", "Clientes", "Leads", "Agenda", "Atividades", 
+                 "---", 
+                 "Pipeline", "Vendas", "Propostas", "Relatórios", "Metas",
+                 "---",
+                 "Campanhas", "WhatsApp",
+                 "---",
+                 "Integrações", "Usuários", "Permissões", "Notificações", "Configurações"],
+        icons=["house", "people", "target", "calendar-event", "clipboard-data", 
+               None, 
+               "arrow-repeat", "currency-dollar", "file-earmark-text", "graph-up", "mountain",
+               None,
+               "megaphone", "chat-dots",
+               None,
+               "plug", "person", "shield-lock", "bell", "gear"],
         menu_icon="cast",
         default_index=0,
         styles={
-            "container": {"padding": "0!important", "background-color": "transparent"},
-            "icon": {"color": "#94a3b8", "font-size": "16px"}, 
-            "nav-link": {
-                "font-size": "14px", 
-                "text-align": "left", 
-                "margin": "2px 0px", 
-                "color": "#94a3b8",
-                "--hover-color": "#1e293b"
-            },
-            "nav-link-selected": {
-                "background-color": "#1e293b", 
-                "color": "white",
-                "border-left": "4px solid #3b82f6"
-            },
+            "container": {"padding": "5!important", "background-color": "#0b0f19"},
+            "icon": {"color": "#64748b", "font-size": "16px"}, 
+            "nav-link": {"font-size": "14px", "text-align": "left", "margin": "0px", "color": "#94a3b8", "--hover-color": "#1e293b"},
+            "nav-link-selected": {"background-color": "#1e293b", "color": "white", "border-left": "4px solid #3b82f6"},
         }
     )
-
-    # Atualiza o estado
+    st.session_state.selected = selected
+  
     st.session_state.selected = selected
 selected = st.session_state.selected
 
