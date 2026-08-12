@@ -929,16 +929,33 @@ elif selected == "Integrações":
 elif selected == "Configurações":
     st.markdown("### ⚙️ Configurações do Sistema")
     
+    # --- Colunas Principais ---
     c_conf1, c_conf2 = st.columns(2)
+    
     with c_conf1:
-        st.markdown("#### Aparência")
-        novo_tema = st.selectbox("Tema do Sistema", ["🌙 Escuro", "☀️ Claro"], index=0 if "Escuro" in st.session_state.tema_sistema else 1)
-        if novo_tema != st.session_state.tema_sistema:
+        st.markdown("#### 🎨 Aparência")
+        novo_tema = st.selectbox("Tema do Sistema", ["🌙 Escuro", "☀️ Claro"], 
+                                 index=0 if "Escuro" in st.session_state.get("tema_sistema", "Escuro") else 1)
+        if novo_tema != st.session_state.get("tema_sistema", "Escuro"):
             st.session_state.tema_sistema = novo_tema
             st.rerun()
-            
+
+        st.markdown("---")
+        st.markdown("#### 🌐 Preferências Regionais")
+        st.selectbox("Moeda Padrão", ["Real (R$)", "Dólar ($)", "Euro (€)"])
+        st.selectbox("Formato de Data", ["DD/MM/AAAA", "MM/DD/AAAA", "AAAA-MM-DD"])
+
     with c_conf2:
-        st.markdown("#### Informações da Empresa")
+        st.markdown("#### 🏢 Informações da Empresa")
         st.text_input("Nome da Organização", value="LMB Pro Solutions")
         st.text_input("CNPJ / ID", value="00.000.000/0001-00")
-        st.button("Salvar Alterações Gerais")
+        
+        st.markdown("---")
+        st.markdown("#### 🔌 Chaves de Integração (API)")
+        st.text_input("Token API WhatsApp", type="password", placeholder="Cole seu token aqui")
+        st.text_input("Chave Google Sheets API", type="password", placeholder="Cole sua chave aqui")
+
+    # Botão de salvar no rodapé
+    st.markdown("---")
+    if st.button("💾 Salvar Alterações Gerais", use_container_width=True):
+        st.success("Configurações do sistema atualizadas com sucesso!")
