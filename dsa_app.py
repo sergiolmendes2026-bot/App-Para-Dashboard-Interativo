@@ -788,7 +788,6 @@ elif selected == "Relatórios":
     else:
         st.info("Nenhum histórico de exportação.")
 
-<--- COLE O BLOCO ABAIXO EXATAMENTE AQUI: --->
 
 elif selected == "Atividades":
     col_atv_t1, col_atv_t2 = st.columns([4, 1])
