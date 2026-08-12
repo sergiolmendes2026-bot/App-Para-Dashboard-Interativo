@@ -793,7 +793,16 @@ elif selected == "Relatórios":
     else:
         st.info("Nenhum histórico de exportação.")
 
-cols_filtros = st.columns(7)
+elif selected == "Atividades":
+    col_atv_t1, col_atv_t2 = st.columns([4, 1])
+    with col_atv_t1:
+        st.markdown("### 📞 Painel de Atividades")
+    with col_atv_t2:
+        if st.button("➕ Nova Atividade", use_container_width=True):
+            st.session_state.modal_nova_atividade = True
+            st.rerun()
+
+    cols_filtros = st.columns(7)
     opcoes_menu_atv = [
         "Todas as atividades", "Minhas atividades", "Pendentes", 
         "Concluídas", "Atrasadas", "Hoje", "Próximas atividades"
