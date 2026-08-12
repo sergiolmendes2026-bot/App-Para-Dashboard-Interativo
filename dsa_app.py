@@ -20,6 +20,40 @@ st.set_page_config(
     page_title="CRM LMB Pro - Workspace v2.0", page_icon="📊", layout="wide" 
 )
 
+# Coloque isso logo após o st.set_page_config
+st.markdown("""
+    <style>
+        /* Força a remoção do espaçamento padrão do Streamlit na sidebar */
+        [data-testid="stSidebar"] section {
+            padding-left: 0px !important;
+            padding-right: 0px !important;
+        }
+        
+        /* Remove o fundo padrão dos botões da sidebar */
+        [data-testid="stSidebar"] button {
+            background-color: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            border-radius: 0 !important;
+        }
+
+        /* Estilo visual para simular o design da sua imagem */
+        [data-testid="stSidebar"] div.stButton > button {
+            color: #94a3b8 !important;
+            justify-content: flex-start !important;
+            padding-left: 20px !important;
+            transition: 0.3s;
+        }
+
+        /* Efeito Hover igual ao seu CRM PRO */
+        [data-testid="stSidebar"] div.stButton > button:hover {
+            background-color: #1e293b !important;
+            color: white !important;
+            border-left: 3px solid #3b82f6 !important;
+        }
+    </style>
+""", unsafe_allow_html=True)
+
 # --- INICIALIZAÇÃO DO ESTADO ---
 if "tema_sistema" not in st.session_state:
     st.session_state.tema_sistema = "🌙 Escuro" 
