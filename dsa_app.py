@@ -837,9 +837,6 @@ elif selected == "Atividades":
         if st.button("➕ Nova Atividade", use_container_width=True):
             st.session_state.modal_nova_atividade = True
 
-    if "filtro_atividades" not in st.session_state:
-        st.session_state.filtro_atividades = "Todas as atividades"
-
     cols_filtros = st.columns(7)
     opcoes_menu_atv = [
         "Todas as atividades", "Minhas atividades", "Pendentes", 
@@ -855,7 +852,7 @@ elif selected == "Atividades":
     st.markdown(f"##### 📌 Exibindo: *{st.session_state.filtro_atividades}*")
 
     hoje_str = str(date.today())
-    df_atv_view = df_atividades.copy() if 'df_atividades' in locals() and not df_atividades.empty else pd.DataFrame()
+    df_atv_view = df_atividades.copy() if not df_atividades.empty else pd.DataFrame()
 
     total_atv = len(df_atv_view)
     pendentes_atv = len(df_atv_view[df_atv_view["status"] == "Pendente"]) if not df_atv_view.empty else 0
@@ -872,7 +869,7 @@ elif selected == "Atividades":
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    if st.session_state.get("modal_nova_atividade", False):
+    if st.session_state.modal_nova_atividade:
         with st.expander("📝 Cadastrar Nova Atividade", expanded=True):
             with st.form("form_nova_atividade"):
                 fa1, fa2, fa3 = st.columns(3)
@@ -919,7 +916,7 @@ elif selected == "Atividades":
                     st.session_state.modal_nova_atividade = False
                     st.rerun()
 
-    filtro_atual = st.session_state.get("filtro_atividades", "Todas as atividades")
+    filtro_atual = st.session_state.filtro_atividades
     if not df_atv_view.empty:
         if filtro_atual == "Minhas atividades":
             df_atv_view = df_atv_view[df_atv_view["responsavel"] == "Carlos"]
