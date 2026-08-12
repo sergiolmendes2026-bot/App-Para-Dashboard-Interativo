@@ -941,28 +941,7 @@ elif selected == "Atividades":
 
 # <--- FIM DO BLOCO PARA COLAR --->
 
-elif selected == "Integrações":
-    st.markdown("### 🔌 Integrações e Automações do Sistema")
 
-elif selected == "Integrações":
-    st.markdown("### 🔌 Integrações e Automações do Sistema")
-    st.markdown("Configure aqui suas chaves de API, webhooks e disparos automáticos.")
-    
-    with st.form("form_integracoes"):
-        st.markdown("##### Configurações SMTP / E-mail")
-        i_servidor = st.text_input("Servidor SMTP", value="smtp.gmail.com")
-        i_porta = st.number_input("Porta SMTP", value=587)
-        i_remetente = st.text_input("E-mail Remetente", value="sergiolmendes2026@gmail.com")
-        i_senha = st.text_input("Senha de Aplicativo", type="password", value="kmpcpmhvrutcuifw")
-        
-        st.markdown("##### Webhooks e APIs")
-        i_webhook = st.text_input("URL do Webhook (WhatsApp / Leads)", value="https://api.crmpro.com/webhook/v1")
-        
-        btn_salvar_int = st.form_submit_button("Salvar Configurações de Integração")
-        if btn_salvar_int:
-            st.success("Configurações de integração salvas com sucesso!")
-
-elif selected == "Configurações":
     st.markdown("### ⚙️ Configurações do Sistema")
     
     # --- Colunas Principais ---
