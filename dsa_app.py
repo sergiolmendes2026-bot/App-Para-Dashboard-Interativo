@@ -793,17 +793,19 @@ elif selected == "Relatórios":
     else:
         st.info("Nenhum histórico de exportação.")
 
+cols_filtros = st.columns(7)
+    opcoes_menu_atv = [
+        "Todas as atividades", "Minhas atividades", "Pendentes", 
+        "Concluídas", "Atrasadas", "Hoje", "Próximas atividades"
+    ]
+    
+    for i, op in enumerate(opcoes_menu_atv):
+        with cols_filtros[i]:
+            if st.button(op, use_container_width=True, key=f"btn_filtro_atv_{i}"):
+                st.session_state.filtro_atividades = op
+                st.rerun()
 
-elif selected == "Atividades":
-    col_atv_t1, col_atv_t2 = st.columns([4, 1])
-    with col_atv_t1:
-        st.markdown("### 📞 Painel de Atividades")
-    with col_atv_t2:
-        if st.button("➕ Nova Atividade", use_container_width=True):
-            st.session_state.modal_nova_atividade = True
-            st.rerun()  # <--- Adicionado para forçar o Streamlit a abrir o formulário na hora!
-
-    st.markdown(f"##### 📌 Exibindo: *{st.session_state.filtro_atividades}*")
+    st.markdown(f"##### 📌 Exibindo: *{st.session_state.get('filtro_atividades', 'Todas as atividades')}*")
 
     hoje_str = str(date.today())
     df_atv_view = df_atividades.copy() if 'df_atividades' in globals() and not df_atividades.empty else pd.DataFrame()
