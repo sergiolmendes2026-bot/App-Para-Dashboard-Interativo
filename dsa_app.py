@@ -11,6 +11,11 @@ from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 from email import encoders
 
+if "modal_nova_atividade" not in st.session_state:
+    st.session_state.modal_nova_atividade = False
+if "filtro_atividades" not in st.session_state:
+    st.session_state.filtro_atividades = "Todas as atividades"
+
 st.set_page_config(
     page_title="CRM LMB Pro - Workspace v2.0", page_icon="📊", layout="wide" 
 )
