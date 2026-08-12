@@ -250,7 +250,7 @@ def disparar_email_automatico(destinatario, arquivo_bytes, nome_arquivo):
         msg['To'] = destinatario
         msg['Subject'] = "📊 Relatório Automático - CRM Pro"
 
-        corpo = "Olá! Segue em anexo o relatório comercial configurado no painel de exportações do seu CRM."
+        corpo = "Olá! Segue em anexo o relatório comercial configurado no painel de exportações do seu CRM." 
         msg.attach(MIMEText(corpo, 'plain'))
 
         parte = MIMEBase('application', 'octet-stream')
