@@ -32,7 +32,7 @@ is_escuro = "Escuro" in st.session_state.tema_sistema
 
 bg_app = "#0e1117" if is_escuro else "#ffffff"
 text_app = "#ffffff" if is_escuro else "#1e293b"
-sidebar_bg = "#0b0f19" if is_escuro else "#f8fafc"
+sidebar_bg = "#0b0f19" if is_escuro else "#f8fafc" 
 
 # --- CSS E ESTILIZAÇÃO DO MENU E PAINEIS ---
 st.markdown(f"""
