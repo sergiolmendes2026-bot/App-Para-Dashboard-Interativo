@@ -16,23 +16,17 @@ if "modal_nova_atividade" not in st.session_state:
 if "filtro_atividades" not in st.session_state:
     st.session_state.filtro_atividades = "Todas as atividades"
 
-st.set_page_config(
-    page_title="CRM LMB Pro - Workspace v2.0", page_icon="📊", layout="wide" 
-)
+st.set_page_config(page_title="CRM LMB Pro", layout="wide")
+
+# CSS ÚNICO E CENTRALIZADO
 st.markdown("""
     <style>
-        /* Fundo e padding geral da Sidebar */
+        /* Fundo da Sidebar */
         [data-testid="stSidebar"] {
-            background-color: #0b0f19;
-            border-right: 1px solid #1e293b;
+            background-color: #0b0f19 !important;
         }
-        [data-testid="stSidebar"] > div:first-child {
-            padding-top: 1rem;
-            padding-left: 0.5rem;
-            padding-right: 0.5rem;
-        }
-
-        /* Reseta completamente o estilo padrão dos botões do Streamlit na sidebar */
+        
+        /* Estilização dos Botões na Sidebar */
         [data-testid="stSidebar"] div.stButton > button {
             display: flex !important;
             align-items: center !important;
@@ -41,42 +35,20 @@ st.markdown("""
             background-color: transparent !important;
             color: #94a3b8 !important;
             border: none !important;
-            border-radius: 8px !important;
-            padding: 10px 14px !important;
-            margin-bottom: 2px !important;
-            box-shadow: none !important;
-            font-size: 14px !important;
-            font-weight: 500 !important;
-            text-align: left !important;
+            padding: 10px 16px !important;
+            transition: all 0.2s ease !important;
         }
-
-        /* Corrige o elemento interno de texto do botão do Streamlit */
-        [data-testid="stSidebar"] div.stButton > button div {
-            display: flex !important;
-            align-items: center !important;
-            gap: 10px !important;
-            width: 100% !important;
-        }
-
-        /* Efeito Hover moderno (igual à referência) */
+        
         [data-testid="stSidebar"] div.stButton > button:hover {
             background-color: #1e293b !important;
             color: #ffffff !important;
         }
-
-        /* Estilo dos títulos das seções (PRINCIPAL, COMERCIAL, etc) */
-        .sidebar-section-title {
-            color: #475569;
-            font-size: 10px;
-            font-weight: 700;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-            margin-top: 18px;
-            margin-bottom: 6px;
-            padding-left: 12px;
-        }
     </style>
 """, unsafe_allow_html=True)
+
+# Inicialização de estados
+if "selected" not in st.session_state:
+    st.session_state.selected = "Dashboard"
 
 
 # --- INICIALIZAÇÃO DO ESTADO ---
