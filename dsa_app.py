@@ -18,30 +18,33 @@ if "filtro_atividades" not in st.session_state:
 
 st.set_page_config(page_title="CRM LMB Pro", layout="wide")
 
-# CSS ÚNICO E CENTRALIZADO
+# --- CSS GLOBAL E CENTRALIZADO ---
 st.markdown("""
     <style>
-        /* Fundo da Sidebar */
-        [data-testid="stSidebar"] {
-            background-color: #0b0f19 !important;
+        /* Fundo do App */
+        .stApp { background-color: #0e1117; color: #ffffff; }
+
+        /* Sidebar Container */
+        [data-testid="stSidebar"] { 
+            background-color: #0b0f19 !important; 
+            border-right: 1px solid #1e293b;
         }
-        
-        /* Estilização dos Botões na Sidebar */
-        [data-testid="stSidebar"] div.stButton > button {
-            display: flex !important;
-            align-items: center !important;
-            justify-content: flex-start !important;
-            width: 100% !important;
+
+        /* Ajuste do Option Menu para garantir que não sobrescreva */
+        div[data-testid="stSidebar"] .nav-link {
             background-color: transparent !important;
-            color: #94a3b8 !important;
-            border: none !important;
-            padding: 10px 16px !important;
+            border-radius: 8px !important;
+            margin: 2px 0px !important;
             transition: all 0.2s ease !important;
         }
         
-        [data-testid="stSidebar"] div.stButton > button:hover {
+        div[data-testid="stSidebar"] .nav-link:hover {
             background-color: #1e293b !important;
-            color: #ffffff !important;
+        }
+
+        div[data-testid="stSidebar"] .nav-link-selected {
+            background-color: #1e293b !important;
+            border-left: 4px solid #3b82f6 !important;
         }
     </style>
 """, unsafe_allow_html=True)
