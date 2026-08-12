@@ -19,40 +19,65 @@ if "filtro_atividades" not in st.session_state:
 st.set_page_config(
     page_title="CRM LMB Pro - Workspace v2.0", page_icon="📊", layout="wide" 
 )
-
-# Coloque isso logo após o st.set_page_config
 st.markdown("""
     <style>
-        /* Força a remoção do espaçamento padrão do Streamlit na sidebar */
-        [data-testid="stSidebar"] section {
-            padding-left: 0px !important;
-            padding-right: 0px !important;
+        /* Fundo e padding geral da Sidebar */
+        [data-testid="stSidebar"] {
+            background-color: #0b0f19;
+            border-right: 1px solid #1e293b;
         }
-        
-        /* Remove o fundo padrão dos botões da sidebar */
-        [data-testid="stSidebar"] button {
-            background-color: transparent !important;
-            border: none !important;
-            box-shadow: none !important;
-            border-radius: 0 !important;
+        [data-testid="stSidebar"] > div:first-child {
+            padding-top: 1rem;
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
         }
 
-        /* Estilo visual para simular o design da sua imagem */
+        /* Reseta completamente o estilo padrão dos botões do Streamlit na sidebar */
         [data-testid="stSidebar"] div.stButton > button {
-            color: #94a3b8 !important;
+            display: flex !important;
+            align-items: center !important;
             justify-content: flex-start !important;
-            padding-left: 20px !important;
-            transition: 0.3s;
+            width: 100% !important;
+            background-color: transparent !important;
+            color: #94a3b8 !important;
+            border: none !important;
+            border-radius: 8px !important;
+            padding: 10px 14px !important;
+            margin-bottom: 2px !important;
+            box-shadow: none !important;
+            font-size: 14px !important;
+            font-weight: 500 !important;
+            text-align: left !important;
         }
 
-        /* Efeito Hover igual ao seu CRM PRO */
+        /* Corrige o elemento interno de texto do botão do Streamlit */
+        [data-testid="stSidebar"] div.stButton > button div {
+            display: flex !important;
+            align-items: center !important;
+            gap: 10px !important;
+            width: 100% !important;
+        }
+
+        /* Efeito Hover moderno (igual à referência) */
         [data-testid="stSidebar"] div.stButton > button:hover {
             background-color: #1e293b !important;
-            color: white !important;
-            border-left: 3px solid #3b82f6 !important;
+            color: #ffffff !important;
+        }
+
+        /* Estilo dos títulos das seções (PRINCIPAL, COMERCIAL, etc) */
+        .sidebar-section-title {
+            color: #475569;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin-top: 18px;
+            margin-bottom: 6px;
+            padding-left: 12px;
         }
     </style>
 """, unsafe_allow_html=True)
+
 
 # --- INICIALIZAÇÃO DO ESTADO ---
 if "tema_sistema" not in st.session_state:
