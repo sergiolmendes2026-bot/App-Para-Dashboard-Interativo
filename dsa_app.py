@@ -18,41 +18,6 @@ if "filtro_atividades" not in st.session_state:
 
 st.set_page_config(page_title="CRM LMB Pro", layout="wide")
 
-# --- CSS GLOBAL E CENTRALIZADO ---
-st.markdown("""
-    <style>
-        /* Fundo do App */
-        .stApp { background-color: #0e1117; color: #ffffff; }
-
-        /* Sidebar Container */
-        [data-testid="stSidebar"] { 
-            background-color: #0b0f19 !important; 
-            border-right: 1px solid #1e293b;
-        }
-
-        /* Ajuste do Option Menu para garantir que não sobrescreva */
-        div[data-testid="stSidebar"] .nav-link {
-            background-color: transparent !important;
-            border-radius: 8px !important;
-            margin: 2px 0px !important;
-            transition: all 0.2s ease !important;
-        }
-        
-        div[data-testid="stSidebar"] .nav-link:hover {
-            background-color: #1e293b !important;
-        }
-
-        div[data-testid="stSidebar"] .nav-link-selected {
-            background-color: #1e293b !important;
-            border-left: 4px solid #3b82f6 !important;
-        }
-    </style>
-""", unsafe_allow_html=True)
-
-# Inicialização de estados
-if "selected" not in st.session_state:
-    st.session_state.selected = "Dashboard"
-
 # --- INICIALIZAÇÃO DO ESTADO ---
 if "tema_sistema" not in st.session_state:
     st.session_state.tema_sistema = "🌙 Escuro" 
@@ -67,7 +32,7 @@ bg_app = "#0e1117" if is_escuro else "#ffffff"
 text_app = "#ffffff" if is_escuro else "#1e293b"
 sidebar_bg = "#0b0f19" if is_escuro else "#f8fafc" 
 
-# --- CSS E ESTILIZAÇÃO DO MENU E PAINEIS ---
+# --- CSS E ESTILIZAÇÃO DO MENU E PAINEIS (CORRIGIDO SEM F-STRING) ---
 st.markdown(f"""
     <style>
         .stApp {{ background-color: {bg_app}; color: {text_app}; }}
