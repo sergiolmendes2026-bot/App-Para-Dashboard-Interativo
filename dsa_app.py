@@ -741,6 +741,109 @@ elif selected == "Vendas":
                 st.rerun()
             else:
                 st.error("Informe o nome do cliente.")
+  
+elif selected == "Propostas":
+    # Garante que a tabela de propostas existe no banco de dados
+    try:
+        conn = conectar()
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS propostas (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                titulo TEXT,
+                cliente TEXT,
+                valor REAL,
+                validade TEXT,
+                status TEXT,
+                responsavel TEXT,
+                data_criacao TEXT
+            )
+        """)
+        conn.commit()
+        conn.close()
+    except Exception:
+        pass
+
+    # Cabeçalho e Botão de Nova Proposta
+    col_prop_t1, col_prop_t2 = st.columns([4, 1])
+    with col_prop_t1:
+        st.markdown("### 📄 Gestão de Propostas Comerciais")
+    with col_prop_t2:
+        if st.button("➕ Nova Proposta", use_container_width=True):
+            st.session_state.modal_nova_proposta = not st.session_state.get("modal_nova_proposta", False)
+
+    # Carrega dados do banco
+    try:
+        conn = conectar()
+        df_propostas = pd.read_sql("SELECT * FROM propostas", conn)
+        conn.close()
+    except Exception:
+        df_propostas = pd.DataFrame()
+
+    # KPIs rápidos
+    total_prop = len(df_propostas) if not df_propostas.empty else 0
+    valor_total_prop = df_propostas["valor"].sum() if not df_propostas.empty and "valor" in df_propostas.columns else 0.0
+    aprovadas_prop = len(df_propostas[df_propostas["status"] == "Aprovada"]) if not df_propostas.empty and "status" in df_propostas.columns else 0
+
+    kp1, kp2, kp3 = st.columns(3)
+    kp1.metric("📊 Total de Propostas", total_prop)
+    kp2.metric("💰 Valor Total Orçado", f"R$ {valor_total_prop:,.2f}")
+    kp3.metric("✅ Propostas Aprovadas", aprovadas_prop)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # Formulário Modal para Cadastrar Nova Proposta
+    if st.session_state.get("modal_nova_proposta", False):
+        with st.expander("📝 Criar Nova Proposta", expanded=True):
+            with st.form("form_nova_proposta"):
+                p1, p2, p3 = st.columns(3)
+                with p1:
+                    prop_titulo = st.text_input("Título / Objeto *", placeholder="Ex: Implantação de Software")
+                    prop_cliente = st.text_input("Cliente / Empresa *", placeholder="Nome do cliente")
+                with p2:
+                    prop_valor = st.number_input("Valor Total (R$)", min_value=0.0, step=100.0)
+                    prop_validade = st.date_input("Validade da Proposta")
+                with p3:
+                    prop_status = st.selectbox("Status", ["Em elaboração", "Enviada", "Em negociação", "Aprovada", "Recusada"])
+                    prop_resp = st.text_input("Responsável", value="Carlos")
+
+                btn_salvar_p, btn_fechar_p = st.columns(2)
+                with btn_salvar_p:
+                    submit_prop = st.form_submit_button("Salvar Proposta", use_container_width=True)
+                with btn_fechar_p:
+                    close_prop = st.form_submit_button("Cancelar", use_container_width=True)
+
+                if submit_prop:
+                    if prop_titulo and prop_cliente:
+                        try:
+                            conn = conectar()
+                            conn.execute("""
+                                INSERT INTO propostas (titulo, cliente, valor, validade, status, responsavel, data_criacao)
+                                VALUES (?, ?, ?, ?, ?, ?, ?)
+                            """, (prop_titulo, prop_cliente, prop_valor, str(prop_validade), prop_status, prop_resp, str(date.today())))
+                            conn.commit()
+                            conn.close()
+                            st.session_state.modal_nova_proposta = False
+                            st.success("Proposta criada com sucesso!")
+                            st.rerun()
+                        except Exception as e:
+                            st.error(f"Erro ao salvar proposta: {e}")
+                    else:
+                        st.error("Preencha o Título e o Cliente.")
+
+                if close_prop:
+                    st.session_state.modal_nova_proposta = False
+                    st.rerun()
+
+    # Tabela de Listagem das Propostas
+    st.markdown("#### 📋 Histórico de Propostas")
+    if not df_propostas.empty:
+        colunas_exibir = [c for c in ['data_criacao', 'titulo', 'cliente', 'valor', 'validade', 'status', 'responsavel'] if c in df_propostas.columns]
+        st.dataframe(df_propostas[colunas_exibir], use_container_width=True, hide_index=True)
+    else:
+        st.info("Nenhuma proposta cadastrada no banco de dados.")
+
+elif selected == "Relatórios":
+    # (continuação das suas outras abas...)
 
     st.markdown("<br>", unsafe_allow_html=True)
     if not df_vendas.empty:
