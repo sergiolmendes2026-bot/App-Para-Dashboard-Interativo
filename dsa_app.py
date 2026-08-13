@@ -74,9 +74,10 @@ def inicializar_banco():
     cursor.execute("CREATE TABLE IF NOT EXISTS clientes (id INTEGER PRIMARY KEY AUTOINCREMENT, nome TEXT, empresa TEXT, email TEXT, telefone TEXT, regiao TEXT, status TEXT, origem TEXT, motivo_perda TEXT, data TEXT, data_fechamento TEXT, responsavel TEXT, prioridade TEXT, ultimo_contato TEXT)")
     cursor.execute("CREATE TABLE IF NOT EXISTS pipeline (id INTEGER PRIMARY KEY AUTOINCREMENT, titulo TEXT, estagio TEXT, valor REAL, empresa TEXT, contato TEXT, telefone TEXT, email TEXT, responsavel TEXT, origem TEXT)")
     cursor.execute("CREATE TABLE IF NOT EXISTS vendas (id INTEGER PRIMARY KEY AUTOINCREMENT, cliente TEXT, valor REAL, data TEXT, responsavel TEXT, status TEXT, produto TEXT)")
+    cursor.execute("CREATE TABLE IF NOT EXISTS atividades (id INTEGER PRIMARY KEY AUTOINCREMENT, titulo TEXT, tipo TEXT, data TEXT, responsavel TEXT, status TEXT, cliente TEXT)")
+    cursor.execute("CREATE TABLE IF NOT EXISTS propostas (id INTEGER PRIMARY KEY AUTOINCREMENT, cliente TEXT, valor REAL, status TEXT, data TEXT, validade TEXT)")
     cursor.execute("CREATE TABLE IF NOT EXISTS agendamentos (id INTEGER PRIMARY KEY, ativo INTEGER, frequencia TEXT, destinatario TEXT)")
     cursor.execute("CREATE TABLE IF NOT EXISTS historico_exportacoes (id INTEGER PRIMARY KEY AUTOINCREMENT, data TEXT, relatorio TEXT, formato TEXT, usuario TEXT)")
-    cursor.execute("CREATE TABLE IF NOT EXISTS automacoes (id INTEGER PRIMARY KEY AUTOINCREMENT, chave TEXT, ativo INTEGER)")
     
     tinfo_clientes = [col[1] for col in cursor.execute("PRAGMA table_info(clientes)").fetchall()]
     if "prioridade" not in tinfo_clientes:
@@ -110,13 +111,18 @@ def inicializar_banco():
             ("Projeto W", "Fechamento", 15000.0, "Ana"),
         ])
 
-    cursor.execute("SELECT COUNT(*) FROM clientes")
+    cursor.execute("SELECT COUNT(*) FROM atividades")
     if cursor.fetchone()[0] == 0:
-        cursor.executemany("INSERT INTO clientes (nome, empresa, email, telefone, status, origem, motivo_perda, data, responsavel, prioridade, ultimo_contato) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", [
-            ("João Silva", "Tech Solutions", "joao@tech.com", "(11) 98888-1111", "🆕 Novo Lead", "Google Ads", "", "2026-06-01", "Carlos", "🔴 Alta", "2026-08-09"),
-            ("Maria Silva", "Inova Corp", "maria@inova.com", "(11) 97777-2222", "✅ Venda Fechada", "Instagram", "", "2026-06-02", "Ana", "🟡 Média", "2026-08-08"),
-            ("Maria Oliveira", "Global Ltda", "maria.o@global.com", "(21) 96666-3333", "❌ Venda Perdida", "Indicação", "Preço Alto", "2026-06-03", "Carlos", "🟢 Baixa", "2026-08-01"),
-            ("Ana Paula", "Alpha Tech", "ana@alphatech.com", "(31) 95555-4444", "💬 Em Atendimento", "WhatsApp", "", "2026-06-04", "Ana", "🔴 Alta", "2026-08-10"),
+        cursor.executemany("INSERT INTO atividades (titulo, tipo, data, responsavel, status, cliente) VALUES (?, ?, ?, ?, ?, ?)", [
+            ("Reunião de Alinhamento", "Reunião", "2026-08-15", "Carlos", "Pendente", "Empresa Alpha"),
+            ("Ligação de Follow-up", "Ligação", "2026-08-14", "Ana", "Concluída", "Empresa Beta"),
+        ])
+
+    cursor.execute("SELECT COUNT(*) FROM propostas")
+    if cursor.fetchone()[0] == 0:
+        cursor.executemany("INSERT INTO propostas (cliente, valor, status, data, validade) VALUES (?, ?, ?, ?, ?)", [
+            ("Empresa Alpha", 15000.0, "Enviada", "2026-08-10", "2026-08-20"),
+            ("Empresa Beta", 25000.0, "Aprovada", "2026-08-05", "2026-08-15"),
         ])
 
     cursor.execute("SELECT COUNT(*) FROM historico_exportacoes")
@@ -227,10 +233,12 @@ def carregar_dados():
     df_clientes = pd.read_sql("SELECT * FROM clientes", conn) if "clientes" in tabelas else pd.DataFrame()
     df_pipeline = pd.read_sql("SELECT * FROM pipeline", conn) if "pipeline" in tabelas else pd.DataFrame()
     df_vendas = pd.read_sql("SELECT * FROM vendas", conn) if "vendas" in tabelas else pd.DataFrame()
+    df_atividades = pd.read_sql("SELECT * FROM atividades", conn) if "atividades" in tabelas else pd.DataFrame()
+    df_propostas = pd.read_sql("SELECT * FROM propostas", conn) if "propostas" in tabelas else pd.DataFrame()
     conn.close()
-    return df_clientes, df_pipeline, df_vendas
+    return df_clientes, df_pipeline, df_vendas, df_atividades, df_propostas
 
-df_clientes, df_pipeline, df_vendas = carregar_dados()
+df_clientes, df_pipeline, df_vendas, df_atividades, df_propostas = carregar_dados()
 
 # --- BARRA DE PESQUISA GLOBAL ---
 col_busca1, col_busca2, col_busca3 = st.columns([6, 1, 1])
@@ -618,6 +626,137 @@ elif selected == "Leads":
         st.dataframe(df_leads_filtered[colunas_lead], use_container_width=True, hide_index=True)
     else:
         st.info("Nenhum lead encontrado com os filtros selecionados.")
+
+elif selected == "Atividades":
+    st.markdown("### 📋 Gestão de Atividades")
+    with st.form("form_nova_atividade", clear_on_submit=True):
+        col_a1, col_a2 = st.columns(2)
+        with col_a1:
+            titulo_atv = st.text_input("Título da Atividade *")
+            tipo_atv = st.selectbox("Tipo", ["Ligação", "Reunião", "E-mail", "Tarefa", "WhatsApp"])
+            cliente_atv = st.text_input("Cliente / Empresa Relacionada")
+        with col_a2:
+            data_atv = st.date_input("Data de Vencimento", value=date.today())
+            resp_atv = st.text_input("Responsável", value="Carlos")
+            status_atv = st.selectbox("Status", ["Pendente", "Em Andamento", "Concluída"])
+            
+        salvar_atv = st.form_submit_button("Criar Atividade")
+        if salvar_atv:
+            if titulo_atv:
+                conn = conectar()
+                conn.execute("INSERT INTO atividades (titulo, tipo, data, responsavel, status, cliente) VALUES (?, ?, ?, ?, ?, ?)",
+                             (titulo_atv, tipo_atv, str(data_atv), resp_atv, status_atv, cliente_atv))
+                conn.commit()
+                conn.close()
+                st.success("Atividade criada com sucesso!")
+                st.rerun()
+            else:
+                st.error("Informe o título da atividade.")
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown("#### Lista de Atividades Registradas")
+    if not df_atividades.empty:
+        st.dataframe(df_atividades, use_container_width=True, hide_index=True)
+    else:
+        st.info("Nenhuma atividade cadastrada.")
+
+elif selected == "Pipeline":
+    st.markdown("### 📈 Pipeline / Funil de Negócios")
+    with st.form("form_pipeline", clear_on_submit=True):
+        col_p1, col_p2 = st.columns(2)
+        with col_p1:
+            titulo_pipe = st.text_input("Título da Oportunidade *")
+            estagio_pipe = st.selectbox("Estágio", ["Prospecção", "Qualificação", "Proposta", "Negociação", "Fechamento"])
+            valor_pipe = st.number_input("Valor Estimado (R$)", min_value=0.0, value=10000.0, step=1000.0)
+        with col_p2:
+            empresa_pipe = st.text_input("Empresa")
+            contato_pipe = st.text_input("Contato")
+            resp_pipe = st.text_input("Responsável", value="Carlos")
+            
+        salvar_pipe = st.form_submit_button("Adicionar ao Pipeline")
+        if salvar_pipe:
+            if titulo_pipe:
+                conn = conectar()
+                conn.execute("INSERT INTO pipeline (titulo, estagio, valor, empresa, contato, responsavel) VALUES (?, ?, ?, ?, ?, ?)",
+                             (titulo_pipe, estagio_pipe, valor_pipe, empresa_pipe, contato_pipe, resp_pipe))
+                conn.commit()
+                conn.close()
+                st.success("Oportunidade adicionada ao pipeline!")
+                st.rerun()
+            else:
+                st.error("Informe o título da oportunidade.")
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown("#### Oportunidades Atuais")
+    if not df_pipeline.empty:
+        st.dataframe(df_pipeline, use_container_width=True, hide_index=True)
+    else:
+        st.info("Nenhuma oportunidade no pipeline.")
+
+elif selected == "Vendas":
+    st.markdown("### 💰 Gestão de Vendas")
+    with st.form("form_venda", clear_on_submit=True):
+        col_v1, col_v2 = st.columns(2)
+        with col_v1:
+            cliente_venda = st.text_input("Nome do Cliente *")
+            produto_venda = st.text_input("Produto / Servidor Vendido")
+            valor_venda = st.number_input("Valor da Venda (R$)", min_value=0.0, value=5000.0, step=500.0)
+        with col_v2:
+            data_venda = st.date_input("Data da Venda", value=date.today())
+            resp_venda = st.text_input("Responsável", value="Carlos")
+            status_venda = st.selectbox("Status de Pagamento", ["Pago", "Pendente", "Cancelado"])
+            
+        salvar_venda = st.form_submit_button("Registrar Venda")
+        if salvar_venda:
+            if cliente_venda:
+                conn = conectar()
+                conn.execute("INSERT INTO vendas (cliente, valor, data, responsavel, status, produto) VALUES (?, ?, ?, ?, ?, ?)",
+                             (cliente_venda, valor_venda, str(data_venda), resp_venda, status_venda, produto_venda))
+                conn.commit()
+                conn.close()
+                st.success("Venda registrada com sucesso!")
+                st.rerun()
+            else:
+                st.error("Informe o nome do cliente.")
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown("#### Histórico de Vendas")
+    if not df_vendas.empty:
+        st.dataframe(df_vendas, use_container_width=True, hide_index=True)
+    else:
+        st.info("Nenhuma venda registrada.")
+
+elif selected == "Propostas":
+    st.markdown("### 📄 Gestão de Propostas Comerciais")
+    with st.form("form_proposta", clear_on_submit=True):
+        col_pr1, col_pr2 = st.columns(2)
+        with col_pr1:
+            cliente_prop = st.text_input("Cliente *")
+            valor_prop = st.number_input("Valor da Proposta (R$)", min_value=0.0, value=10000.0)
+        with col_pr2:
+            data_prop = st.date_input("Data de Emissão", value=date.today())
+            validade_prop = st.date_input("Validade da Proposta", value=date.today())
+            status_prop = st.selectbox("Status", ["Enviada", "Aprovada", "Rejeitada", "Em Revisão"])
+            
+        salvar_prop = st.form_submit_button("Criar Proposta")
+        if salvar_prop:
+            if cliente_prop:
+                conn = conectar()
+                conn.execute("INSERT INTO propostas (cliente, valor, status, data, validade) VALUES (?, ?, ?, ?, ?)",
+                             (cliente_prop, valor_prop, status_prop, str(data_prop), str(validade_prop)))
+                conn.commit()
+                conn.close()
+                st.success("Proposta criada com sucesso!")
+                st.rerun()
+            else:
+                st.error("Informe o cliente.")
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown("#### Propostas Cadastradas")
+    if not df_propostas.empty:
+        st.dataframe(df_propostas, use_container_width=True, hide_index=True)
+    else:
+        st.info("Nenhuma proposta cadastrada.")
 
 elif selected == "Relatórios":
     st.markdown("### 📄 Relatórios e Exportações")
