@@ -32,20 +32,20 @@ bg_app = "#0e1117" if is_escuro else "#ffffff"
 text_app = "#ffffff" if is_escuro else "#1e293b"
 sidebar_bg = "#0b0f19" if is_escuro else "#f8fafc" 
 
-# --- CSS E ESTILIZAÇÃO DO MENU E PAINEIS (CORRIGIDO SEM F-STRING) ---
-st.markdown(f"""
+# --- CSS E ESTILIZAÇÃO DO MENU E PAINEIS ---
+st.markdown("""
     <style>
-        .stApp {{ background-color: {bg_app}; color: {text_app}; }}
+        .stApp { background-color: #0e1117; color: #ffffff; }
         
         /* Ajuste do Sidebar Container */
-        [data-testid="stSidebar"] {{ 
-            background-color: {sidebar_bg}; 
+        [data-testid="stSidebar"] { 
+            background-color: #0b0f19; 
             border-right: 1px solid #1e293b;
             padding: 0 !important;
         }
         
         /* Estilização dos Botões */
-        [data-testid="stSidebar"] div.stButton > button {{
+        [data-testid="stSidebar"] div.stButton > button {
             display: flex;
             align-items: center;
             justify-content: flex-start;
@@ -60,21 +60,21 @@ st.markdown(f"""
             transition: all 0.2s ease;
             font-size: 14px !important;
             font-weight: 500 !important;
-        }}
+        }
         
-        [data-testid="stSidebar"] div.stButton > button:hover {{ 
+        [data-testid="stSidebar"] div.stButton > button:hover { 
             background-color: #1e293b !important; 
             color: #ffffff !important;
-        }}
+        }
         
-        .sidebar-section-title {{
+        .sidebar-section-title {
             color: #475569;
             font-size: 10px;
             font-weight: 700;
             letter-spacing: 0.05em;
             text-transform: uppercase;
             margin: 20px 0 8px 16px;
-        }}
+        }
     </style>
 """, unsafe_allow_html=True)
 
