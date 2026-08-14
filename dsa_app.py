@@ -23,7 +23,7 @@ st.markdown("""
         .metric-value { font-size: 26px; font-weight: 800; color: #ffffff; font-family: 'Courier New', monospace; }
         h2, h3 { color: #66fcf1 !important; font-weight: 300 !important; }
         
-        /* Estilização para deixar a barra de filtros mais escura e integrada */
+        /* Estilização para a barra de filtros horizontal */
         div[data-testid="stHorizontalBlock"] {
             background-color: #151a21;
             padding: 10px;
@@ -45,10 +45,10 @@ with st.sidebar:
 
 # Título Principal
 st.markdown("<h1 style='color: #ffffff; font-weight: 700;'>Dashboard de Performance Comercial</h1>", unsafe_allow_html=True)
-st.markdown("<p style='color: #c5c6c7;'>Análise de métricas em tempo real com projeções corrigidas.</p>", unsafe_allow_html=True)
+st.markdown("<p style='color: #c5c6c7;'>Análise de métricas em tempo real com projeções e cores vibrantes.</p>", unsafe_allow_html=True)
 st.markdown("<br>", unsafe_allow_html=True)
 
-# 3. NOVA PARTE: Barra de Filtros Horizontal (Conforme a imagem)
+# 3. Barra de Filtros Horizontal
 st.markdown("### 🔍 Filtros de Pesquisa")
 filtro_col1, filtro_col2, filtro_col3, filtro_col4, filtro_col5, filtro_col6, filtro_col7 = st.columns([1.5, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2])
 
@@ -65,12 +65,12 @@ with filtro_col5:
 with filtro_col6:
     ticket_filtro = st.selectbox("Ticket Médio", ["Todos", "Alto", "Baixo"], label_visibility="visible")
 with filtro_col7:
-    st.markdown("<br>", unsafe_allow_html=True) # Alinha o botão verticalmente
+    st.markdown("<br>", unsafe_allow_html=True)
     botao_filtrar = st.button("Aplicar Filtros", use_container_width=True)
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-# 4. Dados e Cartões (Permanecem iguais)
+# 4. Dados e Cartões 
 total_leads = 8
 receita_realizada = 90000.00
 valor_pipeline = 115000.00
@@ -88,31 +88,43 @@ with col4:
 
 st.markdown("<br><hr style='border-color: #1f2833;'><br>", unsafe_allow_html=True)
 
-# 5. Gráficos (Permanecem iguais)
+# 5. Linha de Gráficos Superior (Coloridos)
 col_graf1, col_graf2 = st.columns(2)
 
 with col_graf1:
-    st.subheader("📊 1. Evolução Cronológica das Vendas")
+    st.subheader("📈 1. Evolução Cronológica das Vendas")
     dados_vendas = pd.DataFrame({
         "Data": pd.date_range(start="2026-06-01", periods=6, freq="D"),
-        "Vendas": [12000, 28000, 21000, 41000, 29000, 58000]
+        "Vendas": [12000, 28000, 19000, 42000, 31000, 58000]
     })
     fig_linha = px.line(dados_vendas, x="Data", y="Vendas", template="plotly_dark")
-    fig_linha.update_traces(line_color="#45f3ff", line_width=4, fill='tozeroy', fillcolor='rgba(69, 243, 255, 0.05)')
+    # Linha roxo neon vibrante com preenchimento degradê suave
+    fig_linha.update_traces(line_color="#b55fe6", line_width=4, fill='tozeroy', fillcolor='rgba(181, 95, 230, 0.08)')
     fig_linha.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', xaxis=dict(showgrid=False), yaxis=dict(showgrid=True, gridcolor='#1f2833'))
     st.plotly_chart(fig_linha, use_container_width=True)
 
 with col_graf2:
     st.subheader("🎯 2. Índice de Meta vs Realizado")
+    # Velocímetro estilizado com gradiente de alerta (Vermelho -> Amarelo -> Verde)
     fig_gauge = go.Figure(go.Indicator(
         mode="gauge+number", value=78.3,
         number={'suffix': "%", 'font': {'color': '#ffffff', 'size': 40}},
-        gauge={'bar': {'color': "#45f3ff"}, 'bgcolor': "#151a21", 'borderwidth': 2, 'bordercolor': "#1f2833"}
+        gauge={
+            'bar': {'color': "#00ffcc"},
+            'bgcolor': "#151a21",
+            'borderwidth': 2,
+            'bordercolor': "#1f2833",
+            'steps': [
+                {'range':, 'color': 'rgba(255, 77, 77, 0.25)'},    # Crítico (Vermelho)
+                {'range':, 'color': 'rgba(255, 206, 86, 0.25)'},  # Alerta (Amarelo)
+                {'range':, 'color': 'rgba(75, 192, 192, 0.25)'}  # Excelente (Verde)
+            ]
+        }
     ))
     fig_gauge.update_layout(template="plotly_dark", paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', height=280, margin=dict(l=20, r=20, t=40, b=20))
     st.plotly_chart(fig_gauge, use_container_width=True)
 
-# 6. Linha de Gráficos Inferior
+# 6. Linha de Gráficos Inferior (Coloridos por Categoria)
 col_graf3, col_graf4 = st.columns(2)
 
 with col_graf3:
@@ -121,18 +133,22 @@ with col_graf3:
         "Vendedor": ["Alex Silva", "Carlos Souza"],
         "Receita (R$)": [55000, 35000]
     })
-    fig_vendedor = px.bar(dados_vendedores, x="Vendedor", y="Receita (R$)", text_auto='.2s', template="plotly_dark")
-    fig_vendedor.update_traces(marker_color="#45f3ff", textposition="outside", cliponaxis=False)
-    fig_vendedor.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', xaxis=dict(showgrid=False), yaxis=dict(showgrid=True, gridcolor='#1f2833'))
+    # Barras verticais com cores distintas por vendedor para facilitar a leitura rápida
+    fig_vendedor = px.bar(dados_vendedores, x="Vendedor", y="Receita (R$)", color="Vendedor", text_auto='.2s', template="plotly_dark",
+                          color_discrete_map={"Alex Silva": "#ff4d6d", "Carlos Souza": "#33b5e5"})
+    fig_vendedor.update_traces(textposition="outside", cliponaxis=False)
+    fig_vendedor.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', showlegend=False, xaxis=dict(showgrid=False), yaxis=dict(showgrid=True, gridcolor='#1f2833'))
     st.plotly_chart(fig_vendedor, use_container_width=True)
 
 with col_graf4:
     st.subheader("📦 7. Ranking de Produtos Mais Vendidos")
     dados_produtos = pd.DataFrame({
         "Produto": ["Software C", "Software A", "Consultoria Técnica"],
-        "Unidades Vendidas": [15, 10, 5]
+        "Unidades Vendidas": [25, 45, 12]
     })
-    fig_produtos = px.bar(dados_produtos, x="Unidades Vendidas", y="Produto", orientation='h', text_auto=True, template="plotly_dark")
-    fig_produtos.update_traces(marker_color="#1f2833", marker_line_color="#45f3ff", marker_line_width=2, textposition="inside")
-    fig_produtos.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', xaxis=dict(showgrid=True, gridcolor='#1f2833'), yaxis=dict(showgrid=False))
+    # Barras horizontais organizadas com gradiente de paleta fria (Azul a Turquesa)
+    fig_produtos = px.bar(dados_produtos, x="Unidades Vendidas", y="Produto", orientation='h', color="Unidades Vendidas", text_auto=True, template="plotly_dark",
+                          color_continuous_scale=["#1a8cff", "#00ffcc"])
+    fig_produtos.update_traces(textposition="inside")
+    fig_produtos.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', coloraxis_showscale=False, xaxis=dict(showgrid=True, gridcolor='#1f2833'), yaxis=dict(showgrid=False))
     st.plotly_chart(fig_produtos, use_container_width=True)
