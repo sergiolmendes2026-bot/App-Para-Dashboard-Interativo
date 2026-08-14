@@ -455,7 +455,7 @@ if selected == "Dashboard":
                 st.info("Sem dados para colunas empilhadas.")
         c_v1, c_v2 = st.columns(2)
         with c_v1:
-            st.markdown("#### 📈 1. Evolução das Vendas")
+            st.markdown("#### 📈  Evolução das Vendas")
             if not df_vendas.empty and "data" in df_vendas.columns:
                 df_temp = df_vendas.copy()
                 df_temp['data'] = pd.to_datetime(df_temp['data'], errors='coerce')
@@ -473,7 +473,7 @@ if selected == "Dashboard":
                 st.info("Sem dados suficientes de vendas.")
 
         with c_v2:
-            st.markdown("#### 🎯 2. Meta x Realizado (Gauge)")
+            st.markdown("#### 🎯  Meta x Realizado (Gauge)")
             meta_exemplo = 150000.0
             fig_gauge = go.Figure(go.Indicator(
                 mode="gauge+number", value=receita_realizada,
@@ -499,7 +499,7 @@ if selected == "Dashboard":
 
         c_v3, c_v4 = st.columns(2)
         with c_v3:
-            st.markdown("#### 🏆 4. Receita por Vendedor")
+            st.markdown("#### 🏆  Receita por Vendedor")
             if not df_vendas.empty and "responsavel" in df_vendas.columns:
                 df_vend = df_vendas.groupby("responsavel")["valor"].sum().reset_index()
                 cores_vendedores = {"Ana": "#38BDF8", "Carlos": "#1D4ED8", "Pedro": "#F59E0B", "Julia": "#065CF6"}
@@ -510,7 +510,7 @@ if selected == "Dashboard":
                 st.info("Sem dados de vendedores.")
 
         with c_v4:
-            st.markdown("#### 📦 7. Produtos Mais Vendidos")
+            st.markdown("#### 📦  Produtos Mais Vendidos")
             if not df_vendas.empty and "produto" in df_vendas.columns:
                 df_prod = df_vendas.groupby("produto")["valor"].sum().reset_index()
                 cores_produtos = ["#2563EB", "#38BDF8", "#60A5FA", "#93C5FD"]
@@ -523,7 +523,7 @@ if selected == "Dashboard":
     with tab2:
         c_p1, c_p2 = st.columns(2)
         with c_p1:
-            st.markdown("#### 📊 3. Funil de Vendas")
+            st.markdown("#### 📊  Funil de Vendas")
             if not df_pipeline.empty and "estagio" in df_pipeline.columns:
                 fig_funil = px.funnel(df_pipeline, x="valor", y="estagio", color_discrete_sequence=[cor_hex])
                 fig_funil.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font=dict(color=text_app))
@@ -584,7 +584,7 @@ if selected == "Dashboard":
                 st.info("Sem dados de origem.")
 
         with c_l2:
-            st.markdown("#### 📋 6. Clientes por Status")
+            st.markdown("#### 📋  Clientes por Status")
             if not df_clientes.empty and "status" in df_clientes.columns:
                 df_status = df_clientes.groupby("status").size().reset_index(name="quantidade")
                 
@@ -621,7 +621,7 @@ if selected == "Dashboard":
             else:
                 st.info("Sem dados de status.")
 
-        st.markdown("#### ❌ 8. Motivos de Perda de Negócios")
+        st.markdown("#### ❌  Motivos de Perda de Negócios")
         if not df_clientes.empty and "motivo_perda" in df_clientes.columns:
             df_perda = df_clientes[df_clientes["motivo_perda"].str.strip() != ""]
             if not df_perda.empty:
