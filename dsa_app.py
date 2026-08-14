@@ -1,19 +1,25 @@
-import streamlit as st
 import pandas as pd
 import sqlite3
-import plotly.express as px 
+import streamlit as st
+import plotly.express as px
 import plotly.graph_objects as go
-from datetime import date, datetime
+from datetime import date
+import io
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 from email import encoders
+from streamlit_option_menu import option_menu
 
 # --- CONFIGURAÇÃO DA PÁGINA ---
-st.set_page_config(page_title="CRM Pro", page_icon="📊", layout="wide")
+st.set_page_config(page_title="CRM LMB Pro", layout="wide")
 
-# --- INICIALIZAÇÃO DO ESTADO ---
+# --- INICIALIZAÇÃO DE ESTADOS ---
+if "modal_nova_atividade" not in st.session_state:
+    st.session_state.modal_nova_atividade = False
+if "filtro_atividades" not in st.session_state:
+    st.session_state.filtro_atividades = "Todas as atividades"
 if "tema_sistema" not in st.session_state:
     st.session_state.tema_sistema = "🌙 Escuro" 
 if "selected" not in st.session_state:
@@ -25,19 +31,19 @@ bg_app = "#0e1117" if is_escuro else "#ffffff"
 text_app = "#ffffff" if is_escuro else "#1e293b"
 sidebar_bg = "#0b0f19" if is_escuro else "#f8fafc" 
 
-# --- CSS GLOBAL, SIDEBAR E PAINEIS (ÚNICO E CENTRALIZADO) ---
+# --- CSS GLOBAL E CENTRALIZADO ---
 st.markdown(f"""
     <style>
-        /* Fundo Geral do App */
+        /* Fundo do App */
         .stApp {{ background-color: {bg_app}; color: {text_app}; }}
         
-        /* Ajuste do Sidebar Container */
+        /* Sidebar Container */
         [data-testid="stSidebar"] {{ 
             background-color: {sidebar_bg} !important; 
             border-right: 1px solid #1e293b;
             padding: 0 !important;
         }}
-        
+
         /* Estilização da barra de filtros agrupada */
         .filtros-container {{
             background-color: #161b22;
@@ -58,99 +64,6 @@ st.markdown(f"""
         }}
 
         /* Estilização dos Botões da Sidebar */
-        [data-testid="stSidebar"] div.stButton > button {{
-            display: flex;
-            align-items: center;
-            justify-content: flex-start;
-            gap: 12px;
-            width: 100%; 
-            background-color: transparent !important;
-            color: #94a3b8 !important; 
-            border: none !important; 
-            border-radius: 8px !important;
-            padding: 10px 16px !important; 
-            margin-bottom: 2px;
-            transition: all 0.2s ease;
-            font-size: 14px !important;
-            font-weight: 500 !important;
-        }}
-        
-        [data-testid="stSidebar"] div.stButton > button:hover {{ 
-            background-color: #1e293b !important; 
-            color: #ffffff !important;
-        }}
-        
-        .sidebar-section-title {{
-            color: #475569;
-            font-size: 10px;
-            font-weight: 700;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
-            margin: 20px 0 8px 16px;
-        }}
-    </style>
-""", unsafe_allow_html=True)
-    <style>
-        /* Fundo do App */
-        .stApp { background-color: #0e1117; color: #ffffff; }
-
-        /* Sidebar Container */
-        [data-testid="stSidebar"] { 
-            background-color: #0b0f19 !important; 
-            border-right: 1px solid #1e293b;
-        }
-
-        /* Ajuste do Option Menu para garantir que não sobrescreva */
-        div[data-testid="stSidebar"] .nav-link {
-            background-color: transparent !important;
-            border-radius: 8px !important;
-            margin: 2px 0px !important;
-            transition: all 0.2s ease !important;
-        }
-        
-        div[data-testid="stSidebar"] .nav-link:hover {
-            background-color: #1e293b !important;
-        }
-
-        div[data-testid="stSidebar"] .nav-link-selected {
-            background-color: #1e293b !important;
-            border-left: 4px solid #3b82f6 !important;
-        }
-    </style>
-""", unsafe_allow_html=True)
-
-# Inicialização de estados
-if "selected" not in st.session_state:
-    st.session_state.selected = "Dashboard"
-
-
-# --- INICIALIZAÇÃO DO ESTADO ---
-if "tema_sistema" not in st.session_state:
-    st.session_state.tema_sistema = "🌙 Escuro" 
-if "selected" not in st.session_state:
-    st.session_state.selected = "Dashboard"
-
-# Cor principal fixa do sistema
-cor_hex = "#2563EB"
-is_escuro = "Escuro" in st.session_state.tema_sistema
-
-bg_app = "#0e1117" if is_escuro else "#ffffff"
-text_app = "#ffffff" if is_escuro else "#1e293b"
-sidebar_bg = "#0b0f19" if is_escuro else "#f8fafc" 
-
-# --- CSS E ESTILIZAÇÃO DO MENU E PAINEIS ---
-st.markdown(f"""
-    <style>
-        .stApp {{ background-color: {bg_app}; color: {text_app}; }}
-        
-        /* Ajuste do Sidebar Container */
-        [data-testid="stSidebar"] {{ 
-            background-color: {sidebar_bg}; 
-            border-right: 1px solid #1e293b;
-            padding: 0 !important;
-        }}
-        
-        /* Estilização dos Botões */
         [data-testid="stSidebar"] div.stButton > button {{
             display: flex;
             align-items: center;
@@ -250,17 +163,14 @@ def inicializar_banco():
 
 inicializar_banco()
 
-from streamlit_option_menu import option_menu
-
+# --- MENU LATERAL ---
 with st.sidebar:
-    # Cabeçalho da Sidebar
     st.markdown("""
         <div style="padding: 10px 0px 20px 10px;">
             <span style="font-weight: 700; font-size: 20px; color: white;">📊 CRM PRO</span>
         </div>
     """, unsafe_allow_html=True)
 
-    # Menu lateral limpo (Sem WhatsApp e sem Integrações duplicadas)
     selected = option_menu(
         menu_title=None,
         options=[
@@ -301,8 +211,7 @@ with st.sidebar:
         }
     )
     st.session_state.selected = selected
-  
-    st.session_state.selected = selected
+
 selected = st.session_state.selected
 
 def conectar():
