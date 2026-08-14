@@ -10,7 +10,6 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 from email import encoders
-from streamlit_option_menu import option_menu
 
 if "modal_nova_atividade" not in st.session_state:
     st.session_state.modal_nova_atividade = False
@@ -22,20 +21,27 @@ st.set_page_config(page_title="CRM LMB Pro", layout="wide")
 # --- CSS GLOBAL E CENTRALIZADO ---
 st.markdown("""
     <style>
+        /* Fundo do App */
         .stApp { background-color: #0e1117; color: #ffffff; }
+
+        /* Sidebar Container */
         [data-testid="stSidebar"] { 
             background-color: #0b0f19 !important; 
             border-right: 1px solid #1e293b;
         }
+
+        /* Ajuste do Option Menu para garantir que não sobrescreva */
         div[data-testid="stSidebar"] .nav-link {
             background-color: transparent !important;
             border-radius: 8px !important;
             margin: 2px 0px !important;
             transition: all 0.2s ease !important;
         }
+        
         div[data-testid="stSidebar"] .nav-link:hover {
             background-color: #1e293b !important;
         }
+
         div[data-testid="stSidebar"] .nav-link-selected {
             background-color: #1e293b !important;
             border-left: 4px solid #3b82f6 !important;
@@ -43,16 +49,70 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
+# Inicialização de estados
 if "selected" not in st.session_state:
     st.session_state.selected = "Dashboard"
 
+
+# --- INICIALIZAÇÃO DO ESTADO ---
 if "tema_sistema" not in st.session_state:
     st.session_state.tema_sistema = "🌙 Escuro" 
+if "selected" not in st.session_state:
+    st.session_state.selected = "Dashboard"
 
+# Cor principal fixa do sistema
 cor_hex = "#2563EB"
 is_escuro = "Escuro" in st.session_state.tema_sistema
+
+bg_app = "#0e1117" if is_escuro else "#ffffff"
 text_app = "#ffffff" if is_escuro else "#1e293b"
 sidebar_bg = "#0b0f19" if is_escuro else "#f8fafc" 
+
+# --- CSS E ESTILIZAÇÃO DO MENU E PAINEIS ---
+st.markdown(f"""
+    <style>
+        .stApp {{ background-color: {bg_app}; color: {text_app}; }}
+        
+        /* Ajuste do Sidebar Container */
+        [data-testid="stSidebar"] {{ 
+            background-color: {sidebar_bg}; 
+            border-right: 1px solid #1e293b;
+            padding: 0 !important;
+        }}
+        
+        /* Estilização dos Botões */
+        [data-testid="stSidebar"] div.stButton > button {{
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 12px;
+            width: 100%; 
+            background-color: transparent !important;
+            color: #94a3b8 !important; 
+            border: none !important; 
+            border-radius: 8px !important;
+            padding: 10px 16px !important; 
+            margin-bottom: 2px;
+            transition: all 0.2s ease;
+            font-size: 14px !important;
+            font-weight: 500 !important;
+        }}
+        
+        [data-testid="stSidebar"] div.stButton > button:hover {{ 
+            background-color: #1e293b !important; 
+            color: #ffffff !important;
+        }}
+        
+        .sidebar-section-title {{
+            color: #475569;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            margin: 20px 0 8px 16px;
+        }}
+    </style>
+""", unsafe_allow_html=True)
 
 # --- BANCO DE DADOS E CORREÇÃO DE ESQUEMA ---
 def inicializar_banco():
@@ -107,18 +167,30 @@ def inicializar_banco():
             ("Ana Paula", "Alpha Tech", "ana@alphatech.com", "(31) 95555-4444", "💬 Em Atendimento", "WhatsApp", "", "2026-06-04", "Ana", "🔴 Alta", "2026-08-10"),
         ])
 
+    cursor.execute("SELECT COUNT(*) FROM historico_exportacoes")
+    if cursor.fetchone()[0] == 0:
+        cursor.executemany("INSERT INTO historico_exportacoes (data, relatorio, formato, usuario) VALUES (?, ?, ?, ?)", [
+            ("10/08", "Vendas", "PDF", "Admin"),
+            ("09/08", "Clientes", "Excel", "Larissa"),
+            ("08/08", "Receita", "CSV", "Admin"),
+        ])
+
     conn.commit()
     conn.close()
 
 inicializar_banco()
 
+from streamlit_option_menu import option_menu
+
 with st.sidebar:
+    # Cabeçalho da Sidebar
     st.markdown("""
         <div style="padding: 10px 0px 20px 10px;">
             <span style="font-weight: 700; font-size: 20px; color: white;">📊 CRM PRO</span>
         </div>
     """, unsafe_allow_html=True)
 
+    # Menu lateral limpo (Sem WhatsApp e sem Integrações duplicadas)
     selected = option_menu(
         menu_title=None,
         options=[
@@ -159,9 +231,43 @@ with st.sidebar:
         }
     )
     st.session_state.selected = selected
+  
+    st.session_state.selected = selected
+selected = st.session_state.selected
 
 def conectar():
     return sqlite3.connect("crm.db")
+
+def disparar_email_automatico(destinatario, arquivo_bytes, nome_arquivo):
+    servidor_smtp = "smtp.gmail.com"
+    porta = 587
+    remetente = "sergiolmendes2026@gmail.com"
+    senha = "kmpcpmhvrutcuifw"
+
+    try:
+        msg = MIMEMultipart()
+        msg['From'] = remetente
+        msg['To'] = destinatario
+        msg['Subject'] = "📊 Relatório Automático - CRM Pro"
+
+        corpo = "Olá! Segue em anexo o relatório comercial configurado no painel de exportações do seu CRM." 
+        msg.attach(MIMEText(corpo, 'plain'))
+
+        parte = MIMEBase('application', 'octet-stream')
+        parte.set_payload(arquivo_bytes)
+        encoders.encode_base64(parte)
+        parte.add_header('Content-Disposition', f'attachment; filename="{nome_arquivo}"')
+        msg.attach(parte)
+
+        servidor = smtplib.SMTP(servidor_smtp, porta)
+        servidor.starttls()
+        servidor.login(remetente, senha)
+        servidor.sendmail(remetente, destinatario, msg.as_string())
+        servidor.quit()
+        return True
+    except Exception as e:
+        print(f"Erro ao disparar e-mail: {e}")
+        return False
 
 @st.cache_data(ttl=1)
 def carregar_dados():
@@ -175,7 +281,7 @@ def carregar_dados():
 
 df_clientes, df_pipeline, df_vendas = carregar_dados()
 
-# --- BARRA DE PESQUISA GLOBAL ---
+# --- BARRA DE PESQUISA GLOBAL ÚNICA NO TOPO ---
 col_busca1, col_busca2, col_busca3 = st.columns([6, 1, 1])
 with col_busca1:
     termo_busca = st.text_input("Pesquisa Global", placeholder="🔍 Pesquisar clientes, leads, vendas...", label_visibility="collapsed")
@@ -209,6 +315,8 @@ if termo_busca and len(termo_busca.strip()) > 0:
             
     st.divider()
 
+# --- RENDERIZAÇÃO COMPLETA DE CADA PÁGINA ---
+
 if selected == "Dashboard":
     st.markdown("### 📊 Dashboard de Performance Comercial")
     
@@ -228,51 +336,81 @@ if selected == "Dashboard":
     tab1, tab2, tab3 = st.tabs(["💰 Vendas & Receita", "🎯 Pipeline & Funil", "👥 Leads & Perdas"])
 
     with tab1:
-        kpi1, kpi2, kpi3 = st.columns(3)
-        faturamento_mes_atual = df_vendas['valor'].sum() if not df_vendas.empty else 0.0
-        ticket_medio_atual = df_vendas['valor'].mean() if not df_vendas.empty and len(df_vendas) > 0 else 0.0
-        
-        kpi1.metric("💰 Receita Mensal (Atual)", f"R$ {faturamento_mes_atual:,.2f}", "+12% vs. mês anterior")
-        kpi2.metric("📊 Ticket Médio", f"R$ {ticket_medio_atual:,.2f}", "+5% vs. média histórica")
-        kpi3.metric("🎯 Meta do Mês", "R$ 150,000.00", f"{(faturamento_mes_atual/150000)*100:.1f}% atingido")
+        c_v1, c_v2 = st.columns(2)
+        with c_v1:
+            st.markdown("#### 📈 1. Evolução das Vendas")
+            if not df_vendas.empty and "data" in df_vendas.columns:
+                df_temp = df_vendas.copy()
+                df_temp['data'] = pd.to_datetime(df_temp['data'], errors='coerce')
+                df_v_linha = df_temp.groupby("data")["valor"].sum().reset_index()
+                df_v_linha = df_v_linha.sort_values("data")
+                fig_linha = px.line(df_v_linha, x="data", y="valor", markers=True)
+                fig_linha.update_traces(
+                    line=dict(color="#38BDF8", width=3),
+                    fill='tozeroy',
+                    fillcolor="rgba(56, 189, 248, 0.15)"
+                )
+                fig_linha.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font=dict(color=text_app))
+                st.plotly_chart(fig_linha, use_container_width=True)
+            else:
+                st.info("Sem dados suficientes de vendas.")
+
+        with c_v2:
+            st.markdown("#### 🎯 2. Meta x Realizado (Gauge)")
+            meta_exemplo = 150000.0
+            fig_gauge = go.Figure(go.Indicator(
+                mode="gauge+number", value=receita_realizada,
+                domain={'x': [0, 1], 'y': [0, 1]},
+                title={'text': "Progresso de Vendas vs Meta"},
+                gauge={
+                    'axis': {'range': [None, meta_exemplo]},
+                    'bar': {'color': "#2563EB"},
+                    'steps': [
+                        {'range': [0, meta_exemplo * 0.5], 'color': "#EF4444"},
+                        {'range': [meta_exemplo * 0.5, meta_exemplo * 0.8], 'color': "#F59E0B"},
+                        {'range': [meta_exemplo * 0.8, meta_exemplo], 'color': "#22C55E"}
+                    ],
+                    'threshold': {
+                        'line': {'color': "white", 'width': 4},
+                        'thickness': 0.75,
+                        'value': receita_realizada
+                    }
+                }
+            ))
+            fig_gauge.update_layout(paper_bgcolor="rgba(0,0,0,0)", font=dict(color=text_app), height=260)
+            st.plotly_chart(fig_gauge, use_container_width=True)
+
+        c_v3, c_v4 = st.columns(2)
+        with c_v3:
+            st.markdown("#### 🏆 4. Receita por Vendedor")
+            if not df_vendas.empty and "responsavel" in df_vendas.columns:
+                df_vend = df_vendas.groupby("responsavel")["valor"].sum().reset_index()
+                cores_vendedores = {"Ana": "#38BDF8", "Carlos": "#1D4ED8", "Pedro": "#F59E0B", "Julia": "#065CF6"}
+                fig_vend = px.bar(df_vend, x="responsavel", y="valor", color="responsavel", color_discrete_map=cores_vendedores)
+                fig_vend.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font=dict(color=text_app))
+                st.plotly_chart(fig_vend, use_container_width=True)
+            else:
+                st.info("Sem dados de vendedores.")
+
+        with c_v4:
+            st.markdown("#### 📦 7. Produtos Mais Vendidos")
+            if not df_vendas.empty and "produto" in df_vendas.columns:
+                df_prod = df_vendas.groupby("produto")["valor"].sum().reset_index()
+                cores_produtos = ["#2563EB", "#38BDF8", "#60A5FA", "#93C5FD"]
+                fig_prod = px.bar(df_prod, x="valor", y="produto", orientation="h", color="produto", color_discrete_sequence=cores_produtos)
+                fig_prod.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font=dict(color=text_app), yaxis=dict(autorange="reversed"))
+                st.plotly_chart(fig_prod, use_container_width=True)
+            else:
+                st.info("Sem dados de produtos.")
 
     with tab2:
-        valor_total_pipe = df_pipeline["valor"].sum() if not df_pipeline.empty and "valor" in df_pipeline.columns else 0.0
-        st.markdown(
-            f"""
-            <div style="background-color: #1e293b; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #2563EB;">
-                <span style="color: #94a3b8; font-size: 14px; font-weight: 600; text-transform: uppercase;">Pipeline Total</span><br>
-                <span style="color: #ffffff; font-size: 24px; font-weight: 700;">R$ {valor_total_pipe:,.2f}</span>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
         c_p1, c_p2 = st.columns(2)
-        
         with c_p1:
-            st.markdown("#### 📊 Funil de Vendas")
+            st.markdown("#### 📊 3. Funil de Vendas")
             if not df_pipeline.empty and "estagio" in df_pipeline.columns:
-                df_pipe_funil = df_pipeline.groupby("estagio")["valor"].sum().reset_index()
-                ordem = ["Prospecção", "Qualificação", "Proposta", "Negociação", "Fechamento"]
-                df_pipe_funil["estagio"] = pd.Categorical(df_pipe_funil["estagio"], categories=ordem, ordered=True)
-                df_pipe_funil = df_pipe_funil.sort_values("estagio").dropna()
-
-                fig_funil = px.funnel(
-                    df_pipe_funil, 
-                    x="valor", 
-                    y="estagio", 
-                    color_discrete_sequence=[cor_hex],
-                    text=df_pipe_funil['valor'].apply(lambda v: f"R$ {v:,.0f}")
-                )
-                fig_funil.update_traces(textposition="inside")
-                fig_funil.update_layout(
-                    paper_bgcolor="rgba(0,0,0,0)", 
-                    plot_bgcolor="rgba(0,0,0,0)", 
-                    font=dict(color=text_app),
-                    margin=dict(t=20, b=10)
-                )
-                st.plotly_chart(fig_funil, use_container_width=True, key="chart_funil_vendas_tab2")
+                fig_funil = px.funnel(df_pipeline, x="valor", y="estagio", color_discrete_sequence=[cor_hex])
+                fig_funil.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font=dict(color=text_app))
+                st.plotly_chart(fig_funil, use_container_width=True)
             else:
                 st.info("Sem dados no pipeline.")
 
@@ -280,6 +418,7 @@ if selected == "Dashboard":
             st.markdown("#### 📈 Valor do Pipeline por Etapa")
             if not df_pipeline.empty and "estagio" in df_pipeline.columns:
                 df_pipe_bar = df_pipeline.groupby("estagio")["valor"].sum().reset_index()
+                
                 ordem = ["Prospecção", "Qualificação", "Proposta", "Negociação", "Fechamento"]
                 df_pipe_bar["estagio"] = pd.Categorical(df_pipe_bar["estagio"], categories=ordem, ordered=True)
                 df_pipe_bar = df_pipe_bar.sort_values("estagio")
@@ -312,54 +451,60 @@ if selected == "Dashboard":
                     yaxis=dict(autorange="reversed"),
                     margin=dict(l=30, r=40, t=20, b=10)
                 )
-                st.plotly_chart(fig_bar_pipe, use_container_width=True, key="chart_bar_pipeline_tab2")
+                st.plotly_chart(fig_bar_pipe, use_container_width=True)
             else:
                 st.info("Sem dados no pipeline.")
 
     with tab3:
-        st.markdown("#### 👥 Gestão de Leads e Perdas")
-        if not df_clientes.empty:
-            st.dataframe(df_clientes, use_container_width=True, hide_index=True)
-        else:
-            st.info("Nenhum cliente cadastrado.")
+        c_l1, c_l2 = st.columns(2)
+        with c_l1:
+            st.markdown("#### 🍩 5. Origem dos Leads (Donut)")
+            if not df_clientes.empty and "origem" in df_clientes.columns:
+                fig_origem = px.pie(df_clientes, names="origem", hole=0.5, color_discrete_sequence=px.colors.qualitative.Prism)
+                fig_origem.update_layout(paper_bgcolor="rgba(0,0,0,0)", font=dict(color=text_app))
+                st.plotly_chart(fig_origem, use_container_width=True)
+            else:
+                st.info("Sem dados de origem.")
 
-        st.markdown("#### 📋 Clientes por Status")
-        if not df_clientes.empty and "status" in df_clientes.columns:
-            df_status = df_clientes.groupby("status").size().reset_index(name="quantidade")
-            
-            cores_status = {
-                "🆕 Novo Lead": "#38BDF8",
-                "📞 Primeiro Contato": "#60A5FA",
-                "💬 Em Atendimento": "#8B5CF6",
-                "📋 Proposta Enviada": "#F59E0B",
-                "⏳ Aguardando Resposta": "#FBBF24",
-                "🤝 Negociação": "#F97316",
-                "✅ Venda Fechada": "#22C55E",
-                "❌ Venda Perdida": "#EF4444",
-                "🔄 Pós-Venda": "#10B981"
-            }
-            
-            fig_status = px.bar(
-                df_status, 
-                x="status", 
-                y="quantidade", 
-                color="status", 
-                color_discrete_map=cores_status,
-                text="quantidade"
-            )
-            fig_status.update_traces(texttemplate='%{y}', textposition='outside')
-            fig_status.update_layout(
-                showlegend=False,
-                paper_bgcolor="rgba(0,0,0,0)", 
-                plot_bgcolor="rgba(0,0,0,0)", 
-                font=dict(color=text_app),
-                margin=dict(t=30, b=10)
-            )
-            st.plotly_chart(fig_status, use_container_width=True)
-        else:
-            st.info("Sem dados de status.")
+        with c_l2:
+            st.markdown("#### 📋 6. Clientes por Status")
+            if not df_clientes.empty and "status" in df_clientes.columns:
+                df_status = df_clientes.groupby("status").size().reset_index(name="quantidade")
+                
+                # Mapeamento de cores personalizadas para cada status
+                cores_status = {
+                    "🆕 Novo Lead": "#38BDF8",
+                    "📞 Primeiro Contato": "#60A5FA",
+                    "💬 Em Atendimento": "#8B5CF6",
+                    "📋 Proposta Enviada": "#F59E0B",
+                    "⏳ Aguardando Resposta": "#FBBF24",
+                    "🤝 Negociação": "#F97316",
+                    "✅ Venda Fechada": "#22C55E",
+                    "❌ Venda Perdida": "#EF4444",
+                    "🔄 Pós-Venda": "#10B981"
+                }
+                
+                fig_status = px.bar(
+                    df_status, 
+                    x="status", 
+                    y="quantidade", 
+                    color="status", 
+                    color_discrete_map=cores_status,
+                    text="quantidade"
+                )
+                fig_status.update_traces(texttemplate='%{y}', textposition='outside')
+                fig_status.update_layout(
+                    showlegend=False,
+                    paper_bgcolor="rgba(0,0,0,0)", 
+                    plot_bgcolor="rgba(0,0,0,0)", 
+                    font=dict(color=text_app),
+                    margin=dict(t=30, b=10)
+                )
+                st.plotly_chart(fig_status, use_container_width=True)
+            else:
+                st.info("Sem dados de status.")
 
-        st.markdown("#### ❌ Motivos de Perda de Negócios")
+        st.markdown("#### ❌ 8. Motivos de Perda de Negócios")
         if not df_clientes.empty and "motivo_perda" in df_clientes.columns:
             df_perda = df_clientes[df_clientes["motivo_perda"].str.strip() != ""]
             if not df_perda.empty:
@@ -598,6 +743,7 @@ elif selected == "Vendas":
                 st.error("Informe o nome do cliente.")
   
 elif selected == "Propostas":
+    # Garante que a tabela de propostas existe no banco de dados
     try:
         conn = conectar()
         conn.execute("""
@@ -617,6 +763,7 @@ elif selected == "Propostas":
     except Exception:
         pass
 
+    # Cabeçalho e Botão de Nova Proposta
     col_prop_t1, col_prop_t2 = st.columns([4, 1])
     with col_prop_t1:
         st.markdown("### 📄 Gestão de Propostas Comerciais")
@@ -624,6 +771,7 @@ elif selected == "Propostas":
         if st.button("➕ Nova Proposta", use_container_width=True):
             st.session_state.modal_nova_proposta = not st.session_state.get("modal_nova_proposta", False)
 
+    # Carrega dados do banco
     try:
         conn = conectar()
         df_propostas = pd.read_sql("SELECT * FROM propostas", conn)
@@ -631,46 +779,302 @@ elif selected == "Propostas":
     except Exception:
         df_propostas = pd.DataFrame()
 
+    # KPIs rápidos
     total_prop = len(df_propostas) if not df_propostas.empty else 0
     valor_total_prop = df_propostas["valor"].sum() if not df_propostas.empty and "valor" in df_propostas.columns else 0.0
     aprovadas_prop = len(df_propostas[df_propostas["status"] == "Aprovada"]) if not df_propostas.empty and "status" in df_propostas.columns else 0
 
-    kpi_p1, kpi_p2, kpi_p3 = st.columns(3)
-    kpi_p1.metric("Total de Propostas", total_prop)
-    kpi_p2.metric("Valor Total em Propostas", f"R$ {valor_total_prop:,.2f}")
-    kpi_p3.metric("Propostas Aprovadas", aprovadas_prop)
-
-    if st.session_state.get("modal_nova_proposta", False):
-        with st.form("form_nova_proposta"):
-            st.markdown("##### Criar Nova Proposta")
-            np_c1, np_c2 = st.columns(2)
-            with np_c1:
-                np_titulo = st.text_input("Título da Proposta *")
-                np_cliente = st.text_input("Cliente *")
-                np_valor = st.number_input("Valor (R$)", min_value=0.0, value=10000.0, step=1000.0)
-            with np_c2:
-                np_validade = st.text_input("Validade", value="2026-12-31")
-                np_status = st.selectbox("Status", ["Pendente", "Aprovada", "Recusada"])
-                np_resp = st.text_input("Responsável", value="Carlos")
-            
-            btn_salvar_prop = st.form_submit_button("Salvar Proposta")
-            if btn_salvar_prop:
-                if np_titulo and np_cliente:
-                    conn = conectar()
-                    conn.execute("""
-                        INSERT INTO propostas (titulo, cliente, valor, validade, status, responsavel, data_criacao)
-                        VALUES (?, ?, ?, ?, ?, ?, ?)
-                    """, (np_titulo, np_cliente, np_valor, np_validade, np_status, np_resp, str(date.today())))
-                    conn.commit()
-                    conn.close()
-                    st.session_state.modal_nova_proposta = False
-                    st.success("Proposta salva com sucesso!")
-                    st.rerun()
-                else:
-                    st.error("Preencha o Título e o Cliente.")
+    kp1, kp2, kp3 = st.columns(3)
+    kp1.metric("📊 Total de Propostas", total_prop)
+    kp2.metric("💰 Valor Total Orçado", f"R$ {valor_total_prop:,.2f}")
+    kp3.metric("✅ Propostas Aprovadas", aprovadas_prop)
 
     st.markdown("<br>", unsafe_allow_html=True)
+
+    # Formulário Modal para Cadastrar Nova Proposta
+    if st.session_state.get("modal_nova_proposta", False):
+        with st.expander("📝 Criar Nova Proposta", expanded=True):
+            with st.form("form_nova_proposta"):
+                p1, p2, p3 = st.columns(3)
+                with p1:
+                    prop_titulo = st.text_input("Título / Objeto *", placeholder="Ex: Implantação de Software")
+                    prop_cliente = st.text_input("Cliente / Empresa *", placeholder="Nome do cliente")
+                with p2:
+                    prop_valor = st.number_input("Valor Total (R$)", min_value=0.0, step=100.0)
+                    prop_validade = st.date_input("Validade da Proposta")
+                with p3:
+                    prop_status = st.selectbox("Status", ["Em elaboração", "Enviada", "Em negociação", "Aprovada", "Recusada"])
+                    prop_resp = st.text_input("Responsável", value="Carlos")
+
+                btn_salvar_p, btn_fechar_p = st.columns(2)
+                with btn_salvar_p:
+                    submit_prop = st.form_submit_button("Salvar Proposta", use_container_width=True)
+                with btn_fechar_p:
+                    close_prop = st.form_submit_button("Cancelar", use_container_width=True)
+
+                if submit_prop:
+                    if prop_titulo and prop_cliente:
+                        try:
+                            conn = conectar()
+                            conn.execute("""
+                                INSERT INTO propostas (titulo, cliente, valor, validade, status, responsavel, data_criacao)
+                                VALUES (?, ?, ?, ?, ?, ?, ?)
+                            """, (prop_titulo, prop_cliente, prop_valor, str(prop_validade), prop_status, prop_resp, str(date.today())))
+                            conn.commit()
+                            conn.close()
+                            st.session_state.modal_nova_proposta = False
+                            st.success("Proposta criada com sucesso!")
+                            st.rerun()
+                        except Exception as e:
+                            st.error(f"Erro ao salvar proposta: {e}")
+                    else:
+                        st.error("Preencha o Título e o Cliente.")
+
+                if close_prop:
+                    st.session_state.modal_nova_proposta = False
+                    st.rerun()
+
+    # Tabela de Listagem das Propostas
+    st.markdown("#### 📋 Histórico de Propostas")
     if not df_propostas.empty:
-        st.dataframe(df_propostas, use_container_width=True, hide_index=True)
+        colunas_exibir = [c for c in ['data_criacao', 'titulo', 'cliente', 'valor', 'validade', 'status', 'responsavel'] if c in df_propostas.columns]
+        st.dataframe(df_propostas[colunas_exibir], use_container_width=True, hide_index=True)
     else:
-        st.info("Nenhuma proposta cadastrada.")
+        st.info("Nenhuma proposta cadastrada no banco de dados.")
+
+elif selected == "Relatórios":
+    # (continuação das suas outras abas...)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    if not df_vendas.empty:
+        st.dataframe(df_vendas, use_container_width=True, hide_index=True)
+    else:
+        st.info("Nenhuma venda registrada.")
+
+elif selected == "Relatórios":
+    st.markdown("### 📄 Relatórios e Exportações")
+    st.markdown("Selecione o tipo de relatório e o formato desejado para exportação.")
+    
+    r_col1, r_col2 = st.columns(2)
+    with r_col1:
+        tipo_rel = st.selectbox("Tipo de Relatório", ["Vendas", "Clientes", "Pipeline"])
+        formato_rel = st.selectbox("Formato", ["CSV", "Excel", "PDF"])
+    with r_col2:
+        dest_email = st.text_input("Enviar por E-mail (Opcional)", value="sergiolmendes2026@gmail.com")
+        
+    if st.button("Gerar e Exportar Relatório", use_container_width=True):
+        if tipo_rel == "Vendas":
+            df_export = df_vendas.copy()
+        elif tipo_rel == "Clientes":
+            df_export = df_clientes.copy()
+        else:
+            df_export = df_pipeline.copy()
+
+        buffer = io.BytesIO()
+        
+        if formato_rel == "Excel":
+            try:
+                with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
+                    df_export.to_excel(writer, index=False, sheet_name=tipo_rel)
+                mime_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                file_extension = "xlsx"
+            except Exception:
+                st.warning("A biblioteca 'openpyxl' não está instalada no ambiente. Exportando em formato CSV alternativo.")
+                buffer.write(df_export.to_csv(index=False).encode('utf-8'))
+                mime_type = "text/csv"
+                file_extension = "csv"
+        elif formato_rel == "PDF":
+            try:
+                from fpdf import FPDF
+                pdf = FPDF()
+                pdf.add_page()
+                pdf.set_font("Arial", size=12)
+                pdf.cell(200, 10, txt=f"Relatorio de {tipo_rel} - CRM Pro", ln=1, align="c")
+                pdf.ln(10)
+                pdf.set_font("Arial", size=8)
+                for index, row in df_export.iterrows():
+                    linha_txt = " | ".join([str(val) for val in row.values])
+                    pdf.cell(200, 8, txt=linha_txt, ln=1)
+                pdf_output = pdf.output(dest='S').encode('latin1')
+                buffer.write(pdf_output)
+            except Exception:
+                buffer.write(df_export.to_string().encode('utf-8'))
+            mime_type = "application/pdf"
+            file_extension = "pdf"
+        else:
+            buffer.write(df_export.to_csv(index=False).encode('utf-8'))
+            mime_type = "text/csv"
+            file_extension = "csv"
+
+        nome_arq = f"relatorio_{tipo_rel.lower()}_{date.today()}.{file_extension}"
+        
+        st.download_button(
+            label=f"📥 Baixar Arquivo Gerado ({file_extension.upper()})",
+            data=buffer.getvalue(),
+            file_name=nome_arq,
+            mime=mime_type
+        )
+        
+        if dest_email:
+            sucesso_email = disparar_email_automatico(dest_email, buffer.getvalue(), nome_arq)
+            if sucesso_email:
+                st.success(f"Relatório enviado com sucesso para {dest_email}!")
+            else:
+                st.warning("Relatório gerado, mas houve um erro ao enviar por e-mail.")
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown("#### 📜 Histórico de Exportações")
+    conn = conectar()
+    df_hist = pd.read_sql("SELECT * FROM historico_exportacoes", conn)
+    conn.close()
+    if not df_hist.empty:
+        st.dataframe(df_hist, use_container_width=True, hide_index=True)
+    else:
+        st.info("Nenhum histórico de exportação.")
+
+elif selected == "Atividades":
+    # Garante que a tabela de atividades existe no banco de dados com as colunas corretas
+    try:
+        conn = conectar()
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS atividades (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                tipo TEXT,
+                cliente TEXT,
+                responsavel TEXT,
+                data TEXT,
+                hora TEXT,
+                prioridade TEXT,
+                status TEXT,
+                descricao TEXT,
+                lembrete TEXT
+            )
+        """)
+        conn.commit()
+        conn.close()
+    except Exception:
+        pass
+
+    col_atv_t1, col_atv_t2 = st.columns([4, 1])
+    with col_atv_t1:
+        st.markdown("### 📞 Painel de Atividades")
+    with col_atv_t2:
+        if st.button("➕ Nova Atividade", use_container_width=True):
+            st.session_state.modal_nova_atividade = not st.session_state.get("modal_nova_atividade", False)
+
+    if "filtro_atividades" not in st.session_state:
+        st.session_state.filtro_atividades = "Todas as atividades"
+
+    cols_filtros = st.columns(7)
+    opcoes_menu_atv = [
+        "Todas as atividades", "Minhas atividades", "Pendentes", 
+        "Concluídas", "Atrasadas", "Hoje", "Próximas atividades"
+    ]
+    
+    for i, op in enumerate(opcoes_menu_atv):
+        with cols_filtros[i]:
+            if st.button(op, use_container_width=True, key=f"btn_filtro_atv_{i}"):
+                st.session_state.filtro_atividades = op
+                st.rerun()
+
+    st.markdown(f"##### 📌 Exibindo: *{st.session_state.filtro_atividades}*")
+
+    try:
+        conn = conectar()
+        df_atv_view = pd.read_sql("SELECT * FROM atividades", conn)
+        conn.close()
+    except Exception:
+        df_atv_view = pd.DataFrame()
+
+    hoje_str = str(date.today())
+
+    total_atv = len(df_atv_view) if not df_atv_view.empty else 0
+    pendentes_atv = len(df_atv_view[df_atv_view["status"] == "Pendente"]) if not df_atv_view.empty else 0
+    hoje_atv_count = len(df_atv_view[df_atv_view["data"] == hoje_str]) if not df_atv_view.empty else 0
+    atrasadas_atv = len(df_atv_view[(df_atv_view["data"] < hoje_str) & (df_atv_view["status"] == "Pendente")]) if not df_atv_view.empty else 0
+    concluidas_atv = len(df_atv_view[df_atv_view["status"] == "Concluída"]) if not df_atv_view.empty else 0
+
+    kpi1, kpi2, kpi3, kpi4, kpi5 = st.columns(5)
+    kpi1.metric("Total de Atividades", total_atv)
+    kpi2.metric("Pendentes", pendentes_atv)
+    kpi3.metric("Hoje", hoje_atv_count)
+    kpi4.metric("Atrasadas", atrasadas_atv)
+    kpi5.metric("Concluídas", concluidas_atv)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    if st.session_state.get("modal_nova_atividade", False):
+        with st.expander("📝 Cadastrar Nova Atividade", expanded=True):
+            with st.form("form_nova_atividade"):
+                fa1, fa2, fa3 = st.columns(3)
+                with fa1:
+                    atv_tipo = st.selectbox("Tipo", ["Ligação", "Reunião", "WhatsApp", "E-mail", "Compromisso", "Tarefa", "Proposta", "Follow-up"])
+                    atv_cliente = st.text_input("Cliente / Lead *", placeholder="Nome do cliente")
+                with fa2:
+                    atv_respons = st.text_input("Responsável", value="Carlos")
+                    atv_data = st.date_input("Data", value=date.today())
+                with fa3:
+                    atv_hora = st.text_input("Hora", value="09:00")
+                    atv_prioridade = st.selectbox("Prioridade", ["Baixa", "Média", "Alta"])
+
+                fa4, fa5 = st.columns(2)
+                with fa4:
+                    atv_status = st.selectbox("Status", ["Pendente", "Em andamento", "Concluída"])
+                with fa5:
+                    atv_lembrete = st.selectbox("Lembrete", ["Sim", "Não"])
+
+                atv_desc = st.text_area("Descrição / Observação")
+
+                btn_salvar_atv, btn_fechar_atv = st.columns(2)
+                with btn_salvar_atv:
+                    submit_atv = st.form_submit_button("Salvar Atividade", use_container_width=True)
+                with btn_fechar_atv:
+                    close_atv = st.form_submit_button("Cancelar", use_container_width=True)
+
+                if submit_atv:
+                    if atv_cliente:
+                        try:
+                            conn = conectar()
+                            conn.execute("""
+                                INSERT INTO atividades (tipo, cliente, responsavel, data, hora, prioridade, status, descricao, lembrete)
+                                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                            """, (atv_tipo, atv_cliente, atv_respons, str(atv_data), atv_hora, atv_prioridade, atv_status, atv_desc, atv_lembrete))
+                            conn.commit()
+                            conn.close()
+                            st.session_state.modal_nova_atividade = False
+                            st.success("Atividade cadastrada com sucesso!")
+                            st.rerun()
+                        except Exception as e:
+                            st.error(f"Erro ao salvar no banco de dados: {e}")
+                    else:
+                        st.error("Informe o nome do cliente ou lead.")
+
+                if close_atv:
+                    st.session_state.modal_nova_atividade = False
+                    st.rerun()
+
+    filtro_atual = st.session_state.get("filtro_atividades", "Todas as atividades")
+    if not df_atv_view.empty:
+        if filtro_atual == "Minhas atividades":
+            df_atv_view = df_atv_view[df_atv_view["responsavel"] == "Carlos"]
+        elif filtro_atual == "Pendentes":
+            df_atv_view = df_atv_view[df_atv_view["status"] == "Pendente"]
+        elif filtro_atual == "Concluídas":
+            df_atv_view = df_atv_view[df_atv_view["status"] == "Concluída"]
+        elif filtro_atual == "Atrasadas":
+            df_atv_view = df_atv_view[(df_atv_view["data"] < hoje_str) & (df_atv_view["status"] == "Pendente")]
+        elif filtro_atual == "Hoje":
+            df_atv_view = df_atv_view[df_atv_view["data"] == hoje_str]
+        elif filtro_atual == "Próximas atividades":
+            df_atv_view = df_atv_view[df_atv_view["data"] > hoje_str]
+
+    st.markdown("#### Agenda de Atividades")
+    if not df_atv_view.empty:
+        colunas_exibir = [c for c in ['data', 'hora', 'cliente', 'tipo', 'responsavel', 'prioridade', 'status', 'descricao'] if c in df_atv_view.columns]
+        st.dataframe(df_atv_view[colunas_exibir], use_container_width=True, hide_index=True)
+    else:
+        st.info("Nenhuma atividade cadastrada no banco de dados para exibir neste filtro.")
+
+elif selected == "Clientes":
+    st.markdown("### 📖 Cadastro Completo de Clientes e Leads")
+...
