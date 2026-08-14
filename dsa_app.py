@@ -111,7 +111,7 @@ if st.session_state.pagina_atual == "🏠 Dashboard Central":
     col_graf1, col_graf2 = st.columns(2)
     with col_graf1:
         st.subheader("📈 1. Evolução Cronológica das Vendas")
-        dados_vendas = pd.DataFrame({"Data": pd.date_range(start="2026-06-01", periods=6, freq="D"), "Vendas": [12000, 18000, 15000, 22000, 19000, 31000]})
+        dados_vendas = pd.DataFrame({"Data": pd.date_range(start="2026-06-01", periods=6, freq="D"), "Vendas": [10000, 22000, 18000, 35000, 28000, 90000]})
         fig_linha = px.line(dados_vendas, x="Data", y="Vendas", template="plotly_dark")
         fig_linha.update_traces(line_color="#b55fe6", line_width=4, fill='tozeroy', fillcolor='rgba(181, 95, 230, 0.08)')
         fig_linha.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', xaxis=dict(showgrid=False), yaxis=dict(showgrid=True, gridcolor='#1f2833'))
@@ -131,22 +131,19 @@ if st.session_state.pagina_atual == "🏠 Dashboard Central":
         st.plotly_chart(fig_vendedor, use_container_width=True)
     with col_graf4:
         st.subheader("📦 7. Ranking de Produtos Mais Vendidos")
-        dados_produtos = pd.DataFrame({"Produto": ["Software C", "Software A", "Consultoria Técnica"], "Unidades Vendidas": [8, 5, 3]})
+        dados_produtos = pd.DataFrame({"Produto": ["Software C", "Software A", "Consultoria Técnica"], "Unidades Vendidas": [12, 8, 5]})
         fig_produtos = px.bar(dados_produtos, x="Unidades Vendidas", y="Produto", orientation='h', color="Unidades Vendidas", text_auto=True, template="plotly_dark", color_continuous_scale=["#1a8cff", "#00ffcc"])
         fig_produtos.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', coloraxis_showscale=False)
         st.plotly_chart(fig_produtos, use_container_width=True)
 
 
-# ==================== TELA 2: GESTÃO DE LEADS (ATUALIZADA) ====================
+# ==================== TELA 2: GESTÃO DE LEADS ====================
 elif st.session_state.pagina_atual == "👥 Gestão de Leads":
     st.markdown("<h1 style='color: #ffffff;'>👥 Gestão Estratégica de Leads</h1>", unsafe_allow_html=True)
     st.markdown("Gerencie, qualifique e distribua novas oportunidades de negócio.")
     
-    # 1. Formulário de Cadastro com Campos Comerciais Estratégicos
     with st.form("Cadastro de Lead Expandido"):
         st.markdown("### 📝 Cadastrar Novo Lead")
-        
-        # Divisão em colunas para aproveitar melhor o espaço horizontal
         f_col1, f_col2, f_col3 = st.columns(3)
         with f_col1:
             nome = st.text_input("Nome do Lead / Empresa")
@@ -159,7 +156,6 @@ elif st.session_state.pagina_atual == "👥 Gestão de Leads":
             origem = st.selectbox("Origem do Lead", ["Google Ads", "Instagram", "Indicação", "WhatsApp Direto", "Outros"])
             
         st.markdown("---")
-        # Campo para determinar o vendedor responsável
         responsavel = st.selectbox("Responsável Comercial (Vendedor)", ["Alex Silva", "Carlos Souza", "Sem Vendedor Atribuído"])
         
         enviar = st.form_submit_button("🚀 Gravar Oportunidade no CRM")
@@ -167,3 +163,8 @@ elif st.session_state.pagina_atual == "👥 Gestão de Leads":
             st.success(f"Lead '{nome}' salvo! Canal: {origem} | Atendente: {responsavel}.")
 
     st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown("### 📋 Visão Geral dos Leads Ativos")
+    
+    hoje = datetime.now().date()
+    leads_estratengicos = pd.DataFrame({
+        "Data de Entrada": [hoje - timedelta(days=12), hoje - timedelta(days=7), hoje - timedelta(days=3), hoje - timedelta(days=1)],
