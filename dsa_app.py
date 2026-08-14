@@ -59,11 +59,11 @@ st.markdown("""
 with st.sidebar:
     st.markdown("<h2 style='text-align: center; color: #45f3ff;'>⚡ CRM PRO</h2>", unsafe_allow_html=True)
     st.markdown("---")
-    st.button("🏠 Dashboard Central", use_container_width=True)
-    st.button("👥 Gestão de Leads", use_container_width=True)
-    st.button("💰 Funil de Vendas", use_container_width=True)
-    st.button("📈 Relatórios Avançados", use_container_width=True)
-    st.button("⚙️ Configurações", use_container_width=True)
+    st.button("🏠 Dashboard Central", key="btn_dash", use_container_width=True)
+    st.button("👥 Gestão de Leads", key="btn_leads", use_container_width=True)
+    st.button("💰 Funil de Vendas", key="btn_funil", use_container_width=True)
+    st.button("📈 Relatórios Avançados", key="btn_relat", use_container_width=True)
+    st.button("⚙️ Configurações", key="btn_config", use_container_width=True)
 
 # Título Principal do Dashboard
 st.markdown("<h1 style='color: #ffffff; font-weight: 700;'>Dashboard de Performance Comercial</h1>", unsafe_allow_html=True)
@@ -97,10 +97,9 @@ with col_graf1:
     st.subheader("📊 1. Evolução Cronológica das Vendas")
     dados_vendas = pd.DataFrame({
         "Data": pd.date_range(start="2026-06-01", periods=6, freq="D"),
-        "Vendas": [15000, 22000, 18000, 12000, 28000, 35000]
+        "Vendas": [15000, 22000, 18000, 12000, 29000, 41000]
     })
     fig_linha = px.line(dados_vendas, x="Data", y="Vendas", template="plotly_dark")
-    # Aplicando o degradê neon na linha do gráfico
     fig_linha.update_traces(line_color="#45f3ff", line_width=4, fill='tozeroy', fillcolor='rgba(69, 243, 255, 0.05)')
     fig_linha.update_layout(
         paper_bgcolor='rgba(0,0,0,0)', 
@@ -112,21 +111,17 @@ with col_graf1:
 
 with col_graf2:
     st.subheader("🎯 2. Índice de Meta vs Realizado")
+    # Removido dicionário de steps complexo para evitar qualquer erro de digitação/sintaxe
     fig_gauge = go.Figure(go.Indicator(
         mode="gauge+number",
-        value=78.3,  # Percentual calculado da meta
+        value=78.3,
         number={'suffix': "%", 'font': {'color': '#ffffff', 'size': 40}},
         gauge={
-            'axis': {'range': [0, 140000], 'tickwidth': 1, 'tickcolor': "#45f3ff"},
+            'axis': {'range': [0, 100], 'tickwidth': 1, 'tickcolor': "#45f3ff"},
             'bar': {'color': "#45f3ff"},
             'bgcolor': "#151a21",
             'borderwidth': 2,
-            'bordercolor': "#1f2833",
-            'steps': [
-                {'range':, 'color': 'rgba(255, 77, 77, 0.2)'},
-                {'range':, 'color': 'rgba(255, 165, 0, 0.2)'},
-                {'range':, 'color': 'rgba(0, 230, 118, 0.2)'}
-            ],
+            'bordercolor': "#1f2833"
         }
     ))
     fig_gauge.update_layout(
@@ -145,9 +140,8 @@ with col_graf3:
     st.subheader("👤 4. Distribuição de Receita por Vendedor")
     dados_vendedores = pd.DataFrame({
         "Vendedor": ["Alex Silva", "Carlos Souza"],
-        "Receita (R$)": [60000, 30000]
+        "Receita (R$)": [65000, 25000]
     })
-    # Criando barras verticais limpas com rótulos de dados visíveis
     fig_vendedor = px.bar(
         dados_vendedores, 
         x="Vendedor", 
@@ -172,9 +166,8 @@ with col_graf4:
     st.subheader("📦 7. Ranking de Produtos Mais Vendidos")
     dados_produtos = pd.DataFrame({
         "Produto": ["Software C", "Software A", "Consultoria Técnica"],
-        "Unidades Vendidas": [45, 30, 15]
+        "Unidades Vendidas": [55, 30, 12]
     })
-    # Gráfico horizontal limpo com rótulos numéricos diretos nas barras
     fig_produtos = px.bar(
         dados_produtos, 
         x="Unidades Vendidas", 
