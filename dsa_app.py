@@ -91,13 +91,13 @@ with col4:
 st.markdown("<br><hr style='border-color: #1f2833;'><br>", unsafe_allow_html=True)
 
 # 5. Linha de Gráficos Superior (Evolução e Meta)
-col_graf1, col_graf2 = st.columns([3, 2])
+col_graf1, col_graf2 = st.columns()
 
 with col_graf1:
     st.subheader("📊 1. Evolução Cronológica das Vendas")
     dados_vendas = pd.DataFrame({
         "Data": pd.date_range(start="2026-06-01", periods=6, freq="D"),
-        "Vendas": [15000, 22000, 18000, 12000, 25000, 32000]
+        "Vendas": [15000, 22000, 18000, 12000, 28000, 45000]
     })
     fig_linha = px.line(dados_vendas, x="Data", y="Vendas", template="plotly_dark")
     # Aplicando o degradê neon na linha do gráfico
@@ -117,7 +117,7 @@ with col_graf2:
         value=78.3,  # Percentual calculado da meta
         number={'suffix': "%", 'font': {'color': '#ffffff', 'size': 40}},
         gauge={
-            'axis': {'range': [None, 100], 'tickwidth': 1, 'tickcolor': "#45f3ff"},
+            'axis': {'range':, 'tickwidth': 1, 'tickcolor': "#45f3ff"},
             'bar': {'color': "#45f3ff"},
             'bgcolor': "#151a21",
             'borderwidth': 2,
@@ -138,14 +138,14 @@ with col_graf2:
     )
     st.plotly_chart(fig_gauge, use_container_width=True)
 
-# 6. Linha de Gráficos Inferior (Vendedores e Produtos com Identificação Própria)
+# 6. Linha de Gráficos Inferior (Vendedores e Produtos)
 col_graf3, col_graf4 = st.columns(2)
 
 with col_graf3:
     st.subheader("👤 4. Distribuição de Receita por Vendedor")
     dados_vendedores = pd.DataFrame({
         "Vendedor": ["Alex Silva", "Carlos Souza"],
-        "Receita (R$)": [60000, 30000]
+        "Receita (R$)": [65000, 25000]
     })
     # Criando barras verticais limpas com rótulos de dados visíveis
     fig_vendedor = px.bar(
@@ -172,7 +172,7 @@ with col_graf4:
     st.subheader("📦 7. Ranking de Produtos Mais Vendidos")
     dados_produtos = pd.DataFrame({
         "Produto": ["Software C", "Software A", "Consultoria Técnica"],
-        "Unidades Vendidas": [85, 45, 15]
+        "Unidades Vendidas": [45, 32, 12]
     })
     # Gráfico horizontal limpo com rótulos numéricos diretos nas barras
     fig_produtos = px.bar(
