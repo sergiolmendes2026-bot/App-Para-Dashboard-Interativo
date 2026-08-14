@@ -352,7 +352,7 @@ if selected == "Dashboard":
     with tab1:
         c_v1, c_v2 = st.columns(2)
         with c_v1:
-            with c_v1:
+            
             st.markdown("#### 📈 1. Evolução das Vendas")
             if not df_vendas.empty and "data" in df_vendas.columns:
                 df_temp = df_vendas.copy()
