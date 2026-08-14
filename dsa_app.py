@@ -520,7 +520,7 @@ if selected == "Dashboard":
             else:
                 st.info("Sem dados de produtos.")
 
-        with tab2:
+    with tab2:
         valor_total_pipe = df_pipeline["valor"].sum() if not df_pipeline.empty and "valor" in df_pipeline.columns else 0.0
         st.markdown(
             f"""
