@@ -74,7 +74,7 @@ st.markdown("<br>", unsafe_allow_html=True)
 total_leads = 8
 receita_realizada = 90000.00
 valor_pipeline = 115000.00
-ticket_medio = receita_realizada / total_leads  # Cálculo exato corrigido
+ticket_medio = receita_realizada / total_leads
 
 # 4. Renderização dos Novos Cartões Estilizados
 col1, col2, col3, col4 = st.columns(4)
@@ -97,7 +97,7 @@ with col_graf1:
     st.subheader("📊 1. Evolução Cronológica das Vendas")
     dados_vendas = pd.DataFrame({
         "Data": pd.date_range(start="2026-06-01", periods=6, freq="D"),
-        "Vendas": [15000, 22000, 18000, 12000, 25000, 35000]
+        "Vendas": [10000, 25000, 15000, 30000, 20000, 45000]
     })
     fig_linha = px.line(dados_vendas, x="Data", y="Vendas", template="plotly_dark")
     fig_linha.update_traces(line_color="#45f3ff", line_width=4, fill='tozeroy', fillcolor='rgba(69, 243, 255, 0.05)')
@@ -111,13 +111,12 @@ with col_graf1:
 
 with col_graf2:
     st.subheader("🎯 2. Índice de Meta vs Realizado")
-    # CORREÇÃO DEFINITIVA: O parâmetro 'range' agora possui os valores numéricos [0, 100] definidos de forma explícita
+    # Gráfico simplificado sem a configuração manual de 'axis' para evitar bugs de sintaxe
     fig_gauge = go.Figure(go.Indicator(
         mode="gauge+number",
         value=78.3,
         number={'suffix': "%", 'font': {'color': '#ffffff', 'size': 40}},
         gauge={
-            'axis': {'range':, 'tickwidth': 1, 'tickcolor': "#45f3ff"},
             'bar': {'color': "#45f3ff"},
             'bgcolor': "#151a21",
             'borderwidth': 2,
@@ -140,7 +139,7 @@ with col_graf3:
     st.subheader("👤 4. Distribuição de Receita por Vendedor")
     dados_vendedores = pd.DataFrame({
         "Vendedor": ["Alex Silva", "Carlos Souza"],
-        "Receita (R$)": [65000, 25000]
+        "Receita (R$)": [60000, 30000]
     })
     fig_vendedor = px.bar(
         dados_vendedores, 
@@ -166,7 +165,7 @@ with col_graf4:
     st.subheader("📦 7. Ranking de Produtos Mais Vendidos")
     dados_produtos = pd.DataFrame({
         "Produto": ["Software C", "Software A", "Consultoria Técnica"],
-        "Unidades Vendidas": [45, 30, 12]
+        "Unidades Vendidas": [55, 38, 12]
     })
     fig_produtos = px.bar(
         dados_produtos, 
