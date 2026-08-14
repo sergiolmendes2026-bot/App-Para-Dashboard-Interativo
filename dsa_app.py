@@ -111,7 +111,8 @@ if st.session_state.pagina_atual == "🏠 Dashboard Central":
     col_graf1, col_graf2 = st.columns(2)
     with col_graf1:
         st.subheader("📈 1. Evolução Cronológica das Vendas")
-        dados_vendas = pd.DataFrame({"Data": pd.date_range(start="2026-06-01", periods=6, freq="D"), "Vendas": })
+        # CORREÇÃO: Valores preenchidos explicitamente dentro da lista
+        dados_vendas = pd.DataFrame({"Data": pd.date_range(start="2026-06-01", periods=6, freq="D"), "Vendas": [18000, 25000, 21000, 32000, 28000, 45000]})
         fig_linha = px.line(dados_vendas, x="Data", y="Vendas", template="plotly_dark")
         fig_linha.update_traces(line_color="#b55fe6", line_width=4, fill='tozeroy', fillcolor='rgba(181, 95, 230, 0.08)')
         fig_linha.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', xaxis=dict(showgrid=False), yaxis=dict(showgrid=True, gridcolor='#1f2833'))
@@ -125,13 +126,15 @@ if st.session_state.pagina_atual == "🏠 Dashboard Central":
     col_graf3, col_graf4 = st.columns(2)
     with col_graf3:
         st.subheader("👤 4. Distribuição de Receita por Vendedor")
-        dados_vendedores = pd.DataFrame({"Vendedor": ["Alex Silva", "Carlos Souza"], "Receita (R$)": })
+        # CORREÇÃO: Valores preenchidos explicitamente dentro da lista
+        dados_vendedores = pd.DataFrame({"Vendedor": ["Alex Silva", "Carlos Souza"], "Receita (R$)": [55000, 35000]})
         fig_vendedor = px.bar(dados_vendedores, x="Vendedor", y="Receita (R$)", color="Vendedor", text_auto='.2s', template="plotly_dark", color_discrete_map={"Alex Silva": "#ff4d6d", "Carlos Souza": "#33b5e5"})
         fig_vendedor.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', showlegend=False, xaxis=dict(showgrid=False), yaxis=dict(showgrid=True, gridcolor='#1f2833'))
         st.plotly_chart(fig_vendedor, use_container_width=True)
     with col_graf4:
         st.subheader("📦 7. Ranking de Produtos Mais Vendidos")
-        dados_produtos = pd.DataFrame({"Produto": ["Software C", "Software A", "Consultoria Técnica"], "Unidades Vendidas": })
+        # CORREÇÃO: Valores preenchidos explicitamente dentro da lista
+        dados_produtos = pd.DataFrame({"Produto": ["Software C", "Software A", "Consultoria Técnica"], "Unidades Vendidas": [12, 28, 45]})
         fig_produtos = px.bar(dados_produtos, x="Unidades Vendidas", y="Produto", orientation='h', color="Unidades Vendidas", text_auto=True, template="plotly_dark", color_continuous_scale=["#1a8cff", "#00ffcc"])
         fig_produtos.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', coloraxis_showscale=False)
         st.plotly_chart(fig_produtos, use_container_width=True)
@@ -142,7 +145,6 @@ elif st.session_state.pagina_atual == "👥 Gestão de Leads":
     st.markdown("<h1 style='color: #ffffff;'>👥 Gestão de Leads</h1>", unsafe_allow_html=True)
     st.markdown("Gerencie e cadastre contatos comerciais na sua base.")
     
-    # Formulário elegante para entrada de dados reais
     with st.form("Cadastro de Lead"):
         st.markdown("### 📝 Cadastrar Novo Lead")
         nome = st.text_input("Nome do Lead / Empresa")
@@ -152,7 +154,6 @@ elif st.session_state.pagina_atual == "👥 Gestão de Leads":
         if enviar:
             st.success(f"Lead '{nome}' cadastrado com sucesso como {status}!")
 
-    # Tabela dinâmica de Leads cadastrados
     st.markdown("### 📋 Leads Ativos na Base")
     leads_ficticios = pd.DataFrame({
         "Empresa/Cliente": ["Tech Inova", "Global Trade", "Logix BR", "Nexus Digital"],
@@ -166,7 +167,3 @@ elif st.session_state.pagina_atual == "👥 Gestão de Leads":
 elif st.session_state.pagina_atual == "💰 Funil de Vendas":
     st.markdown("<h1 style='color: #ffffff;'>💰 Funil de Vendas (Pipeline)</h1>", unsafe_allow_html=True)
     st.markdown("Acompanhe a distribuição financeira das propostas abertas.")
-    
-    # Gráfico de Funil elegante usando Plotly
-    dados_funil = pd.DataFrame({
-        "Etapa": ["Prospecção", "Qualificação", "Proposta", "Negociação", "Fechado"],
