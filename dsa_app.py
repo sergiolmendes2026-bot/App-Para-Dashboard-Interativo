@@ -90,14 +90,14 @@ with col4:
 
 st.markdown("<br><hr style='border-color: #1f2833;'><br>", unsafe_allow_html=True)
 
-# 5. Linha de Gráficos Superior (Evolução e Meta)
-col_graf1, col_graf2 = st.columns()
+# 5. Linha de Gráficos Superior (Evolução e Meta) - CORRIGIDO st.columns(2)
+col_graf1, col_graf2 = st.columns(2)
 
 with col_graf1:
     st.subheader("📊 1. Evolução Cronológica das Vendas")
     dados_vendas = pd.DataFrame({
         "Data": pd.date_range(start="2026-06-01", periods=6, freq="D"),
-        "Vendas": [15000, 22000, 18000, 12000, 29000, 41000]
+        "Vendas": [15000, 22000, 26000, 20000, 15000, 37000]
     })
     fig_linha = px.line(dados_vendas, x="Data", y="Vendas", template="plotly_dark")
     fig_linha.update_traces(line_color="#45f3ff", line_width=4, fill='tozeroy', fillcolor='rgba(69, 243, 255, 0.05)')
@@ -111,13 +111,12 @@ with col_graf1:
 
 with col_graf2:
     st.subheader("🎯 2. Índice de Meta vs Realizado")
-    # Removido dicionário de steps complexo para evitar qualquer erro de digitação/sintaxe
     fig_gauge = go.Figure(go.Indicator(
         mode="gauge+number",
         value=78.3,
         number={'suffix': "%", 'font': {'color': '#ffffff', 'size': 40}},
         gauge={
-            'axis': {'range': [0, 100], 'tickwidth': 1, 'tickcolor': "#45f3ff"},
+            'axis': {'range':, 'tickwidth': 1, 'tickcolor': "#45f3ff"},
             'bar': {'color': "#45f3ff"},
             'bgcolor': "#151a21",
             'borderwidth': 2,
@@ -166,7 +165,7 @@ with col_graf4:
     st.subheader("📦 7. Ranking de Produtos Mais Vendidos")
     dados_produtos = pd.DataFrame({
         "Produto": ["Software C", "Software A", "Consultoria Técnica"],
-        "Unidades Vendidas": [55, 30, 12]
+        "Unidades Vendidas": [55, 42, 12]
     })
     fig_produtos = px.bar(
         dados_produtos, 
