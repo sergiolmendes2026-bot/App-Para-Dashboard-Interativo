@@ -117,7 +117,7 @@ with col_graf2:
         value=78.3,  # Percentual calculado da meta
         number={'suffix': "%", 'font': {'color': '#ffffff', 'size': 40}},
         gauge={
-            'axis': {'range':, 'tickwidth': 1, 'tickcolor': "#45f3ff"},
+            'axis': {'range': [0, 140000], 'tickwidth': 1, 'tickcolor': "#45f3ff"},
             'bar': {'color': "#45f3ff"},
             'bgcolor': "#151a21",
             'borderwidth': 2,
