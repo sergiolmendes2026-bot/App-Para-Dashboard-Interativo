@@ -298,7 +298,6 @@ if termo_busca and len(termo_busca.strip()) > 0:
 # --- RENDERIZAÇÃO COMPLETA DE CADA PÁGINA ---
 
 if selected == "Dashboard":
-if selected == "Dashboard":
     st.markdown("### 📊 Dashboard de Performance Comercial")
     
     # --- BARRA DE FILTROS ESTILIZADA ---
