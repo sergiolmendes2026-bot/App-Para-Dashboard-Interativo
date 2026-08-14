@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
+from datetime import datetime, timedelta
 
 # 1. Configuração da Página e Tema Escuro Premium
 st.set_page_config(
@@ -136,36 +137,33 @@ if st.session_state.pagina_atual == "🏠 Dashboard Central":
         st.plotly_chart(fig_produtos, use_container_width=True)
 
 
-# ==================== TELA 2: GESTÃO DE LEADS ====================
+# ==================== TELA 2: GESTÃO DE LEADS (ATUALIZADA) ====================
 elif st.session_state.pagina_atual == "👥 Gestão de Leads":
-    st.markdown("<h1 style='color: #ffffff;'>👥 Gestão de Leads</h1>", unsafe_allow_html=True)
-    st.markdown("Gerencie e cadastre contatos comerciais na sua base.")
+    st.markdown("<h1 style='color: #ffffff;'>👥 Gestão Estratégica de Leads</h1>", unsafe_allow_html=True)
+    st.markdown("Gerencie, qualifique e distribua novas oportunidades de negócio.")
     
-    with st.form("Cadastro de Lead"):
+    # 1. Formulário de Cadastro com Campos Comerciais Estratégicos
+    with st.form("Cadastro de Lead Expandido"):
         st.markdown("### 📝 Cadastrar Novo Lead")
-        nome = st.text_input("Nome do Lead / Empresa")
-        status = st.selectbox("Status Inicial", ["Contato Inicial", "Qualificado", "Proposta Enviada", "Negociação"])
-        valor_estimado = st.number_input("Valor Estimado do Contrato (R$)", min_value=0.0)
-        enviar = st.form_submit_button("Salvar Lead no Sistema")
+        
+        # Divisão em colunas para aproveitar melhor o espaço horizontal
+        f_col1, f_col2, f_col3 = st.columns(3)
+        with f_col1:
+            nome = st.text_input("Nome do Lead / Empresa")
+            email = st.text_input("E-mail Comercial")
+        with f_col2:
+            status = st.selectbox("Status Inicial", ["Contato Inicial", "Qualificado", "Proposta Enviada", "Negociação"])
+            telefone = st.text_input("Telefone / WhatsApp (com DDD)")
+        with f_col3:
+            valor_estimado = st.number_input("Valor Estimado (R$)", min_value=0.0, step=1000.0)
+            origem = st.selectbox("Origem do Lead", ["Google Ads", "Instagram", "Indicação", "WhatsApp Direto", "Outros"])
+            
+        st.markdown("---")
+        # Campo para determinar o vendedor responsável
+        responsavel = st.selectbox("Responsável Comercial (Vendedor)", ["Alex Silva", "Carlos Souza", "Sem Vendedor Atribuído"])
+        
+        enviar = st.form_submit_button("🚀 Gravar Oportunidade no CRM")
         if enviar:
-            st.success(f"Lead '{nome}' cadastrado com sucesso como {status}!")
+            st.success(f"Lead '{nome}' salvo! Canal: {origem} | Atendente: {responsavel}.")
 
-    st.markdown("### 📋 Leads Ativos na Base")
-    leads_ficticios = pd.DataFrame({
-        "Empresa/Cliente": ["Tech Inova", "Global Trade", "Logix BR", "Nexus Digital"],
-        "Status": ["Qualificado", "Negociação", "Contato Inicial", "Proposta Enviada"],
-        "Valor Estimado": ["R$ 25.000", "R$ 40.000", "R$ 15.000", "R$ 35.000"]
-    })
-    st.dataframe(leads_ficticios, use_container_width=True)
-
-
-# ==================== TELA 3: FUNIL DE VENDAS ====================
-elif st.session_state.pagina_atual == "💰 Funil de Vendas":
-    st.markdown("<h1 style='color: #ffffff;'>💰 Funil de Vendas (Pipeline)</h1>", unsafe_allow_html=True)
-    st.markdown("Acompanhe a distribuição financeira das propostas abertas.")
-    
-    dados_funil = pd.DataFrame({
-        "Etapa": ["Prospecção", "Qualificação", "Proposta", "Negociação", "Fechado"],
-        "Valor Acumulado": [120000, 95000, 70000, 45000, 30000]
-    })
-    fig_funil = px.funnel(dados_funil, x="Valor Acumulado", y="Etapa", template="plotly_dark", color_discrete_sequence=["#45f3ff"])
+    st.markdown("<br>", unsafe_allow_html=True)
