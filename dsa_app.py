@@ -298,21 +298,56 @@ if termo_busca and len(termo_busca.strip()) > 0:
 # --- RENDERIZAÇÃO COMPLETA DE CADA PÁGINA ---
 
 if selected == "Dashboard":
+if selected == "Dashboard":
     st.markdown("### 📊 Dashboard de Performance Comercial")
     
+    # --- BARRA DE FILTROS ESTILIZADA ---
+    st.markdown('<div class="filtros-container">', unsafe_allow_html=True)
+    f1, f2, f3, f4, f5, f6 = st.columns(6)
+    with f1:
+        st.selectbox("Período", ["Mês Atual", "Últimos 30 dias", "Este Ano", "Personalizado"], key="f_periodo")
+    with f2:
+        st.selectbox("Produto", ["Todos", "Software A", "Software B", "Consultoria"], key="f_produto")
+    with f3:
+        st.selectbox("Equipe", ["Todas", "Comercial A", "Comercial B"], key="f_equipe")
+    with f4:
+        st.selectbox("Compra", ["Todas", "À vista", "Parcelado"], key="f_compra")
+    with f5:
+        st.selectbox("Consultor", ["Todos", "Carlos", "Ana"], key="f_consultor")
+    with f6:
+        st.selectbox("Ticket", ["Todos", "Alto", "Médio", "Baixo"], key="f_ticket")
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    # --- CARDS DE MÉTRICAS COM BORDA CIANO ---
     total_leads = len(df_clientes)
     valor_pipeline = df_pipeline['valor'].sum() if not df_pipeline.empty and "valor" in df_pipeline.columns else 0.0
     receita_realizada = df_vendas['valor'].sum() if not df_vendas.empty and "valor" in df_vendas.columns else 0.0
     ticket_medio = df_vendas['valor'].mean() if not df_vendas.empty and "valor" in df_vendas.columns and len(df_vendas) > 0 else 0.0
 
-    c1, c2, c3, c4 = st.columns(4)
-    c1.metric("Total de Leads", f"{total_leads}")
-    c2.metric("Valor do Pipeline", f"R$ {valor_pipeline:,.2f}")
-    c3.metric("Receita Realizada", f"R$ {receita_realizada:,.2f}")
-    c4.metric("Ticket Médio", f"R$ {ticket_medio:,.2f}")
+    st.markdown(f"""
+        <div style="display: flex; gap: 15px; margin-bottom: 25px;">
+            <div class="metric-card" style="flex: 1;">
+                <div style="color: #00d2ff; font-size: 11px; font-weight: 700; letter-spacing: 0.05em; margin-bottom: 8px;">TOTAL DE LEADS</div>
+                <div style="color: white; font-size: 24px; font-weight: 700;">{total_leads}</div>
+            </div>
+            <div class="metric-card" style="flex: 1;">
+                <div style="color: #00d2ff; font-size: 11px; font-weight: 700; letter-spacing: 0.05em; margin-bottom: 8px;">VALOR NO PIPELINE</div>
+                <div style="color: white; font-size: 24px; font-weight: 700;">R$ {valor_pipeline:,.2f}</div>
+            </div>
+            <div class="metric-card" style="flex: 1;">
+                <div style="color: #00d2ff; font-size: 11px; font-weight: 700; letter-spacing: 0.05em; margin-bottom: 8px;">RECEITA REALIZADA</div>
+                <div style="color: white; font-size: 24px; font-weight: 700;">R$ {receita_realizada:,.2f}</div>
+            </div>
+            <div class="metric-card" style="flex: 1;">
+                <div style="color: #00d2ff; font-size: 11px; font-weight: 700; letter-spacing: 0.05em; margin-bottom: 8px;">TICKET MÉDIO REAL</div>
+                <div style="color: white; font-size: 24px; font-weight: 700;">R$ {ticket_medio:,.2f}</div>
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
 
+    # --- ABAS DE GRÁFICOS ---
     tab1, tab2, tab3 = st.tabs(["💰 Vendas & Receita", "🎯 Pipeline & Funil", "👥 Leads & Perdas"])
 
     with tab1:
@@ -451,7 +486,6 @@ if selected == "Dashboard":
             if not df_clientes.empty and "status" in df_clientes.columns:
                 df_status = df_clientes.groupby("status").size().reset_index(name="quantidade")
                 
-                # Mapeamento de cores personalizadas para cada status
                 cores_status = {
                     "🆕 Novo Lead": "#38BDF8",
                     "📞 Primeiro Contato": "#60A5FA",
