@@ -38,7 +38,7 @@ st.markdown("""
         }
         
         /* Botões do Menu Lateral Estilizados (Efeito de Seleção Neon) */
-        div.stButton > button {
+        div.stSidebar div.stButton > button {
             background-color: #1f2833 !important;
             color: #ffffff !important;
             border: 1px solid #45f3ff !important;
@@ -47,7 +47,7 @@ st.markdown("""
             text-align: left !important;
             padding: 10px 15px !important;
         }
-        div.stButton > button:hover {
+        div.stSidebar div.stButton > button:hover {
             box-shadow: 0 0 15px rgba(69, 243, 255, 0.6) !important;
             transform: scale(1.02) !important;
             background-color: #151a21 !important;
@@ -64,7 +64,6 @@ with st.sidebar:
     st.markdown("<h2 style='text-align: center; color: #45f3ff;'>⚡ CRM PRO</h2>", unsafe_allow_html=True)
     st.markdown("---")
     
-    # Cada botão atualiza o estado de navegação da sessão ao ser clicado
     st.button("🏠 Dashboard Central", key="nav_dash", use_container_width=True, on_click=ir_para_pagina, args=("🏠 Dashboard Central",))
     st.button("👥 Gestão de Leads", key="nav_leads", use_container_width=True, on_click=ir_para_pagina, args=("👥 Gestão de Leads",))
     st.button("💰 Funil de Vendas", key="nav_funil", use_container_width=True, on_click=ir_para_pagina, args=("💰 Funil de Vendas",))
@@ -111,8 +110,7 @@ if st.session_state.pagina_atual == "🏠 Dashboard Central":
     col_graf1, col_graf2 = st.columns(2)
     with col_graf1:
         st.subheader("📈 1. Evolução Cronológica das Vendas")
-        # CORREÇÃO: Valores preenchidos explicitamente dentro da lista
-        dados_vendas = pd.DataFrame({"Data": pd.date_range(start="2026-06-01", periods=6, freq="D"), "Vendas": [18000, 25000, 21000, 32000, 28000, 45000]})
+        dados_vendas = pd.DataFrame({"Data": pd.date_range(start="2026-06-01", periods=6, freq="D"), "Vendas": [12000, 18000, 15000, 22000, 19000, 31000]})
         fig_linha = px.line(dados_vendas, x="Data", y="Vendas", template="plotly_dark")
         fig_linha.update_traces(line_color="#b55fe6", line_width=4, fill='tozeroy', fillcolor='rgba(181, 95, 230, 0.08)')
         fig_linha.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', xaxis=dict(showgrid=False), yaxis=dict(showgrid=True, gridcolor='#1f2833'))
@@ -126,15 +124,13 @@ if st.session_state.pagina_atual == "🏠 Dashboard Central":
     col_graf3, col_graf4 = st.columns(2)
     with col_graf3:
         st.subheader("👤 4. Distribuição de Receita por Vendedor")
-        # CORREÇÃO: Valores preenchidos explicitamente dentro da lista
         dados_vendedores = pd.DataFrame({"Vendedor": ["Alex Silva", "Carlos Souza"], "Receita (R$)": [55000, 35000]})
         fig_vendedor = px.bar(dados_vendedores, x="Vendedor", y="Receita (R$)", color="Vendedor", text_auto='.2s', template="plotly_dark", color_discrete_map={"Alex Silva": "#ff4d6d", "Carlos Souza": "#33b5e5"})
         fig_vendedor.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', showlegend=False, xaxis=dict(showgrid=False), yaxis=dict(showgrid=True, gridcolor='#1f2833'))
         st.plotly_chart(fig_vendedor, use_container_width=True)
     with col_graf4:
         st.subheader("📦 7. Ranking de Produtos Mais Vendidos")
-        # CORREÇÃO: Valores preenchidos explicitamente dentro da lista
-        dados_produtos = pd.DataFrame({"Produto": ["Software C", "Software A", "Consultoria Técnica"], "Unidades Vendidas": [12, 28, 45]})
+        dados_produtos = pd.DataFrame({"Produto": ["Software C", "Software A", "Consultoria Técnica"], "Unidades Vendidas": [8, 5, 3]})
         fig_produtos = px.bar(dados_produtos, x="Unidades Vendidas", y="Produto", orientation='h', color="Unidades Vendidas", text_auto=True, template="plotly_dark", color_continuous_scale=["#1a8cff", "#00ffcc"])
         fig_produtos.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', coloraxis_showscale=False)
         st.plotly_chart(fig_produtos, use_container_width=True)
@@ -167,3 +163,9 @@ elif st.session_state.pagina_atual == "👥 Gestão de Leads":
 elif st.session_state.pagina_atual == "💰 Funil de Vendas":
     st.markdown("<h1 style='color: #ffffff;'>💰 Funil de Vendas (Pipeline)</h1>", unsafe_allow_html=True)
     st.markdown("Acompanhe a distribuição financeira das propostas abertas.")
+    
+    dados_funil = pd.DataFrame({
+        "Etapa": ["Prospecção", "Qualificação", "Proposta", "Negociação", "Fechado"],
+        "Valor Acumulado": [120000, 95000, 70000, 45000, 30000]
+    })
+    fig_funil = px.funnel(dados_funil, x="Valor Acumulado", y="Etapa", template="plotly_dark", color_discrete_sequence=["#45f3ff"])
