@@ -10,6 +10,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 from email import encoders
+from streamlit_option_menu import option_menu
 
 if "modal_nova_atividade" not in st.session_state:
     st.session_state.modal_nova_atividade = False
@@ -30,7 +31,6 @@ st.markdown("""
             border-right: 1px solid #1e293b;
         }
 
-        /* Ajuste do Option Menu para garantir que não sobrescreva */
         div[data-testid="stSidebar"] .nav-link {
             background-color: transparent !important;
             border-radius: 8px !important;
@@ -53,66 +53,15 @@ st.markdown("""
 if "selected" not in st.session_state:
     st.session_state.selected = "Dashboard"
 
-
-# --- INICIALIZAÇÃO DO ESTADO ---
 if "tema_sistema" not in st.session_state:
     st.session_state.tema_sistema = "🌙 Escuro" 
-if "selected" not in st.session_state:
-    st.session_state.selected = "Dashboard"
 
-# Cor principal fixa do sistema
 cor_hex = "#2563EB"
 is_escuro = "Escuro" in st.session_state.tema_sistema
 
 bg_app = "#0e1117" if is_escuro else "#ffffff"
 text_app = "#ffffff" if is_escuro else "#1e293b"
 sidebar_bg = "#0b0f19" if is_escuro else "#f8fafc" 
-
-# --- CSS E ESTILIZAÇÃO DO MENU E PAINEIS ---
-st.markdown(f"""
-    <style>
-        .stApp {{ background-color: {bg_app}; color: {text_app}; }}
-        
-        /* Ajuste do Sidebar Container */
-        [data-testid="stSidebar"] {{ 
-            background-color: {sidebar_bg}; 
-            border-right: 1px solid #1e293b;
-            padding: 0 !important;
-        }}
-        
-        /* Estilização dos Botões */
-        [data-testid="stSidebar"] div.stButton > button {{
-            display: flex;
-            align-items: center;
-            justify-content: flex-start;
-            gap: 12px;
-            width: 100%; 
-            background-color: transparent !important;
-            color: #94a3b8 !important; 
-            border: none !important; 
-            border-radius: 8px !important;
-            padding: 10px 16px !important; 
-            margin-bottom: 2px;
-            transition: all 0.2s ease;
-            font-size: 14px !important;
-            font-weight: 500 !important;
-        }}
-        
-        [data-testid="stSidebar"] div.stButton > button:hover {{ 
-            background-color: #1e293b !important; 
-            color: #ffffff !important;
-        }}
-        
-        .sidebar-section-title {{
-            color: #475569;
-            font-size: 10px;
-            font-weight: 700;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
-            margin: 20px 0 8px 16px;
-        }}
-    </style>
-""", unsafe_allow_html=True)
 
 # --- BANCO DE DADOS E CORREÇÃO DE ESQUEMA ---
 def inicializar_banco():
@@ -180,17 +129,13 @@ def inicializar_banco():
 
 inicializar_banco()
 
-from streamlit_option_menu import option_menu
-
 with st.sidebar:
-    # Cabeçalho da Sidebar
     st.markdown("""
         <div style="padding: 10px 0px 20px 10px;">
             <span style="font-weight: 700; font-size: 20px; color: white;">📊 CRM PRO</span>
         </div>
     """, unsafe_allow_html=True)
 
-    # Menu lateral limpo (Sem WhatsApp e sem Integrações duplicadas)
     selected = option_menu(
         menu_title=None,
         options=[
@@ -231,43 +176,9 @@ with st.sidebar:
         }
     )
     st.session_state.selected = selected
-  
-    st.session_state.selected = selected
-selected = st.session_state.selected
 
 def conectar():
     return sqlite3.connect("crm.db")
-
-def disparar_email_automatico(destinatario, arquivo_bytes, nome_arquivo):
-    servidor_smtp = "smtp.gmail.com"
-    porta = 587
-    remetente = "sergiolmendes2026@gmail.com"
-    senha = "kmpcpmhvrutcuifw"
-
-    try:
-        msg = MIMEMultipart()
-        msg['From'] = remetente
-        msg['To'] = destinatario
-        msg['Subject'] = "📊 Relatório Automático - CRM Pro"
-
-        corpo = "Olá! Segue em anexo o relatório comercial configurado no painel de exportações do seu CRM." 
-        msg.attach(MIMEText(corpo, 'plain'))
-
-        parte = MIMEBase('application', 'octet-stream')
-        parte.set_payload(arquivo_bytes)
-        encoders.encode_base64(parte)
-        parte.add_header('Content-Disposition', f'attachment; filename="{nome_arquivo}"')
-        msg.attach(parte)
-
-        servidor = smtplib.SMTP(servidor_smtp, porta)
-        servidor.starttls()
-        servidor.login(remetente, senha)
-        servidor.sendmail(remetente, destinatario, msg.as_string())
-        servidor.quit()
-        return True
-    except Exception as e:
-        print(f"Erro ao disparar e-mail: {e}")
-        return False
 
 @st.cache_data(ttl=1)
 def carregar_dados():
@@ -315,8 +226,6 @@ if termo_busca and len(termo_busca.strip()) > 0:
             
     st.divider()
 
-# --- RENDERIZAÇÃO COMPLETA DE CADA PÁGINA ---
-
 if selected == "Dashboard":
     st.markdown("### 📊 Dashboard de Performance Comercial")
     
@@ -336,189 +245,13 @@ if selected == "Dashboard":
     tab1, tab2, tab3 = st.tabs(["💰 Vendas & Receita", "🎯 Pipeline & Funil", "👥 Leads & Perdas"])
 
     with tab1:
-        # --- 1. CARTÕES DE INDICADORES (KPIs) PARA RECEITA E TICKET MÉDIO ---
         kpi1, kpi2, kpi3 = st.columns(3)
-        
-        # Exemplo simulando o mês atual (você pode adaptar com base no seu DataFrame de vendas)
         faturamento_mes_atual = df_vendas['valor'].sum() if not df_vendas.empty else 0.0
         ticket_medio_atual = df_vendas['valor'].mean() if not df_vendas.empty and len(df_vendas) > 0 else 0.0
         
         kpi1.metric("💰 Receita Mensal (Atual)", f"R$ {faturamento_mes_atual:,.2f}", "+12% vs. mês anterior")
         kpi2.metric("📊 Ticket Médio", f"R$ {ticket_medio_atual:,.2f}", "+5% vs. média histórica")
         kpi3.metric("🎯 Meta do Mês", "R$ 150,000.00", f"{(faturamento_mes_atual/150000)*100:.1f}% atingido")
-
-        st.markdown("<br>", unsafe_allow_html=True)
-
-        # --- 2. GRÁFICO DE BARRAS / LINHAS DE EVOLUÇÃO MENSAL E TICKET MÉDIO ---
-        c_v1, c_v2 = st.columns(2)
-        
-        with c_v1:
-            st.markdown("#### 📈 Evolução da Receita Mensal")
-            if not df_vendas.empty and "data" in df_vendas.columns:
-                df_temp = df_vendas.copy()
-                df_temp['data'] = pd.to_datetime(df_temp['data'], errors='coerce')
-                # Agrupando por mês para demonstrar receita mensal
-                df_temp['mes'] = df_temp['data'].dt.strftime('%Y-%m')
-                df_mensal = df_temp.groupby("mes")["valor"].sum().reset_index()
-                
-                # Gráfico de Barras Verticais para Comparativo Mensal
-                fig_bar_mensal = px.bar(
-                    df_mensal, x="mes", y="valor", 
-                    text="valor", color_discrete_sequence=["#2563EB"]
-                )
-                fig_bar_mensal.update_traces(texttemplate='R$ %{text:,.0f}', textposition='outside')
-                fig_bar_mensal.update_layout(
-                    paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", 
-                    font=dict(color=text_app), xaxis_title="Mês", yaxis_title="Faturamento (R$)"
-                )
-                st.plotly_chart(fig_bar_mensal, use_container_width=True)
-            else:
-                st.info("Sem dados suficientes para receita mensal.")
-
-        with c_v2:
-            st.markdown("#### 📉 Gráfico Combinado: Faturamento vs. Ticket Médio")
-            if not df_vendas.empty and "data" in df_vendas.columns:
-                df_temp2 = df_vendas.copy()
-                df_temp2['data'] = pd.to_datetime(df_temp2['data'], errors='coerce')
-                df_temp2['mes'] = df_temp2['data'].dt.strftime('%Y-%m')
-                
-                # Agrupando faturamento e ticket médio por mês
-                df_combo = df_temp2.groupby("mes").agg(
-                    faturamento=('valor', 'sum'),
-                    ticket_medio=('valor', 'mean')
-                ).reset_index()
-                
-                # Criando gráfico misto (Barras para Faturamento + Linha para Ticket Médio)
-                fig_combo = go.Figure()
-                fig_combo.add_trace(go.Bar(
-                    x=df_combo['mes'], y=df_combo['faturamento'],
-                    name='Faturamento (R$)', marker_color='#38BDF8'
-                ))
-                fig_combo.add_trace(go.Scatter(
-                    x=df_combo['mes'], y=df_combo['ticket_medio'],
-                    name='Ticket Médio (R$)', mode='lines+markers',
-                    line=dict(color='#F59E0B', width=3), yaxis='y2'
-                ))
-                
-                fig_combo.update_layout(
-                    paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-                    font=dict(color=text_app),
-                    legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
-                    yaxis=dict(title="Faturamento (R$)"),
-                    yaxis2=dict(title="Ticket Médio (R$)", overlaying="y", side="right", showgrid=False)
-                )
-                st.plotly_chart(fig_combo, use_container_width=True)
-            else:
-                st.info("Sem dados para o gráfico combinado.")
-
-        st.markdown("<br>", unsafe_allow_html=True)
-
-        # --- 3. VENDAS POR PERÍODO (TEMPORAL / ÁREA) ---
-        c_v3, c_v4 = st.columns(2)
-        
-        with c_v3:
-            st.markdown("#### 📅 Vendas por Período (Gráfico de Área Temporal)")
-            if not df_vendas.empty and "data" in df_vendas.columns:
-                df_temp3 = df_vendas.copy()
-                df_temp3['data'] = pd.to_datetime(df_temp3['data'], errors='coerce')
-                df_v_area = df_temp3.groupby("data")["valor"].sum().reset_index().sort_values("data")
-                
-                fig_area = px.area(
-                    df_v_area, x="data", y="valor",
-                    color_discrete_sequence=["#10B981"]
-                )
-                fig_area.update_layout(
-                    paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", 
-                    font=dict(color=text_app), xaxis_title="Data", yaxis_title="Volume Vendido (R$)"
-                )
-                st.plotly_chart(fig_area, use_container_width=True)
-            else:
-                st.info("Sem dados temporais suficientes.")
-
-        with c_v4:
-            st.markdown("#### 📦 Vendas por Período e Categoria (Colunas Empilhadas)")
-            if not df_vendas.empty and "produto" in df_vendas.columns and "data" in df_vendas.columns:
-                df_temp4 = df_vendas.copy()
-                df_temp4['data'] = pd.to_datetime(df_temp4['data'], errors='coerce').dt.strftime('%Y-%m')
-                df_empilhado = df_temp4.groupby(["data", "produto"])["valor"].sum().reset_index()
-                
-                fig_stack = px.bar(
-                    df_empilhado, x="data", y="valor", color="produto",
-                    barmode="stack", color_discrete_sequence=["#2563EB", "#38BDF8", "#93C5FD"]
-                )
-                fig_stack.update_layout(
-                    paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", 
-                    font=dict(color=text_app), xaxis_title="Período (Mês)", yaxis_title="Valor (R$)"
-                )
-                st.plotly_chart(fig_stack, use_container_width=True)
-            else:
-                st.info("Sem dados para colunas empilhadas.")
-        c_v1, c_v2 = st.columns(2)
-        with c_v1:
-            st.markdown("#### 📈  Evolução das Vendas")
-            if not df_vendas.empty and "data" in df_vendas.columns:
-                df_temp = df_vendas.copy()
-                df_temp['data'] = pd.to_datetime(df_temp['data'], errors='coerce')
-                df_v_linha = df_temp.groupby("data")["valor"].sum().reset_index()
-                df_v_linha = df_v_linha.sort_values("data")
-                fig_linha = px.line(df_v_linha, x="data", y="valor", markers=True)
-                fig_linha.update_traces(
-                    line=dict(color="#38BDF8", width=3),
-                    fill='tozeroy',
-                    fillcolor="rgba(56, 189, 248, 0.15)"
-                )
-                fig_linha.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font=dict(color=text_app))
-                st.plotly_chart(fig_linha, use_container_width=True)
-            else:
-                st.info("Sem dados suficientes de vendas.")
-
-        with c_v2:
-            st.markdown("#### 🎯  Meta x Realizado (Gauge)")
-            meta_exemplo = 150000.0
-            fig_gauge = go.Figure(go.Indicator(
-                mode="gauge+number", value=receita_realizada,
-                domain={'x': [0, 1], 'y': [0, 1]},
-                title={'text': "Progresso de Vendas vs Meta"},
-                gauge={
-                    'axis': {'range': [None, meta_exemplo]},
-                    'bar': {'color': "#2563EB"},
-                    'steps': [
-                        {'range': [0, meta_exemplo * 0.5], 'color': "#EF4444"},
-                        {'range': [meta_exemplo * 0.5, meta_exemplo * 0.8], 'color': "#F59E0B"},
-                        {'range': [meta_exemplo * 0.8, meta_exemplo], 'color': "#22C55E"}
-                    ],
-                    'threshold': {
-                        'line': {'color': "white", 'width': 4},
-                        'thickness': 0.75,
-                        'value': receita_realizada
-                    }
-                }
-            ))
-            fig_gauge.update_layout(paper_bgcolor="rgba(0,0,0,0)", font=dict(color=text_app), height=260)
-            st.plotly_chart(fig_gauge, use_container_width=True)
-
-        c_v3, c_v4 = st.columns(2)
-        with c_v3:
-            st.markdown("#### 🏆  Receita por Vendedor")
-            if not df_vendas.empty and "responsavel" in df_vendas.columns:
-                df_vend = df_vendas.groupby("responsavel")["valor"].sum().reset_index()
-                cores_vendedores = {"Ana": "#38BDF8", "Carlos": "#1D4ED8", "Pedro": "#F59E0B", "Julia": "#065CF6"}
-                fig_vend = px.bar(df_vend, x="responsavel", y="valor", color="responsavel", color_discrete_map=cores_vendedores)
-                fig_vend.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font=dict(color=text_app))
-                st.plotly_chart(fig_vend, use_container_width=True)
-            else:
-                st.info("Sem dados de vendedores.")
-
-        with c_v4:
-            st.markdown("#### 📦  Produtos Mais Vendidos")
-            if not df_vendas.empty and "produto" in df_vendas.columns:
-                df_prod = df_vendas.groupby("produto")["valor"].sum().reset_index()
-                cores_produtos = ["#2563EB", "#38BDF8", "#60A5FA", "#93C5FD"]
-                fig_prod = px.bar(df_prod, x="valor", y="produto", orientation="h", color="produto", color_discrete_sequence=cores_produtos)
-                fig_prod.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font=dict(color=text_app), yaxis=dict(autorange="reversed"))
-                st.plotly_chart(fig_prod, use_container_width=True)
-            else:
-                st.info("Sem dados de produtos.")
 
     with tab2:
         valor_total_pipe = df_pipeline["valor"].sum() if not df_pipeline.empty and "valor" in df_pipeline.columns else 0.0
@@ -535,7 +268,7 @@ if selected == "Dashboard":
         c_p1, c_p2 = st.columns(2)
         
         with c_p1:
-            st.markdown("#### 📊 3. Funil de Vendas")
+            st.markdown("#### 📊 Funil de Vendas")
             if not df_pipeline.empty and "estagio" in df_pipeline.columns:
                 df_pipe_funil = df_pipeline.groupby("estagio")["valor"].sum().reset_index()
                 ordem = ["Prospecção", "Qualificação", "Proposta", "Negociação", "Fechamento"]
@@ -557,19 +290,55 @@ if selected == "Dashboard":
                     margin=dict(t=20, b=10)
                 )
                 st.plotly_chart(fig_funil, use_container_width=True, key="chart_funil_vendas_tab2")
-
-                st.markdown("""
-                    <div style="background-color: #0b0f19; padding: 12px; border-radius: 8px; border: 1px solid #1e293b; margin-top: 10px;">
-                        <span style="font-size: 13px; color: #94a3b8; font-weight: 600;">Taxas de Conversão entre Etapas:</span><br>
-                        <span style="font-size: 12px; color: #cbd5e1;">
-                            • Prospecção → Qualificação: <b>68%</b><br>
-                            • Qualificação → Proposta: <b>67%</b><br>
-                            • Proposta → Fechamento: <b>75%</b>
-                        </span>
-                    </div>
-                """, unsafe_allow_html=True)
             else:
                 st.info("Sem dados no pipeline.")
+
+        with c_p2:
+            st.markdown("#### 📈 Valor do Pipeline por Etapa")
+            if not df_pipeline.empty and "estagio" in df_pipeline.columns:
+                df_pipe_bar = df_pipeline.groupby("estagio")["valor"].sum().reset_index()
+                ordem = ["Prospecção", "Qualificação", "Proposta", "Negociação", "Fechamento"]
+                df_pipe_bar["estagio"] = pd.Categorical(df_pipe_bar["estagio"], categories=ordem, ordered=True)
+                df_pipe_bar = df_pipe_bar.sort_values("estagio")
+
+                cores_pipeline = {
+                    "Prospecção": "#38BDF4",
+                    "Qualificação": "#8B5CF6",
+                    "Proposta": "#F59E0B",
+                    "Negociação": "#F97316",
+                    "Fechamento": "#22C55E"
+                }
+
+                fig_bar_pipe = px.bar(
+                    df_pipe_bar, 
+                    x="valor", 
+                    y="estagio", 
+                    orientation="h", 
+                    color="estagio", 
+                    color_discrete_map=cores_pipeline, 
+                    text="valor"
+                )
+                fig_bar_pipe.update_traces(marker_line_color="white", marker_line_width=1, texttemplate="R$ %{x:,.0f}", textposition="outside")
+                fig_bar_pipe.update_layout(
+                    showlegend=False,
+                    paper_bgcolor="rgba(0,0,0,0)", 
+                    plot_bgcolor="rgba(0,0,0,0)", 
+                    font=dict(color=text_app),
+                    xaxis_title="Valor (R$)",
+                    yaxis_title="",
+                    yaxis=dict(autorange="reversed"),
+                    margin=dict(l=30, r=40, t=20, b=10)
+                )
+                st.plotly_chart(fig_bar_pipe, use_container_width=True, key="chart_bar_pipeline_tab2")
+            else:
+                st.info("Sem dados no pipeline.")
+
+    with tab3:
+        st.markdown("#### 👥 Gestão de Leads e Perdas")
+        if not df_clientes.empty:
+            st.dataframe(df_clientes, use_container_width=True, hide_index=True)
+        else:
+            st.info("Nenhum cliente cadastrado.")
 
         with c_p2:
             st.markdown("#### 📈 Valor do Pipeline por Etapa")
