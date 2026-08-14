@@ -20,6 +20,28 @@ st.set_page_config(page_title="CRM LMB Pro", layout="wide")
 
 # --- CSS GLOBAL E CENTRALIZADO ---
 st.markdown("""
+
+<style>
+    /* Estilização da barra de filtros agrupada */
+    .filtros-container {
+        background-color: #161b22;
+        border: 1px solid #30363d;
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+    
+    /* Estilização dos cards de métricas com borda ciano */
+    .metric-card {
+        background-color: #0e1117;
+        border: 1px solid #00d2ff;
+        border-radius: 10px;
+        padding: 20px;
+        text-align: left;
+        box-shadow: 0 0 10px rgba(0, 210, 255, 0.1);
+    }
+    </style>
+""", unsafe_allow_html=True)
     <style>
         /* Fundo do App */
         .stApp { background-color: #0e1117; color: #ffffff; }
