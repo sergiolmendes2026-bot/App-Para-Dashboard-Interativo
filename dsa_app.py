@@ -97,7 +97,7 @@ with col_graf1:
     st.subheader("📊 1. Evolução Cronológica das Vendas")
     dados_vendas = pd.DataFrame({
         "Data": pd.date_range(start="2026-06-01", periods=6, freq="D"),
-        "Vendas": [15000, 22000, 18000, 12000, 28000, 45000]
+        "Vendas": [15000, 22000, 18000, 12000, 28000, 35000]
     })
     fig_linha = px.line(dados_vendas, x="Data", y="Vendas", template="plotly_dark")
     # Aplicando o degradê neon na linha do gráfico
@@ -145,7 +145,7 @@ with col_graf3:
     st.subheader("👤 4. Distribuição de Receita por Vendedor")
     dados_vendedores = pd.DataFrame({
         "Vendedor": ["Alex Silva", "Carlos Souza"],
-        "Receita (R$)": [65000, 25000]
+        "Receita (R$)": [60000, 30000]
     })
     # Criando barras verticais limpas com rótulos de dados visíveis
     fig_vendedor = px.bar(
@@ -172,7 +172,7 @@ with col_graf4:
     st.subheader("📦 7. Ranking de Produtos Mais Vendidos")
     dados_produtos = pd.DataFrame({
         "Produto": ["Software C", "Software A", "Consultoria Técnica"],
-        "Unidades Vendidas": [45, 32, 12]
+        "Unidades Vendidas": [45, 30, 15]
     })
     # Gráfico horizontal limpo com rótulos numéricos diretos nas barras
     fig_produtos = px.bar(
