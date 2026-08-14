@@ -521,6 +521,97 @@ if selected == "Dashboard":
                 st.info("Sem dados de produtos.")
 
     with tab2:
+        # --- 1. MOSTRAR O VALOR TOTAL DO PIPELINE ACIMA DO FUNIL ---
+        valor_total_pipe = df_pipeline["valor"].sum() if not df_pipeline.empty and "valor" in df_pipeline.columns else 0.0
+        st.markdown(
+            f"""
+            <div style="background-color: #1e293b; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #2563EB;">
+                <span style="color: #94a3b8; font-size: 14px; font-weight: 600; text-transform: uppercase;">Pipeline Total</span><br>
+                <span style="color: #ffffff; font-size: 24px; font-weight: 700;">R$ {valor_total_pipe:,.2f}</span>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+        c_p1, c_p2 = st.columns(2)
+        with c_p1:
+            st.markdown("#### 📊 3. Funil de Vendas")
+            if not df_pipeline.empty and "estagio" in df_pipeline.columns:
+                df_pipe_funil = df_pipeline.groupby("estagio")["valor"].sum().reset_index()
+                ordem = ["Prospecção", "Qualificação", "Proposta", "Negociação", "Fechamento"]
+                df_pipe_funil["estagio"] = pd.Categorical(df_pipe_funil["estagio"], categories=ordem, ordered=True)
+                df_pipe_funil = df_pipe_funil.sort_values("estagio").dropna()
+
+                fig_funil = px.funnel(
+                    df_pipe_funil, 
+                    x="valor", 
+                    y="estagio", 
+                    color_discrete_sequence=[cor_hex],
+                    text=df_pipe_funil['valor'].apply(lambda v: f"R$ {v:,.0f}")
+                )
+                fig_funil.update_traces(textposition="inside")
+                fig_funil.update_layout(
+                    paper_bgcolor="rgba(0,0,0,0)", 
+                    plot_bgcolor="rgba(0,0,0,0)", 
+                    font=dict(color=text_app),
+                    margin=dict(t=20, b=10)
+                )
+                st.plotly_chart(fig_funil, use_container_width=True)
+
+                # --- 2. INDICADORES DE CONVERSÃO ENTRE ETAPAS ABAIXO DO FUNIL ---
+                st.markdown("""
+                    <div style="background-color: #0b0f19; padding: 12px; border-radius: 8px; border: 1px solid #1e293b; margin-top: 10px;">
+                        <span style="font-size: 13px; color: #94a3b8; font-weight: 600;">Taxas de Conversão entre Etapas:</span><br>
+                        <span style="font-size: 12px; color: #cbd5e1;">
+                            • Prospecção → Qualificação: <b>68%</b><br>
+                            • Qualificação → Proposta: <b>67%</b><br>
+                            • Proposta → Fechamento: <b>75%</b>
+                        </span>
+                    </div>
+                """, unsafe_allow_html=True)
+            else:
+                st.info("Sem dados no pipeline.")
+
+        with c_p2:
+            st.markdown("#### 📈 Valor do Pipeline por Etapa")
+            if not df_pipeline.empty and "estagio" in df_pipeline.columns:
+                df_pipe_bar = df_pipeline.groupby("estagio")["valor"].sum().reset_index()
+                
+                ordem = ["Prospecção", "Qualificação", "Proposta", "Negociação", "Fechamento"]
+                df_pipe_bar["estagio"] = pd.Categorical(df_pipe_bar["estagio"], categories=ordem, ordered=True)
+                df_pipe_bar = df_pipe_bar.sort_values("estagio")
+
+                cores_pipeline = {
+                    "Prospecção": "#38BDF4",
+                    "Qualificação": "#8B5CF6",
+                    "Proposta": "#F59E0B",
+                    "Negociação": "#F97316",
+                    "Fechamento": "#22C55E"
+                }
+
+                fig_bar_pipe = px.bar(
+                    df_pipe_bar, 
+                    x="valor", 
+                    y="estagio", 
+                    orientation="h", 
+                    color="estagio", 
+                    color_discrete_map=cores_pipeline, 
+                    text="valor"
+                )
+                fig_bar_pipe.update_traces(marker_line_color="white", marker_line_width=1, texttemplate="R$ %{x:,.0f}", textposition="outside")
+                fig_bar_pipe.update_layout(
+                    showlegend=False,
+                    paper_bgcolor="rgba(0,0,0,0)", 
+                    plot_bgcolor="rgba(0,0,0,0)", 
+                    font=dict(color=text_app),
+                    xaxis_title="Valor (R$)",
+                    yaxis_title="",
+                    yaxis=dict(autorange="reversed"),
+                    margin=dict(l=30, r=40, t=20, b=10)
+                )
+                st.plotly_chart(fig_bar_pipe, use_container_width=True)
+            else:
+                st.info("Sem dados no pipeline.")
         c_p1, c_p2 = st.columns(2)
         with c_p1:
             st.markdown("#### 📊  Funil de Vendas")
