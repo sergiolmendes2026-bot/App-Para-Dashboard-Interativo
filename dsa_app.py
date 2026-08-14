@@ -557,9 +557,32 @@ elif selected == "Clientes":
 
     st.markdown("<div style='margin-top: 35px;'></div>", unsafe_allow_html=True)
     st.markdown("### 📋 Base de Dados Geral (CRM)")
+    
     if not df_clientes.empty:
         colunas_mostrar = [c for c in ['nome', 'empresa', 'telefone', 'origem', 'status', 'responsavel', 'data'] if c in df_clientes.columns]
-        st.dataframe(df_clientes[colunas_mostrar], use_container_width=True, hide_index=True)
+        
+        # O Editor Interativo
+        df_editado = st.data_editor(
+            df_clientes[colunas_mostrar], 
+            use_container_width=True, 
+            hide_index=True, 
+            num_rows="dynamic" # Permite deletar/adicionar linhas
+        )
+
+        if st.button("💾 Salvar Edições no Banco de Dados"):
+            # Lógica para remover do banco o que foi removido no editor
+            conn = conectar()
+            
+            # 1. Apaga tudo da tabela para substituir pelo novo estado (mais simples e seguro para este caso)
+            conn.execute("DELETE FROM clientes") 
+            
+            # 2. Insere os dados editados de volta ao SQL
+            df_editado.to_sql('clientes', conn, if_exists='append', index=False)
+            
+            conn.commit()
+            conn.close()
+            st.success("Alterações salvas com sucesso!")
+            st.rerun()
     else:
         st.info("Nenhum cliente cadastrado.")
 
