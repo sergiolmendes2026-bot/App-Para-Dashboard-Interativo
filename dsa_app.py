@@ -352,29 +352,31 @@ if selected == "Dashboard":
     with tab1:
         c_v1, c_v2 = st.columns(2)
         with c_v1:
-            
             st.markdown("#### 📈 1. Evolução das Vendas")
             if not df_vendas.empty and "data" in df_vendas.columns:
                 df_temp = df_vendas.copy()
-                # Converte para datetime
                 df_temp['data'] = pd.to_datetime(df_temp['data'], errors='coerce')
                 
-                # AGRUPAMENTO POR MÊS (Resample ou dt.to_period)
-                # Isso vai criar uma linha contínua baseada nos meses
-                df_v_linha = df_temp.groupby(df_temp['data'].dt.to_period("M"))["valor"].sum().reset_index()
-                df_v_linha['data'] = df_v_linha['data'].dt.to_timestamp() # Converte para formato de data do Plotly
+                # Agrupa por Mês/Ano e converte para string para facilitar o gráfico
+                df_v_linha = df_temp.groupby(df_temp['data'].dt.strftime('%b/%Y'))["valor"].sum().reset_index()
+                
+                # Ordenação cronológica correta (importante para não bagunçar)
+                df_v_linha['mes_ordem'] = pd.to_datetime(df_v_linha['data'], format='%b/%Y')
+                df_v_linha = df_v_linha.sort_values('mes_ordem')
                 
                 fig_linha = px.line(df_v_linha, x="data", y="valor", markers=True)
+                
                 fig_linha.update_traces(
                     line=dict(color="#38BDF8", width=3),
                     fill='tozeroy',
                     fillcolor="rgba(56, 189, 248, 0.15)"
                 )
+                
                 fig_linha.update_layout(
                     paper_bgcolor="rgba(0,0,0,0)", 
                     plot_bgcolor="rgba(0,0,0,0)", 
                     font=dict(color=text_app),
-                    xaxis=dict(tickformat="%b/%Y") # Formata para Mes/Ano (ex: Jun/2026)
+                    xaxis_title="Período"
                 )
                 st.plotly_chart(fig_linha, use_container_width=True)
             else:
@@ -1102,3 +1104,4 @@ elif selected == "Atividades":
 elif selected == "Clientes":
     st.markdown("### 📖 Cadastro Completo de Clientes e Leads")
 ...
+
