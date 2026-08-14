@@ -532,7 +532,7 @@ if selected == "Dashboard":
                 st.info("Sem dados no pipeline.")
 
         with c_p2:
-            st.markdown("#### 📈 Valor do Pipeline por Etapa")
+            st.markdown("#### 📈 Valor em Pipeline por Etapa")
             if not df_pipeline.empty and "estagio" in df_pipeline.columns:
                 df_pipe_bar = df_pipeline.groupby("estagio")["valor"].sum().reset_index()
                 
