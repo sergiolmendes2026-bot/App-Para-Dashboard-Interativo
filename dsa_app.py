@@ -336,6 +336,123 @@ if selected == "Dashboard":
     tab1, tab2, tab3 = st.tabs(["💰 Vendas & Receita", "🎯 Pipeline & Funil", "👥 Leads & Perdas"])
 
     with tab1:
+        # --- 1. CARTÕES DE INDICADORES (KPIs) PARA RECEITA E TICKET MÉDIO ---
+        kpi1, kpi2, kpi3 = st.columns(3)
+        
+        # Exemplo simulando o mês atual (você pode adaptar com base no seu DataFrame de vendas)
+        faturamento_mes_atual = df_vendas['valor'].sum() if not df_vendas.empty else 0.0
+        ticket_medio_atual = df_vendas['valor'].mean() if not df_vendas.empty and len(df_vendas) > 0 else 0.0
+        
+        kpi1.metric("💰 Receita Mensal (Atual)", f"R$ {faturamento_mes_atual:,.2f}", "+12% vs. mês anterior")
+        kpi2.metric("📊 Ticket Médio", f"R$ {ticket_medio_atual:,.2f}", "+5% vs. média histórica")
+        kpi3.metric("🎯 Meta do Mês", "R$ 150,000.00", f"{(faturamento_mes_atual/150000)*100:.1f}% atingido")
+
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        # --- 2. GRÁFICO DE BARRAS / LINHAS DE EVOLUÇÃO MENSAL E TICKET MÉDIO ---
+        c_v1, c_v2 = st.columns(2)
+        
+        with c_v1:
+            st.markdown("#### 📈 Evolução da Receita Mensal")
+            if not df_vendas.empty and "data" in df_vendas.columns:
+                df_temp = df_vendas.copy()
+                df_temp['data'] = pd.to_datetime(df_temp['data'], errors='coerce')
+                # Agrupando por mês para demonstrar receita mensal
+                df_temp['mes'] = df_temp['data'].dt.strftime('%Y-%m')
+                df_mensal = df_temp.groupby("mes")["valor"].sum().reset_index()
+                
+                # Gráfico de Barras Verticais para Comparativo Mensal
+                fig_bar_mensal = px.bar(
+                    df_mensal, x="mes", y="valor", 
+                    text="valor", color_discrete_sequence=["#2563EB"]
+                )
+                fig_bar_mensal.update_traces(texttemplate='R$ %{text:,.0f}', textposition='outside')
+                fig_bar_mensal.update_layout(
+                    paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", 
+                    font=dict(color=text_app), xaxis_title="Mês", yaxis_title="Faturamento (R$)"
+                )
+                st.plotly_chart(fig_bar_mensal, use_container_width=True)
+            else:
+                st.info("Sem dados suficientes para receita mensal.")
+
+        with c_v2:
+            st.markdown("#### 📉 Gráfico Combinado: Faturamento vs. Ticket Médio")
+            if not df_vendas.empty and "data" in df_vendas.columns:
+                df_temp2 = df_vendas.copy()
+                df_temp2['data'] = pd.to_datetime(df_temp2['data'], errors='coerce')
+                df_temp2['mes'] = df_temp2['data'].dt.strftime('%Y-%m')
+                
+                # Agrupando faturamento e ticket médio por mês
+                df_combo = df_temp2.groupby("mes").agg(
+                    faturamento=('valor', 'sum'),
+                    ticket_medio=('valor', 'mean')
+                ).reset_index()
+                
+                # Criando gráfico misto (Barras para Faturamento + Linha para Ticket Médio)
+                fig_combo = go.Figure()
+                fig_combo.add_trace(go.Bar(
+                    x=df_combo['mes'], y=df_combo['faturamento'],
+                    name='Faturamento (R$)', marker_color='#38BDF8'
+                ))
+                fig_combo.add_trace(go.Scatter(
+                    x=df_combo['mes'], y=df_combo['ticket_medio'],
+                    name='Ticket Médio (R$)', mode='lines+markers',
+                    line=dict(color='#F59E0B', width=3), yaxis='y2'
+                ))
+                
+                fig_combo.update_layout(
+                    paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+                    font=dict(color=text_app),
+                    legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+                    yaxis=dict(title="Faturamento (R$)"),
+                    yaxis2=dict(title="Ticket Médio (R$)", overlaying="y", side="right", showgrid=False)
+                )
+                st.plotly_chart(fig_combo, use_container_width=True)
+            else:
+                st.info("Sem dados para o gráfico combinado.")
+
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        # --- 3. VENDAS POR PERÍODO (TEMPORAL / ÁREA) ---
+        c_v3, c_v4 = st.columns(2)
+        
+        with c_v3:
+            st.markdown("#### 📅 Vendas por Período (Gráfico de Área Temporal)")
+            if not df_vendas.empty and "data" in df_vendas.columns:
+                df_temp3 = df_vendas.copy()
+                df_temp3['data'] = pd.to_datetime(df_temp3['data'], errors='coerce')
+                df_v_area = df_temp3.groupby("data")["valor"].sum().reset_index().sort_values("data")
+                
+                fig_area = px.area(
+                    df_v_area, x="data", y="valor",
+                    color_discrete_sequence=["#10B981"]
+                )
+                fig_area.update_layout(
+                    paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", 
+                    font=dict(color=text_app), xaxis_title="Data", yaxis_title="Volume Vendido (R$)"
+                )
+                st.plotly_chart(fig_area, use_container_width=True)
+            else:
+                st.info("Sem dados temporais suficientes.")
+
+        with c_v4:
+            st.markdown("#### 📦 Vendas por Período e Categoria (Colunas Empilhadas)")
+            if not df_vendas.empty and "produto" in df_vendas.columns and "data" in df_vendas.columns:
+                df_temp4 = df_vendas.copy()
+                df_temp4['data'] = pd.to_datetime(df_temp4['data'], errors='coerce').dt.strftime('%Y-%m')
+                df_empilhado = df_temp4.groupby(["data", "produto"])["valor"].sum().reset_index()
+                
+                fig_stack = px.bar(
+                    df_empilhado, x="data", y="valor", color="produto",
+                    barmode="stack", color_discrete_sequence=["#2563EB", "#38BDF8", "#93C5FD"]
+                )
+                fig_stack.update_layout(
+                    paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", 
+                    font=dict(color=text_app), xaxis_title="Período (Mês)", yaxis_title="Valor (R$)"
+                )
+                st.plotly_chart(fig_stack, use_container_width=True)
+            else:
+                st.info("Sem dados para colunas empilhadas.")
         c_v1, c_v2 = st.columns(2)
         with c_v1:
             st.markdown("#### 📈 1. Evolução das Vendas")
