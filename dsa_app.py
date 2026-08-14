@@ -323,45 +323,43 @@ if selected == "Dashboard":
         else:
             st.info("Nenhum cliente cadastrado.")
 
-        with c_l2:
-            st.markdown("#### 📋  Clientes por Status")
-            if not df_clientes.empty and "status" in df_clientes.columns:
-                df_status = df_clientes.groupby("status").size().reset_index(name="quantidade")
-                
-                # Mapeamento de cores personalizadas para cada status
-                cores_status = {
-                    "🆕 Novo Lead": "#38BDF8",
-                    "📞 Primeiro Contato": "#60A5FA",
-                    "💬 Em Atendimento": "#8B5CF6",
-                    "📋 Proposta Enviada": "#F59E0B",
-                    "⏳ Aguardando Resposta": "#FBBF24",
-                    "🤝 Negociação": "#F97316",
-                    "✅ Venda Fechada": "#22C55E",
-                    "❌ Venda Perdida": "#EF4444",
-                    "🔄 Pós-Venda": "#10B981"
-                }
-                
-                fig_status = px.bar(
-                    df_status, 
-                    x="status", 
-                    y="quantidade", 
-                    color="status", 
-                    color_discrete_map=cores_status,
-                    text="quantidade"
-                )
-                fig_status.update_traces(texttemplate='%{y}', textposition='outside')
-                fig_status.update_layout(
-                    showlegend=False,
-                    paper_bgcolor="rgba(0,0,0,0)", 
-                    plot_bgcolor="rgba(0,0,0,0)", 
-                    font=dict(color=text_app),
-                    margin=dict(t=30, b=10)
-                )
-                st.plotly_chart(fig_status, use_container_width=True)
-            else:
-                st.info("Sem dados de status.")
+        st.markdown("#### 📋 Clientes por Status")
+        if not df_clientes.empty and "status" in df_clientes.columns:
+            df_status = df_clientes.groupby("status").size().reset_index(name="quantidade")
+            
+            cores_status = {
+                "🆕 Novo Lead": "#38BDF8",
+                "📞 Primeiro Contato": "#60A5FA",
+                "💬 Em Atendimento": "#8B5CF6",
+                "📋 Proposta Enviada": "#F59E0B",
+                "⏳ Aguardando Resposta": "#FBBF24",
+                "🤝 Negociação": "#F97316",
+                "✅ Venda Fechada": "#22C55E",
+                "❌ Venda Perdida": "#EF4444",
+                "🔄 Pós-Venda": "#10B981"
+            }
+            
+            fig_status = px.bar(
+                df_status, 
+                x="status", 
+                y="quantidade", 
+                color="status", 
+                color_discrete_map=cores_status,
+                text="quantidade"
+            )
+            fig_status.update_traces(texttemplate='%{y}', textposition='outside')
+            fig_status.update_layout(
+                showlegend=False,
+                paper_bgcolor="rgba(0,0,0,0)", 
+                plot_bgcolor="rgba(0,0,0,0)", 
+                font=dict(color=text_app),
+                margin=dict(t=30, b=10)
+            )
+            st.plotly_chart(fig_status, use_container_width=True)
+        else:
+            st.info("Sem dados de status.")
 
-        st.markdown("#### ❌  Motivos de Perda de Negócios")
+        st.markdown("#### ❌ Motivos de Perda de Negócios")
         if not df_clientes.empty and "motivo_perda" in df_clientes.columns:
             df_perda = df_clientes[df_clientes["motivo_perda"].str.strip() != ""]
             if not df_perda.empty:
@@ -600,7 +598,6 @@ elif selected == "Vendas":
                 st.error("Informe o nome do cliente.")
   
 elif selected == "Propostas":
-    # Garante que a tabela de propostas existe no banco de dados
     try:
         conn = conectar()
         conn.execute("""
@@ -620,7 +617,6 @@ elif selected == "Propostas":
     except Exception:
         pass
 
-    # Cabeçalho e Botão de Nova Proposta
     col_prop_t1, col_prop_t2 = st.columns([4, 1])
     with col_prop_t1:
         st.markdown("### 📄 Gestão de Propostas Comerciais")
@@ -628,7 +624,6 @@ elif selected == "Propostas":
         if st.button("➕ Nova Proposta", use_container_width=True):
             st.session_state.modal_nova_proposta = not st.session_state.get("modal_nova_proposta", False)
 
-    # Carrega dados do banco
     try:
         conn = conectar()
         df_propostas = pd.read_sql("SELECT * FROM propostas", conn)
@@ -636,302 +631,46 @@ elif selected == "Propostas":
     except Exception:
         df_propostas = pd.DataFrame()
 
-    # KPIs rápidos
     total_prop = len(df_propostas) if not df_propostas.empty else 0
     valor_total_prop = df_propostas["valor"].sum() if not df_propostas.empty and "valor" in df_propostas.columns else 0.0
     aprovadas_prop = len(df_propostas[df_propostas["status"] == "Aprovada"]) if not df_propostas.empty and "status" in df_propostas.columns else 0
 
-    kp1, kp2, kp3 = st.columns(3)
-    kp1.metric("📊 Total de Propostas", total_prop)
-    kp2.metric("💰 Valor Total Orçado", f"R$ {valor_total_prop:,.2f}")
-    kp3.metric("✅ Propostas Aprovadas", aprovadas_prop)
+    kpi_p1, kpi_p2, kpi_p3 = st.columns(3)
+    kpi_p1.metric("Total de Propostas", total_prop)
+    kpi_p2.metric("Valor Total em Propostas", f"R$ {valor_total_prop:,.2f}")
+    kpi_p3.metric("Propostas Aprovadas", aprovadas_prop)
 
-    st.markdown("<br>", unsafe_allow_html=True)
-
-    # Formulário Modal para Cadastrar Nova Proposta
     if st.session_state.get("modal_nova_proposta", False):
-        with st.expander("📝 Criar Nova Proposta", expanded=True):
-            with st.form("form_nova_proposta"):
-                p1, p2, p3 = st.columns(3)
-                with p1:
-                    prop_titulo = st.text_input("Título / Objeto *", placeholder="Ex: Implantação de Software")
-                    prop_cliente = st.text_input("Cliente / Empresa *", placeholder="Nome do cliente")
-                with p2:
-                    prop_valor = st.number_input("Valor Total (R$)", min_value=0.0, step=100.0)
-                    prop_validade = st.date_input("Validade da Proposta")
-                with p3:
-                    prop_status = st.selectbox("Status", ["Em elaboração", "Enviada", "Em negociação", "Aprovada", "Recusada"])
-                    prop_resp = st.text_input("Responsável", value="Carlos")
-
-                btn_salvar_p, btn_fechar_p = st.columns(2)
-                with btn_salvar_p:
-                    submit_prop = st.form_submit_button("Salvar Proposta", use_container_width=True)
-                with btn_fechar_p:
-                    close_prop = st.form_submit_button("Cancelar", use_container_width=True)
-
-                if submit_prop:
-                    if prop_titulo and prop_cliente:
-                        try:
-                            conn = conectar()
-                            conn.execute("""
-                                INSERT INTO propostas (titulo, cliente, valor, validade, status, responsavel, data_criacao)
-                                VALUES (?, ?, ?, ?, ?, ?, ?)
-                            """, (prop_titulo, prop_cliente, prop_valor, str(prop_validade), prop_status, prop_resp, str(date.today())))
-                            conn.commit()
-                            conn.close()
-                            st.session_state.modal_nova_proposta = False
-                            st.success("Proposta criada com sucesso!")
-                            st.rerun()
-                        except Exception as e:
-                            st.error(f"Erro ao salvar proposta: {e}")
-                    else:
-                        st.error("Preencha o Título e o Cliente.")
-
-                if close_prop:
+        with st.form("form_nova_proposta"):
+            st.markdown("##### Criar Nova Proposta")
+            np_c1, np_c2 = st.columns(2)
+            with np_c1:
+                np_titulo = st.text_input("Título da Proposta *")
+                np_cliente = st.text_input("Cliente *")
+                np_valor = st.number_input("Valor (R$)", min_value=0.0, value=10000.0, step=1000.0)
+            with np_c2:
+                np_validade = st.text_input("Validade", value="2026-12-31")
+                np_status = st.selectbox("Status", ["Pendente", "Aprovada", "Recusada"])
+                np_resp = st.text_input("Responsável", value="Carlos")
+            
+            btn_salvar_prop = st.form_submit_button("Salvar Proposta")
+            if btn_salvar_prop:
+                if np_titulo and np_cliente:
+                    conn = conectar()
+                    conn.execute("""
+                        INSERT INTO propostas (titulo, cliente, valor, validade, status, responsavel, data_criacao)
+                        VALUES (?, ?, ?, ?, ?, ?, ?)
+                    """, (np_titulo, np_cliente, np_valor, np_validade, np_status, np_resp, str(date.today())))
+                    conn.commit()
+                    conn.close()
                     st.session_state.modal_nova_proposta = False
+                    st.success("Proposta salva com sucesso!")
                     st.rerun()
+                else:
+                    st.error("Preencha o Título e o Cliente.")
 
-    # Tabela de Listagem das Propostas
-    st.markdown("#### 📋 Histórico de Propostas")
+    st.markdown("<br>", unsafe_allow_html=True)
     if not df_propostas.empty:
-        colunas_exibir = [c for c in ['data_criacao', 'titulo', 'cliente', 'valor', 'validade', 'status', 'responsavel'] if c in df_propostas.columns]
-        st.dataframe(df_propostas[colunas_exibir], use_container_width=True, hide_index=True)
+        st.dataframe(df_propostas, use_container_width=True, hide_index=True)
     else:
-        st.info("Nenhuma proposta cadastrada no banco de dados.")
-
-elif selected == "Relatórios":
-    # (continuação das suas outras abas...)
-
-    st.markdown("<br>", unsafe_allow_html=True)
-    if not df_vendas.empty:
-        st.dataframe(df_vendas, use_container_width=True, hide_index=True)
-    else:
-        st.info("Nenhuma venda registrada.")
-
-elif selected == "Relatórios":
-    st.markdown("### 📄 Relatórios e Exportações")
-    st.markdown("Selecione o tipo de relatório e o formato desejado para exportação.")
-    
-    r_col1, r_col2 = st.columns(2)
-    with r_col1:
-        tipo_rel = st.selectbox("Tipo de Relatório", ["Vendas", "Clientes", "Pipeline"])
-        formato_rel = st.selectbox("Formato", ["CSV", "Excel", "PDF"])
-    with r_col2:
-        dest_email = st.text_input("Enviar por E-mail (Opcional)", value="sergiolmendes2026@gmail.com")
-        
-    if st.button("Gerar e Exportar Relatório", use_container_width=True):
-        if tipo_rel == "Vendas":
-            df_export = df_vendas.copy()
-        elif tipo_rel == "Clientes":
-            df_export = df_clientes.copy()
-        else:
-            df_export = df_pipeline.copy()
-
-        buffer = io.BytesIO()
-        
-        if formato_rel == "Excel":
-            try:
-                with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
-                    df_export.to_excel(writer, index=False, sheet_name=tipo_rel)
-                mime_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                file_extension = "xlsx"
-            except Exception:
-                st.warning("A biblioteca 'openpyxl' não está instalada no ambiente. Exportando em formato CSV alternativo.")
-                buffer.write(df_export.to_csv(index=False).encode('utf-8'))
-                mime_type = "text/csv"
-                file_extension = "csv"
-        elif formato_rel == "PDF":
-            try:
-                from fpdf import FPDF
-                pdf = FPDF()
-                pdf.add_page()
-                pdf.set_font("Arial", size=12)
-                pdf.cell(200, 10, txt=f"Relatorio de {tipo_rel} - CRM Pro", ln=1, align="c")
-                pdf.ln(10)
-                pdf.set_font("Arial", size=8)
-                for index, row in df_export.iterrows():
-                    linha_txt = " | ".join([str(val) for val in row.values])
-                    pdf.cell(200, 8, txt=linha_txt, ln=1)
-                pdf_output = pdf.output(dest='S').encode('latin1')
-                buffer.write(pdf_output)
-            except Exception:
-                buffer.write(df_export.to_string().encode('utf-8'))
-            mime_type = "application/pdf"
-            file_extension = "pdf"
-        else:
-            buffer.write(df_export.to_csv(index=False).encode('utf-8'))
-            mime_type = "text/csv"
-            file_extension = "csv"
-
-        nome_arq = f"relatorio_{tipo_rel.lower()}_{date.today()}.{file_extension}"
-        
-        st.download_button(
-            label=f"📥 Baixar Arquivo Gerado ({file_extension.upper()})",
-            data=buffer.getvalue(),
-            file_name=nome_arq,
-            mime=mime_type
-        )
-        
-        if dest_email:
-            sucesso_email = disparar_email_automatico(dest_email, buffer.getvalue(), nome_arq)
-            if sucesso_email:
-                st.success(f"Relatório enviado com sucesso para {dest_email}!")
-            else:
-                st.warning("Relatório gerado, mas houve um erro ao enviar por e-mail.")
-
-    st.markdown("<br>", unsafe_allow_html=True)
-    st.markdown("#### 📜 Histórico de Exportações")
-    conn = conectar()
-    df_hist = pd.read_sql("SELECT * FROM historico_exportacoes", conn)
-    conn.close()
-    if not df_hist.empty:
-        st.dataframe(df_hist, use_container_width=True, hide_index=True)
-    else:
-        st.info("Nenhum histórico de exportação.")
-
-elif selected == "Atividades":
-    # Garante que a tabela de atividades existe no banco de dados com as colunas corretas
-    try:
-        conn = conectar()
-        conn.execute("""
-            CREATE TABLE IF NOT EXISTS atividades (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                tipo TEXT,
-                cliente TEXT,
-                responsavel TEXT,
-                data TEXT,
-                hora TEXT,
-                prioridade TEXT,
-                status TEXT,
-                descricao TEXT,
-                lembrete TEXT
-            )
-        """)
-        conn.commit()
-        conn.close()
-    except Exception:
-        pass
-
-    col_atv_t1, col_atv_t2 = st.columns([4, 1])
-    with col_atv_t1:
-        st.markdown("### 📞 Painel de Atividades")
-    with col_atv_t2:
-        if st.button("➕ Nova Atividade", use_container_width=True):
-            st.session_state.modal_nova_atividade = not st.session_state.get("modal_nova_atividade", False)
-
-    if "filtro_atividades" not in st.session_state:
-        st.session_state.filtro_atividades = "Todas as atividades"
-
-    cols_filtros = st.columns(7)
-    opcoes_menu_atv = [
-        "Todas as atividades", "Minhas atividades", "Pendentes", 
-        "Concluídas", "Atrasadas", "Hoje", "Próximas atividades"
-    ]
-    
-    for i, op in enumerate(opcoes_menu_atv):
-        with cols_filtros[i]:
-            if st.button(op, use_container_width=True, key=f"btn_filtro_atv_{i}"):
-                st.session_state.filtro_atividades = op
-                st.rerun()
-
-    st.markdown(f"##### 📌 Exibindo: *{st.session_state.filtro_atividades}*")
-
-    try:
-        conn = conectar()
-        df_atv_view = pd.read_sql("SELECT * FROM atividades", conn)
-        conn.close()
-    except Exception:
-        df_atv_view = pd.DataFrame()
-
-    hoje_str = str(date.today())
-
-    total_atv = len(df_atv_view) if not df_atv_view.empty else 0
-    pendentes_atv = len(df_atv_view[df_atv_view["status"] == "Pendente"]) if not df_atv_view.empty else 0
-    hoje_atv_count = len(df_atv_view[df_atv_view["data"] == hoje_str]) if not df_atv_view.empty else 0
-    atrasadas_atv = len(df_atv_view[(df_atv_view["data"] < hoje_str) & (df_atv_view["status"] == "Pendente")]) if not df_atv_view.empty else 0
-    concluidas_atv = len(df_atv_view[df_atv_view["status"] == "Concluída"]) if not df_atv_view.empty else 0
-
-    kpi1, kpi2, kpi3, kpi4, kpi5 = st.columns(5)
-    kpi1.metric("Total de Atividades", total_atv)
-    kpi2.metric("Pendentes", pendentes_atv)
-    kpi3.metric("Hoje", hoje_atv_count)
-    kpi4.metric("Atrasadas", atrasadas_atv)
-    kpi5.metric("Concluídas", concluidas_atv)
-
-    st.markdown("<br>", unsafe_allow_html=True)
-
-    if st.session_state.get("modal_nova_atividade", False):
-        with st.expander("📝 Cadastrar Nova Atividade", expanded=True):
-            with st.form("form_nova_atividade"):
-                fa1, fa2, fa3 = st.columns(3)
-                with fa1:
-                    atv_tipo = st.selectbox("Tipo", ["Ligação", "Reunião", "WhatsApp", "E-mail", "Compromisso", "Tarefa", "Proposta", "Follow-up"])
-                    atv_cliente = st.text_input("Cliente / Lead *", placeholder="Nome do cliente")
-                with fa2:
-                    atv_respons = st.text_input("Responsável", value="Carlos")
-                    atv_data = st.date_input("Data", value=date.today())
-                with fa3:
-                    atv_hora = st.text_input("Hora", value="09:00")
-                    atv_prioridade = st.selectbox("Prioridade", ["Baixa", "Média", "Alta"])
-
-                fa4, fa5 = st.columns(2)
-                with fa4:
-                    atv_status = st.selectbox("Status", ["Pendente", "Em andamento", "Concluída"])
-                with fa5:
-                    atv_lembrete = st.selectbox("Lembrete", ["Sim", "Não"])
-
-                atv_desc = st.text_area("Descrição / Observação")
-
-                btn_salvar_atv, btn_fechar_atv = st.columns(2)
-                with btn_salvar_atv:
-                    submit_atv = st.form_submit_button("Salvar Atividade", use_container_width=True)
-                with btn_fechar_atv:
-                    close_atv = st.form_submit_button("Cancelar", use_container_width=True)
-
-                if submit_atv:
-                    if atv_cliente:
-                        try:
-                            conn = conectar()
-                            conn.execute("""
-                                INSERT INTO atividades (tipo, cliente, responsavel, data, hora, prioridade, status, descricao, lembrete)
-                                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                            """, (atv_tipo, atv_cliente, atv_respons, str(atv_data), atv_hora, atv_prioridade, atv_status, atv_desc, atv_lembrete))
-                            conn.commit()
-                            conn.close()
-                            st.session_state.modal_nova_atividade = False
-                            st.success("Atividade cadastrada com sucesso!")
-                            st.rerun()
-                        except Exception as e:
-                            st.error(f"Erro ao salvar no banco de dados: {e}")
-                    else:
-                        st.error("Informe o nome do cliente ou lead.")
-
-                if close_atv:
-                    st.session_state.modal_nova_atividade = False
-                    st.rerun()
-
-    filtro_atual = st.session_state.get("filtro_atividades", "Todas as atividades")
-    if not df_atv_view.empty:
-        if filtro_atual == "Minhas atividades":
-            df_atv_view = df_atv_view[df_atv_view["responsavel"] == "Carlos"]
-        elif filtro_atual == "Pendentes":
-            df_atv_view = df_atv_view[df_atv_view["status"] == "Pendente"]
-        elif filtro_atual == "Concluídas":
-            df_atv_view = df_atv_view[df_atv_view["status"] == "Concluída"]
-        elif filtro_atual == "Atrasadas":
-            df_atv_view = df_atv_view[(df_atv_view["data"] < hoje_str) & (df_atv_view["status"] == "Pendente")]
-        elif filtro_atual == "Hoje":
-            df_atv_view = df_atv_view[df_atv_view["data"] == hoje_str]
-        elif filtro_atual == "Próximas atividades":
-            df_atv_view = df_atv_view[df_atv_view["data"] > hoje_str]
-
-    st.markdown("#### Agenda de Atividades")
-    if not df_atv_view.empty:
-        colunas_exibir = [c for c in ['data', 'hora', 'cliente', 'tipo', 'responsavel', 'prioridade', 'status', 'descricao'] if c in df_atv_view.columns]
-        st.dataframe(df_atv_view[colunas_exibir], use_container_width=True, hide_index=True)
-    else:
-        st.info("Nenhuma atividade cadastrada no banco de dados para exibir neste filtro.")
-
-elif selected == "Clientes":
-    st.markdown("### 📖 Cadastro Completo de Clientes e Leads")
-...
+        st.info("Nenhuma proposta cadastrada.")
