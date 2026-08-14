@@ -1,45 +1,93 @@
+import streamlit as st
 import pandas as pd
 import sqlite3
-import streamlit as st
 import plotly.express as px
 import plotly.graph_objects as go
-from datetime import date
-import io
+from datetime import date, datetime
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 from email import encoders
 
-if "modal_nova_atividade" not in st.session_state:
-    st.session_state.modal_nova_atividade = False
-if "filtro_atividades" not in st.session_state:
-    st.session_state.filtro_atividades = "Todas as atividades"
+# --- CONFIGURAÇÃO DA PÁGINA ---
+st.set_page_config(page_title="CRM Pro", page_icon="📊", layout="wide")
 
-st.set_page_config(page_title="CRM LMB Pro", layout="wide")
+# --- INICIALIZAÇÃO DO ESTADO ---
+if "tema_sistema" not in st.session_state:
+    st.session_state.tema_sistema = "🌙 Escuro" 
+if "selected" not in st.session_state:
+    st.session_state.selected = "Dashboard"
 
-# --- CSS GLOBAL E CENTRALIZADO ---
-st.markdown("""
+# Cores e Variáveis de Tema
+is_escuro = "Escuro" in st.session_state.tema_sistema
+bg_app = "#0e1117" if is_escuro else "#ffffff"
+text_app = "#ffffff" if is_escuro else "#1e293b"
+sidebar_bg = "#0b0f19" if is_escuro else "#f8fafc" 
 
-<style>
-    /* Estilização da barra de filtros agrupada */
-    .filtros-container {
-        background-color: #161b22;
-        border: 1px solid #30363d;
-        border-radius: 10px;
-        padding: 15px;
-        margin-bottom: 20px;
-    }
-    
-    /* Estilização dos cards de métricas com borda ciano */
-    .metric-card {
-        background-color: #0e1117;
-        border: 1px solid #00d2ff;
-        border-radius: 10px;
-        padding: 20px;
-        text-align: left;
-        box-shadow: 0 0 10px rgba(0, 210, 255, 0.1);
-    }
+# --- CSS GLOBAL, SIDEBAR E PAINEIS (ÚNICO E CENTRALIZADO) ---
+st.markdown(f"""
+    <style>
+        /* Fundo Geral do App */
+        .stApp {{ background-color: {bg_app}; color: {text_app}; }}
+        
+        /* Ajuste do Sidebar Container */
+        [data-testid="stSidebar"] {{ 
+            background-color: {sidebar_bg} !important; 
+            border-right: 1px solid #1e293b;
+            padding: 0 !important;
+        }}
+        
+        /* Estilização da barra de filtros agrupada */
+        .filtros-container {{
+            background-color: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }}
+        
+        /* Estilização dos cards de métricas com borda ciano */
+        .metric-card {{
+            background-color: #0e1117;
+            border: 1px solid #00d2ff;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: left;
+            box-shadow: 0 0 10px rgba(0, 210, 255, 0.1);
+        }}
+
+        /* Estilização dos Botões da Sidebar */
+        [data-testid="stSidebar"] div.stButton > button {{
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 12px;
+            width: 100%; 
+            background-color: transparent !important;
+            color: #94a3b8 !important; 
+            border: none !important; 
+            border-radius: 8px !important;
+            padding: 10px 16px !important; 
+            margin-bottom: 2px;
+            transition: all 0.2s ease;
+            font-size: 14px !important;
+            font-weight: 500 !important;
+        }}
+        
+        [data-testid="stSidebar"] div.stButton > button:hover {{ 
+            background-color: #1e293b !important; 
+            color: #ffffff !important;
+        }}
+        
+        .sidebar-section-title {{
+            color: #475569;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            margin: 20px 0 8px 16px;
+        }}
     </style>
 """, unsafe_allow_html=True)
     <style>
