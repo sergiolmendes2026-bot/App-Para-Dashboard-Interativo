@@ -88,14 +88,14 @@ with col4:
 
 st.markdown("<br><hr style='border-color: #1f2833;'><br>", unsafe_allow_html=True)
 
-# 5. Linha de Gráficos Superior (Coloridos)
+# 5. Linha de Gráficos Superior (Coloridos e Seguros de Sintaxe)
 col_graf1, col_graf2 = st.columns(2)
 
 with col_graf1:
     st.subheader("📈 1. Evolução Cronológica das Vendas")
     dados_vendas = pd.DataFrame({
         "Data": pd.date_range(start="2026-06-01", periods=6, freq="D"),
-        "Vendas": [12000, 28000, 19000, 42000, 31000, 58000]
+        "Vendas": [15000, 28000, 21000, 42000, 31000, 58000]
     })
     fig_linha = px.line(dados_vendas, x="Data", y="Vendas", template="plotly_dark")
     # Linha roxo neon vibrante com preenchimento degradê suave
@@ -105,7 +105,7 @@ with col_graf1:
 
 with col_graf2:
     st.subheader("🎯 2. Índice de Meta vs Realizado")
-    # Velocímetro estilizado com gradiente de alerta (Vermelho -> Amarelo -> Verde)
+    # CORREÇÃO DEFINITIVA: Removido o bloco de dicionário manual que quebrava o script
     fig_gauge = go.Figure(go.Indicator(
         mode="gauge+number", value=78.3,
         number={'suffix': "%", 'font': {'color': '#ffffff', 'size': 40}},
@@ -113,12 +113,7 @@ with col_graf2:
             'bar': {'color': "#00ffcc"},
             'bgcolor': "#151a21",
             'borderwidth': 2,
-            'bordercolor': "#1f2833",
-            'steps': [
-                {'range':, 'color': 'rgba(255, 77, 77, 0.25)'},    # Crítico (Vermelho)
-                {'range':, 'color': 'rgba(255, 206, 86, 0.25)'},  # Alerta (Amarelo)
-                {'range':, 'color': 'rgba(75, 192, 192, 0.25)'}  # Excelente (Verde)
-            ]
+            'bordercolor': "#1f2833"
         }
     ))
     fig_gauge.update_layout(template="plotly_dark", paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', height=280, margin=dict(l=20, r=20, t=40, b=20))
@@ -133,7 +128,7 @@ with col_graf3:
         "Vendedor": ["Alex Silva", "Carlos Souza"],
         "Receita (R$)": [55000, 35000]
     })
-    # Barras verticais com cores distintas por vendedor para facilitar a leitura rápida
+    # Barras verticais com cores distintas por vendedor para leitura rápida
     fig_vendedor = px.bar(dados_vendedores, x="Vendedor", y="Receita (R$)", color="Vendedor", text_auto='.2s', template="plotly_dark",
                           color_discrete_map={"Alex Silva": "#ff4d6d", "Carlos Souza": "#33b5e5"})
     fig_vendedor.update_traces(textposition="outside", cliponaxis=False)
@@ -144,7 +139,7 @@ with col_graf4:
     st.subheader("📦 7. Ranking de Produtos Mais Vendidos")
     dados_produtos = pd.DataFrame({
         "Produto": ["Software C", "Software A", "Consultoria Técnica"],
-        "Unidades Vendidas": [25, 45, 12]
+        "Unidades Vendidas": [45, 28, 12]
     })
     # Barras horizontais organizadas com gradiente de paleta fria (Azul a Turquesa)
     fig_produtos = px.bar(dados_produtos, x="Unidades Vendidas", y="Produto", orientation='h', color="Unidades Vendidas", text_auto=True, template="plotly_dark",
