@@ -520,7 +520,7 @@ if selected == "Dashboard":
             else:
                 st.info("Sem dados de produtos.")
 
-    with tab2:
+   with tab2:
         # --- 1. MOSTRAR O VALOR TOTAL DO PIPELINE ACIMA DO FUNIL ---
         valor_total_pipe = df_pipeline["valor"].sum() if not df_pipeline.empty and "valor" in df_pipeline.columns else 0.0
         st.markdown(
@@ -534,6 +534,7 @@ if selected == "Dashboard":
         )
 
         c_p1, c_p2 = st.columns(2)
+        
         with c_p1:
             st.markdown("#### 📊 3. Funil de Vendas")
             if not df_pipeline.empty and "estagio" in df_pipeline.columns:
@@ -556,7 +557,8 @@ if selected == "Dashboard":
                     font=dict(color=text_app),
                     margin=dict(t=20, b=10)
                 )
-                st.plotly_chart(fig_funil, use_container_width=True)
+                # Adicionado key única para evitar duplicidade
+                st.plotly_chart(fig_funil, use_container_width=True, key="chart_funil_vendas_tab2")
 
                 # --- 2. INDICADORES DE CONVERSÃO ENTRE ETAPAS ABAIXO DO FUNIL ---
                 st.markdown("""
@@ -572,6 +574,47 @@ if selected == "Dashboard":
             else:
                 st.info("Sem dados no pipeline.")
 
+        with c_p2:
+            st.markdown("#### 📈 Valor do Pipeline por Etapa")
+            if not df_pipeline.empty and "estagio" in df_pipeline.columns:
+                df_pipe_bar = df_pipeline.groupby("estagio")["valor"].sum().reset_index()
+                
+                ordem = ["Prospecção", "Qualificação", "Proposta", "Negociação", "Fechamento"]
+                df_pipe_bar["estagio"] = pd.Categorical(df_pipe_bar["estagio"], categories=ordem, ordered=True)
+                df_pipe_bar = df_pipe_bar.sort_values("estagio")
+
+                cores_pipeline = {
+                    "Prospecção": "#38BDF4",
+                    "Qualificação": "#8B5CF6",
+                    "Proposta": "#F59E0B",
+                    "Negociação": "#F97316",
+                    "Fechamento": "#22C55E"
+                }
+
+                fig_bar_pipe = px.bar(
+                    df_pipe_bar, 
+                    x="valor", 
+                    y="estagio", 
+                    orientation="h", 
+                    color="estagio", 
+                    color_discrete_map=cores_pipeline, 
+                    text="valor"
+                )
+                fig_bar_pipe.update_traces(marker_line_color="white", marker_line_width=1, texttemplate="R$ %{x:,.0f}", textposition="outside")
+                fig_bar_pipe.update_layout(
+                    showlegend=False,
+                    paper_bgcolor="rgba(0,0,0,0)", 
+                    plot_bgcolor="rgba(0,0,0,0)", 
+                    font=dict(color=text_app),
+                    xaxis_title="Valor (R$)",
+                    yaxis_title="",
+                    yaxis=dict(autorange="reversed"),
+                    margin=dict(l=30, r=40, t=20, b=10)
+                )
+                # Adicionado key única para evitar duplicidade
+                st.plotly_chart(fig_bar_pipe, use_container_width=True, key="chart_bar_pipeline_tab2")
+            else:
+                st.info("Sem dados no pipeline.")
         with c_p2:
             st.markdown("#### 📈 Valor do Pipeline por Etapa")
             if not df_pipeline.empty and "estagio" in df_pipeline.columns:
