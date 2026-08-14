@@ -22,26 +22,20 @@ st.set_page_config(page_title="CRM LMB Pro", layout="wide")
 # --- CSS GLOBAL E CENTRALIZADO ---
 st.markdown("""
     <style>
-        /* Fundo do App */
         .stApp { background-color: #0e1117; color: #ffffff; }
-
-        /* Sidebar Container */
         [data-testid="stSidebar"] { 
             background-color: #0b0f19 !important; 
             border-right: 1px solid #1e293b;
         }
-
         div[data-testid="stSidebar"] .nav-link {
             background-color: transparent !important;
             border-radius: 8px !important;
             margin: 2px 0px !important;
             transition: all 0.2s ease !important;
         }
-        
         div[data-testid="stSidebar"] .nav-link:hover {
             background-color: #1e293b !important;
         }
-
         div[data-testid="stSidebar"] .nav-link-selected {
             background-color: #1e293b !important;
             border-left: 4px solid #3b82f6 !important;
@@ -49,7 +43,6 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Inicialização de estados
 if "selected" not in st.session_state:
     st.session_state.selected = "Dashboard"
 
@@ -58,8 +51,6 @@ if "tema_sistema" not in st.session_state:
 
 cor_hex = "#2563EB"
 is_escuro = "Escuro" in st.session_state.tema_sistema
-
-bg_app = "#0e1117" if is_escuro else "#ffffff"
 text_app = "#ffffff" if is_escuro else "#1e293b"
 sidebar_bg = "#0b0f19" if is_escuro else "#f8fafc" 
 
@@ -114,14 +105,6 @@ def inicializar_banco():
             ("Maria Silva", "Inova Corp", "maria@inova.com", "(11) 97777-2222", "✅ Venda Fechada", "Instagram", "", "2026-06-02", "Ana", "🟡 Média", "2026-08-08"),
             ("Maria Oliveira", "Global Ltda", "maria.o@global.com", "(21) 96666-3333", "❌ Venda Perdida", "Indicação", "Preço Alto", "2026-06-03", "Carlos", "🟢 Baixa", "2026-08-01"),
             ("Ana Paula", "Alpha Tech", "ana@alphatech.com", "(31) 95555-4444", "💬 Em Atendimento", "WhatsApp", "", "2026-06-04", "Ana", "🔴 Alta", "2026-08-10"),
-        ])
-
-    cursor.execute("SELECT COUNT(*) FROM historico_exportacoes")
-    if cursor.fetchone()[0] == 0:
-        cursor.executemany("INSERT INTO historico_exportacoes (data, relatorio, formato, usuario) VALUES (?, ?, ?, ?)", [
-            ("10/08", "Vendas", "PDF", "Admin"),
-            ("09/08", "Clientes", "Excel", "Larissa"),
-            ("08/08", "Receita", "CSV", "Admin"),
         ])
 
     conn.commit()
@@ -192,7 +175,7 @@ def carregar_dados():
 
 df_clientes, df_pipeline, df_vendas = carregar_dados()
 
-# --- BARRA DE PESQUISA GLOBAL ÚNICA NO TOPO ---
+# --- BARRA DE PESQUISA GLOBAL ---
 col_busca1, col_busca2, col_busca3 = st.columns([6, 1, 1])
 with col_busca1:
     termo_busca = st.text_input("Pesquisa Global", placeholder="🔍 Pesquisar clientes, leads, vendas...", label_visibility="collapsed")
@@ -289,7 +272,7 @@ if selected == "Dashboard":
                     font=dict(color=text_app),
                     margin=dict(t=20, b=10)
                 )
-                st.plotly_chart(fig_funil, use_container_width=True, key="chart_funil_vendas_tab2")
+                st.plotly_chart(fig_funil, use_container_width=True, key="chart_funil_vendas_tab2_unico")
             else:
                 st.info("Sem dados no pipeline.")
 
@@ -329,48 +312,7 @@ if selected == "Dashboard":
                     yaxis=dict(autorange="reversed"),
                     margin=dict(l=30, r=40, t=20, b=10)
                 )
-                # CHAVE ALTERADA AQUI PARA EVITAR DUPLICIDADE:
-                st.plotly_chart(fig_bar_pipe, use_container_width=True, key="chart_bar_pipeline_tab2_v2")
-            else:
-                st.info("Sem dados no pipeline.")
-
-        with c_p2:
-            st.markdown("#### 📈 Valor do Pipeline por Etapa")
-            if not df_pipeline.empty and "estagio" in df_pipeline.columns:
-                df_pipe_bar = df_pipeline.groupby("estagio")["valor"].sum().reset_index()
-                ordem = ["Prospecção", "Qualificação", "Proposta", "Negociação", "Fechamento"]
-                df_pipe_bar["estagio"] = pd.Categorical(df_pipe_bar["estagio"], categories=ordem, ordered=True)
-                df_pipe_bar = df_pipe_bar.sort_values("estagio")
-
-                cores_pipeline = {
-                    "Prospecção": "#38BDF4",
-                    "Qualificação": "#8B5CF6",
-                    "Proposta": "#F59E0B",
-                    "Negociação": "#F97316",
-                    "Fechamento": "#22C55E"
-                }
-
-                fig_bar_pipe = px.bar(
-                    df_pipe_bar, 
-                    x="valor", 
-                    y="estagio", 
-                    orientation="h", 
-                    color="estagio", 
-                    color_discrete_map=cores_pipeline, 
-                    text="valor"
-                )
-                fig_bar_pipe.update_traces(marker_line_color="white", marker_line_width=1, texttemplate="R$ %{x:,.0f}", textposition="outside")
-                fig_bar_pipe.update_layout(
-                    showlegend=False,
-                    paper_bgcolor="rgba(0,0,0,0)", 
-                    plot_bgcolor="rgba(0,0,0,0)", 
-                    font=dict(color=text_app),
-                    xaxis_title="Valor (R$)",
-                    yaxis_title="",
-                    yaxis=dict(autorange="reversed"),
-                    margin=dict(l=30, r=40, t=20, b=10)
-                )
-                st.plotly_chart(fig_bar_pipe, use_container_width=True, key="chart_bar_pipeline_tab2")
+                st.plotly_chart(fig_bar_pipe, use_container_width=True, key="chart_bar_pipeline_tab2_unico_v2")
             else:
                 st.info("Sem dados no pipeline.")
 
