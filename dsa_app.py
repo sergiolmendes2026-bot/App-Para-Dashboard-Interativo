@@ -18,6 +18,119 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# --- CSS GLOBAL E CENTRALIZADO ---
+text_app = "#ffffff"
+bg_app = "#16222A"
+
+st.markdown(
+    f"""
+    <style>
+        /* Fundo geral da página com a cor exata solicitada */
+        .stApp {{ 
+            background-color: #16222A !important; 
+            color: {text_app}; 
+        }}
+        
+        /* Sidebar com transparência de vidro fumê e efeito flutuante sobre a nova cor */
+        [data-testid="stSidebar"] {{ 
+            background: rgba(15, 23, 32, 0.55) !important;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 8px 0 32px rgba(0, 0, 0, 0.5);
+            padding: 0 !important;
+        }}
+
+        /* Container de Filtros do Dashboard */
+        .filtros-container {{
+            background-color: #1b2836;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }}
+        
+        /* Cards de métricas */
+        .metric-card {{
+            background-color: #1b2836;
+            border: 1px solid #00d2ff;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: left;
+            box-shadow: 0 4px 20px rgba(0, 210, 255, 0.12);
+        }}
+
+        /* Botões do Menu com efeito translúcido (Marca d'água interna) */
+        [data-testid="stSidebar"] div.stButton > button {{
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 12px;
+            width: 100%; 
+            background: rgba(255, 255, 255, 0.01) !important;
+            color: #94a3b8 !important; 
+            border: 1px solid rgba(255, 255, 255, 0.03) !important; 
+            border-radius: 10px !important;
+            padding: 11px 16px !important; 
+            margin-bottom: 4px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 14px !important;
+            font-weight: 500 !important;
+        }}
+        
+        /* Efeito de Marca d'Água nos botões */
+        [data-testid="stSidebar"] div.stButton > button::before {{
+            content: "";
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 32px;
+            height: 32px;
+            background-color: currentColor;
+            opacity: 0.03;
+            pointer-events: none;
+        }}
+
+        /* Efeito Hover Moderno nos Botões */
+        [data-testid="stSidebar"] div.stButton > button:hover {{ 
+            background: rgba(255, 255, 255, 0.06) !important; 
+            color: #ffffff !important;
+            border-color: rgba(255, 255, 255, 0.1) !important;
+            transform: translateX(4px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+        }}
+
+        /* Estilização para o item selecionado/ativo do menu */
+        .nav-link-selected {{
+            background: linear-gradient(90deg, rgba(37, 99, 235, 0.25) 0%, rgba(37, 99, 235, 0.02) 100%) !important;
+            color: #ffffff !important;
+            border-left: 3px solid #3b82f6 !important;
+            border-right: 1px solid rgba(59, 130, 246, 0.2) !important;
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.15), inset 0 0 15px rgba(59, 130, 246, 0.1);
+        }}
+        
+        /* Divisores internos sutis */
+        [data-testid="stSidebar"] hr {{
+            border-color: rgba(255, 255, 255, 0.05) !important;
+            margin: 14px 16px !important;
+        }}
+        
+        .sidebar-section-title {{
+            color: #484f58;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin: 20px 0 8px 16px;
+        }}
+    </style>
+""",
+    unsafe_allow_html=True,
+)
+
 # Inicialização do Banco de Dados SQLite
 def conectar():
     conn = sqlite3.connect("crm_pro.db", timeout=10)
@@ -349,7 +462,7 @@ elif selected == "Vendas":
             if v_cli:
                 conn = conectar()
                 conn.execute("INSERT INTO vendas (cliente, valor, data, responsavel, status, produto) VALUES (?, ?, ?, ?, ?, ?)",
-                             (v_cli, v_val, v_data, v_resp, v_status, v_prod))
+                           (v_cli, v_val, v_data, v_resp, v_status, v_prod))
                 conn.commit()
                 conn.close()
                 st.success("Venda registrada com sucesso!")
