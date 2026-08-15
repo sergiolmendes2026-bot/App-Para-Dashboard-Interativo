@@ -648,6 +648,27 @@ elif selected == "Leads":
                     st.session_state.modal_novo_lead = False
                     st.rerun()
 
+    st.markdown("### 📋 Lista Interativa de Leads")
+    if not df_clientes.empty:
+        edited_df = st.data_editor(
+            df_clientes[['nome', 'empresa', 'status', 'prioridade', 'ultimo_contato', 'responsavel']],
+            use_container_width=True,
+            column_config={
+                "status": st.column_config.SelectboxColumn("Status", options=["🆕 Novo Lead", "📞 Primeiro Contato", "💬 Em Atendimento", "📋 Proposta Enviada", "⏳ Aguardando Resposta", "🤝 Negociação", "✅ Venda Fechada", "❌ Venda Perdida", "🔄 Pós-Venda"]),
+                "prioridade": st.column_config.SelectboxColumn("Prioridade", options=["🔴 Alta", "🟡 Média", "🟢 Baixa"])
+            }
+        )
+        
+        if st.button("💾 Salvar Alterações nos Leads"):
+            conn = conectar()
+            for index, row in edited_df.iterrows():
+                conn.execute("UPDATE clientes SET status=?, prioridade=? WHERE nome=?", (row['status'], row['prioridade'], row['nome']))
+            conn.commit()
+            conn.close()
+            st.success("Alterações salvas com sucesso!")
+            st.rerun()
+    else:
+        st.info("Nenhum lead cadastrado.")
 # --- ABA DE VENDAS ATUALIZADA E REESTRUTURADA ---
 elif selected == "Vendas":
     st.markdown("### 🏆 Gestão e Histórico de Vendas")
