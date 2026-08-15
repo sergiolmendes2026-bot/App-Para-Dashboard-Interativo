@@ -458,23 +458,93 @@ elif selected == "Leads":
 
 elif selected == "Agenda":
     st.markdown("### 📅 Agenda e Compromissos Comerciais")
-    ag1, ag2 = st.columns([2, 1])
-    with ag1:
-        st.markdown("#### 🗓️ Calendário de Reuniões & Demonstrações")
-        st.date_input("Selecione a Data para Visualizar:", value=date.today())
+    
+    # 1. KPIs no Topo
+    kpi1, kpi2, kpi3, kpi4, kpi5 = st.columns(5)
+    with kpi1:
+        st.metric("📅 Hoje", "4")
+    with kpi2:
+        st.metric("⏰ Próximos", "8")
+    with kpi3:
+        st.metric("🤝 Reuniões", "3")
+    with kpi4:
+        st.metric("📞 Ligações", "2")
+    with kpi5:
+        st.metric("⚠️ Pendentes", "3")
+
+    st.markdown("---")
+
+    # Layout em abas ou colunas para organizar o Calendário/Lista vs Agendamento
+    col_ag1, col_ag2 = st.columns([2, 1])
+
+    with col_ag1:
+        st.markdown("#### 📆 Calendário & Próximos Compromissos")
+        
+        # Filtro rápido de data / visualização
+        data_selecionada = st.date_input("Selecione a Data para Visualizar", value=date.today())
+        
+        st.markdown("##### ⏰ Compromissos de Hoje / Data Selecionada")
+        st.info("• 10:00 - 🤝 Reunião de Alinhamento com Tech Solutions (Carlos) | Status: 🟡 Confirmado\n\n"
+                "• 14:30 - 💻 Demonstração Software A - Inova Corp (Ana) | Status: 🔵 Agendado\n\n"
+                "• 16:00 - 📄 Fechamento de Proposta - Global Ltda (Carlos) | Status: 🟡 Confirmado")
+
         st.markdown("---")
-        st.markdown("##### ⏰ Próximos Compromissos Hoje")
-        st.info("• **10:00** - Reunião de Alinhamento com Tech Solutions (Carlos)\n• **14:30** - Demonstração Software A - Inova Corp (Ana)\n• **16:00** - Fechamento de Proposta - Global Ltda (Carlos)")
-    with ag2:
+        
+        # 7. Histórico / Todos os Compromissos com Filtros
+        st.markdown("#### 📋 Todos os Compromissos")
+        f_busca_agenda = st.text_input("🔎 Pesquisar compromisso...", "")
+        
+        f_periodo = st.radio("Período:", ["Hoje", "Semana", "Mês", "Todos"], horizontal=True)
+        
+        # Exemplo estruturado de tabela de compromissos
+        import pandas as pd
+        dados_compromissos = pd.DataFrame([
+            {"Horário": "10:00", "Evento": "Reunião", "Lead": "Tech Solutions", "Responsável": "Carlos", "Status": "🟡 Confirmado"},
+            {"Horário": "14:30", "Evento": "Demonstração", "Lead": "Inova Corp", "Responsável": "Ana", "Status": "🔵 Agendado"},
+            {"Horário": "16:00", "Evento": "Fechamento", "Lead": "Global Ltda", "Responsável": "Carlos", "Status": "🟢 Concluído"}
+        ])
+        st.dataframe(dados_compromissos, use_container_width=True, hide_index=True)
+
+    with col_ag2:
         st.markdown("#### ➕ Agendar Novo Evento")
-        with st.form("form_novo_evento"):
+        
+        with st.form("form_agendar_evento_completo"):
             ev_titulo = st.text_input("Título do Evento")
-            ev_tipo = st.selectbox("Tipo", ["Reunião", "Ligação", "Demonstração", "Follow-up"])
-            ev_data = st.date_input("Data do Evento")
-            ev_resp = st.selectbox("Responsável", ["Carlos", "Ana", "Larissa"])
-            ev_submit = st.form_submit_button("📅 Agendar na Agenda")
-            if ev_submit:
-                st.success(f"Evento '{ev_titulo}' agendado com sucesso para {ev_data}!")
+            ev_tipo = st.selectbox("Tipo de Evento", ["Reunião", "Demonstração", "Ligação", "Follow-up", "Proposta", "Fechamento"])
+            
+            # Relacionar com Lead/Cliente cadastrado
+            ev_lead = st.text_input("Lead / Cliente (Empresa)")
+            ev_responsavel = st.selectbox("Responsável", ["Carlos", "Ana", "Larissa"])
+            
+            ev_data = st.date_input("Data do Evento", value=date.today())
+            
+            col_h1, col_h2 = st.columns(2)
+            with col_h1:
+                ev_hora_inicio = st.text_input("Hora Início", value="10:00")
+            with col_h2:
+                ev_hora_fim = st.text_input("Hora Fim", value="11:00")
+                
+            ev_local = st.text_input("Local / Link da Reunião", value="Google Meet")
+            
+            ev_lembrete = st.selectbox("Lembrete", [
+                "5 minutos antes", "15 minutos antes", "30 minutos antes", "1 hora antes", "1 dia antes"
+            ])
+            
+            ev_notificar = st.multiselect("Notificar por", ["🔔 Sistema", "📧 E-mail", "💬 WhatsApp"], default=["🔔 Sistema"])
+            
+            ev_status = st.selectbox("Status do Compromisso", [
+                "🔵 Agendado", "🟡 Confirmado", "🟣 Em andamento", "🟢 Concluído", "🔴 Cancelado", "⚠️ Não compareceu", "🔄 Reagendado"
+            ])
+            
+            ev_descricao = st.text_area("Descrição / Pauta da Reunião")
+
+            btn_salvar_evento = st.form_submit_button("💾 Agendar Evento")
+            if btn_salvar_evento:
+                if ev_titulo:
+                    st.success("Compromisso agendado com sucesso!")
+                    st.rerun()
+                else:
+                    st.error("O Título do Evento é obrigatório.")
 
 elif selected == "Atividades":
     st.markdown("### 📋 Gestão de Tarefas e Atividades Diárias")
