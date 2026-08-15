@@ -41,13 +41,13 @@ st.markdown(
         /* Fundo geral do app */
         .stApp {{ background-color: {bg_app}; color: {text_app}; }}
         
-        /* Container Principal da Sidebar com Efeito Glassmorphism e Sombra Profunda */
+        /* Sidebar com transparência de vidro real e efeito flutuante */
         [data-testid="stSidebar"] {{ 
-            background: linear-gradient(180deg, rgba(13, 17, 23, 0.85) 0%, rgba(1, 4, 9, 0.95) 100%) !important;
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border-right: 1px solid rgba(255, 255, 255, 0.07);
-            box-shadow: 5px 0 25px rgba(0, 0, 0, 0.5);
+            background: rgba(13, 17, 23, 0.45) !important;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-right: 1px solid rgba(255, 255, 255, 0.04);
+            box-shadow: 8px 0 32px rgba(0, 0, 0, 0.6);
             padding: 0 !important;
         }}
 
@@ -60,7 +60,7 @@ st.markdown(
             margin-bottom: 20px;
         }}
         
-        /* Cards de métricas com borda ciano e sombra suave */
+        /* Cards de métricas */
         .metric-card {{
             background-color: #0e1117;
             border: 1px solid #00d2ff;
@@ -70,44 +70,64 @@ st.markdown(
             box-shadow: 0 4px 20px rgba(0, 210, 255, 0.12);
         }}
 
-        /* Estilização Avançada dos Botões/Itens do Menu na Sidebar */
+        /* Botões do Menu com efeito translúcido (Marca d'água interna) */
         [data-testid="stSidebar"] div.stButton > button {{
+            position: relative;
+            overflow: hidden;
             display: flex;
             align-items: center;
             justify-content: flex-start;
             gap: 12px;
             width: 100%; 
-            background-color: transparent !important;
-            color: #8b949e !important; 
-            border: none !important; 
-            border-radius: 8px !important;
-            padding: 10px 16px !important; 
-            margin-bottom: 3px;
+            background: rgba(255, 255, 255, 0.01) !important;
+            color: #94a3b8 !important; 
+            border: 1px solid rgba(255, 255, 255, 0.03) !important; 
+            border-radius: 10px !important;
+            padding: 11px 16px !important; 
+            margin-bottom: 4px;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             font-size: 14px !important;
             font-weight: 500 !important;
         }}
         
-        /* Efeito Hover Moderno com Sombra Interna e Brilho */
-        [data-testid="stSidebar"] div.stButton > button:hover {{ 
-            background: rgba(255, 255, 255, 0.04) !important; 
-            color: #ffffff !important;
-            transform: translateX(4px);
-            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+        /* Efeito de Marca d'Água (Sombra/Silhueta grande translúcida ao fundo do botão) */
+        [data-testid="stSidebar"] div.stButton > button::before {{
+            content: "";
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 32px;
+            height: 32px;
+            background-color: currentColor;
+            opacity: 0.03; /* Efeito marca d'água super sutil */
+            mask-repeat: no-repeat;
+            -webkit-mask-repeat: no-repeat;
+            pointer-events: none;
         }}
 
-        /* Estilização para o item selecionado/ativo do menu do option_menu */
+        /* Efeito Hover Moderno nos Botões */
+        [data-testid="stSidebar"] div.stButton > button:hover {{ 
+            background: rgba(255, 255, 255, 0.06) !important; 
+            color: #ffffff !important;
+            border-color: rgba(255, 255, 255, 0.1) !important;
+            transform: translateX(4px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+        }}
+
+        /* Estilização para o item selecionado/ativo do menu */
         .nav-link-selected {{
-            background: linear-gradient(90deg, rgba(37, 99, 235, 0.2) 0%, rgba(37, 99, 235, 0.0) 100%) !important;
+            background: linear-gradient(90deg, rgba(37, 99, 235, 0.25) 0%, rgba(37, 99, 235, 0.02) 100%) !important;
             color: #ffffff !important;
             border-left: 3px solid #3b82f6 !important;
-            box-shadow: inset 0 0 15px rgba(59, 130, 246, 0.1);
+            border-right: 1px solid rgba(59, 130, 246, 0.2) !important;
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.15), inset 0 0 15px rgba(59, 130, 246, 0.1);
         }}
         
-        /* Divisores internos mais sutis na barra lateral */
+        /* Divisores internos sutis */
         [data-testid="stSidebar"] hr {{
-            border-color: rgba(255, 255, 255, 0.06) !important;
-            margin: 12px 16px !important;
+            border-color: rgba(255, 255, 255, 0.05) !important;
+            margin: 14px 16px !important;
         }}
         
         .sidebar-section-title {{
