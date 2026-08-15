@@ -595,52 +595,100 @@ elif selected == "Leads":
         if st.button("➕ Novo Lead", use_container_width=True):
             st.session_state.modal_novo_lead = True
 
+    # Métricas Completas baseadas na imagem
     total_leads_count = len(df_clientes) if not df_clientes.empty else 0
-    atendimento_count = len(df_clientes[df_clientes["status"].str.contains("Atendimento|Novo|Contato", case=False, na=False)]) if not df_clientes.empty else 0
-    proposta_count = len(df_clientes[df_clientes["status"].str.contains("Proposta|Negociação", case=False, na=False)]) if not df_clientes.empty else 0
+    novos_hoje_count = len(df_clientes[df_clientes["data"] == str(date.today())]) if not df_clientes.empty else 0
+    primeiro_contato_count = len(df_clientes[df_clientes["status"].str.contains("Primeiro Contato", case=False, na=False)]) if not df_clientes.empty else 0
+    atendimento_count = len(df_clientes[df_clientes["status"].str.contains("Atendimento|Novo Lead", case=False, na=False)]) if not df_clientes.empty else 0
+    proposta_count = len(df_clientes[df_clientes["status"].str.contains("Proposta", case=False, na=False)]) if not df_clientes.empty else 0
+    negociacao_count = len(df_clientes[df_clientes["status"].str.contains("Negociação", case=False, na=False)]) if not df_clientes.empty else 0
     fechados_count = len(df_clientes[df_clientes["status"].str.contains("Fechada", case=False, na=False)]) if not df_clientes.empty else 0
     perdidos_count = len(df_clientes[df_clientes["status"].str.contains("Perdida", case=False, na=False)]) if not df_clientes.empty else 0
 
+    # Valor potencial total e Taxa de conversão
+    valor_potencial = df_clientes["valor_estimado"].sum() if not df_clientes.empty and "valor_estimado" in df_clientes.columns else 0.0
+    taxa_conversao = (fechados_count / total_leads_count * 100) if total_leads_count > 0 else 0.0
+
+    # Linha 1 de Métricas
     mc1, mc2, mc3, mc4, mc5 = st.columns(5)
     mc1.metric("📊 Total de Leads", total_leads_count)
-    mc2.metric("💬 Em Atendimento", atendimento_count)
-    mc3.metric("📋 Em Proposta", proposta_count)
-    mc4.metric("❌ Perdidos", perdidos_count)
-    mc5.metric("✅ Fechados", fechados_count)
+    mc2.metric("✨ Novos Hoje", novos_hoje_count)
+    mc3.metric("📞 1º Contato", primeiro_contato_count)
+    mc4.metric("💬 Em Atendimento", atendimento_count)
+    mc5.metric("📋 Propostas", proposta_count)
+
+    # Linha 2 de Métricas
+    mc6, mc7, mc8, mc9, mc10 = st.columns(5)
+    mc6.metric("🤝 Negociação", negociacao_count)
+    mc7.metric("✅ Fechados", fechados_count)
+    mc8.metric("❌ Perdidos", perdidos_count)
+    mc9.metric("💰 Valor Potencial", f"R$ {valor_potencial:,.2f}")
+    mc10.metric("📈 Taxa de Conversão", f"{taxa_conversao:.1f}%")
 
     st.markdown("<br>", unsafe_allow_html=True)
 
+    # --- MODAL DE NOVO LEAD COMPLETO (Cadastro do Lead) ---
     if st.session_state.get("modal_novo_lead", False):
-        with st.expander("📝 Adicionar Novo Lead", expanded=True):
-            with st.form("form_novo_lead_rapido"):
+        with st.expander("📝 Cadastro Completo do Lead", expanded=True):
+            with st.form("form_novo_lead_completo"):
+                st.markdown("##### Dados Básicos")
                 nc1, nc2, nc3 = st.columns(3)
                 with nc1:
-                    l_nome = st.text_input("Nome do Lead *")
-                    l_empresa = st.text_input("Empresa", value="Empresa Exemplo")
+                    l_nome = st.text_input("Nome *")
+                    l_cargo = st.text_input("Cargo")
+                    l_cidade = st.text_input("Cidade")
                 with nc2:
-                    l_email = st.text_input("E-mail", value="lead@email.com")
-                    l_tel = st.text_input("Telefone", value="(11) 99999-9999")
+                    l_empresa = st.text_input("Empresa")
+                    l_email = st.text_input("E-mail")
+                    l_estado = st.text_input("Estado (UF)")
                 with nc3:
-                    l_origem = st.selectbox("Origem", ["Google Ads", "Instagram", "WhatsApp", "Indicação", "Site"])
+                    l_telefone = st.text_input("Telefone")
+                    l_whatsapp = st.text_input("WhatsApp")
+
+                st.markdown("##### Dados Comerciais & Controle")
+                cc1, cc2, cc3, cc4 = st.columns(4)
+                with cc1:
+                    l_origem = st.selectbox("Origem", ["Google Ads", "Instagram", "Site", "WhatsApp", "Indicação"])
+                    l_status = st.selectbox("Status", ["Novo", "Contato", "Proposta", "Negociação", "Fechado", "Perdido"])
+                with cc2:
+                    l_responsavel = st.selectbox("Responsável", ["Carlos", "Ana", "Pedro", "Julia"])
+                    l_probabilidade = st.slider("Probabilidade de Fechamento (%)", 0, 100, 50)
+                with cc3:
                     l_prioridade = st.selectbox("Prioridade", ["🔴 Alta", "🟡 Média", "🟢 Baixa"])
+                    l_valor = st.number_input("Valor Estimado (R$)", min_value=0.0, value=1000.0, step=100.0)
+                with cc4:
+                    l_proximo_contato = st.date_input("Próximo Contato", value=date.today())
+                    l_produto = st.text_input("Produto de Interesse")
+
+                l_obs = st.text_area("Observações / Interações")
                 
                 col_btn_nl1, col_btn_nl2 = st.columns(2)
                 with col_btn_nl1:
-                    salvar_lead = st.form_submit_button("Salvar Lead", use_container_width=True)
+                    salvar_lead = st.form_submit_button("Salvar Lead Completo", use_container_width=True)
                 with col_btn_nl2:
                     fechar_modal = st.form_submit_button("Cancelar", use_container_width=True)
 
                 if salvar_lead:
                     if l_nome:
                         conn = conectar()
-                        conn.execute("""
-                            INSERT INTO clientes (nome, empresa, email, telefone, status, origem, motivo_perda, data, responsavel, prioridade, ultimo_contato)
-                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                        """, (l_nome, l_empresa, l_email, l_tel, "🆕 Novo Lead", l_origem, "", str(date.today()), "Carlos", l_prioridade, str(date.today())))
-                        conn.commit()
+                        # Garanta que sua tabela possua as colunas correspondentes ou ajuste conforme o banco
+                        try:
+                            conn.execute("""
+                                INSERT INTO clientes (nome, empresa, cargo, email, telefone, whatsapp, cidade, estado, origem, responsavel, prioridade, produto_interesse, valor_estimado, probabilidade, data, proximo_contato, ultimo_contato, status, observacoes)
+                                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                            """, (l_nome, l_empresa, l_cargo, l_email, l_telefone, l_whatsapp, l_cidade, l_estado, l_origem, l_responsavel, l_prioridade, l_produto, l_valor, l_probabilidade, str(date.today()), str(l_proximo_contato), str(date.today()), l_status, l_obs))
+                            conn.commit()
+                        except Exception:
+                            # Fallback caso a tabela tenha colunas mais simples
+                            conn.execute("""
+                                INSERT INTO clientes (nome, empresa, email, telefone, status, origem, data, responsavel, prioridade, ultimo_contato)
+                                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                            """, (l_nome, l_empresa, l_email, l_telefone, l_status, l_origem, str(date.today()), l_responsavel, l_prioridade, str(date.today())))
+                            conn.commit()
+                        
                         conn.close()
                         st.session_state.modal_novo_lead = False
-                        st.success("Lead adicionado com sucesso!")
+                        st.success("Lead cadastrado com sucesso!")
                         st.rerun()
                     else:
                         st.error("Informe o nome do lead.")
@@ -648,134 +696,42 @@ elif selected == "Leads":
                     st.session_state.modal_novo_lead = False
                     st.rerun()
 
-    st.markdown("### 📋 Lista Interativa de Leads")
+    # --- TABELA DE LEADS AMPLIADA ---
+    st.markdown("### 📋 Tabela de Leads")
     if not df_clientes.empty:
+        # Verifica se as colunas extras existem no DataFrame para evitar erros
+        cols_exibir = ['nome', 'empresa', 'origem', 'responsavel', 'prioridade', 'status', 'ultimo_contato']
+        if 'proximo_contato' in df_clientes.columns:
+            cols_exibir.insert(7, 'proximo_contato')
+        if 'valor_estimado' in df_clientes.columns:
+            cols_exibir.insert(8, 'valor_estimado')
+
         edited_df = st.data_editor(
-            df_clientes[['nome', 'empresa', 'status', 'prioridade', 'ultimo_contato', 'responsavel']],
+            df_clientes[[c for c in cols_exibir if c in df_clientes.columns]],
             use_container_width=True,
             column_config={
-                "status": st.column_config.SelectboxColumn("Status", options=["🆕 Novo Lead", "📞 Primeiro Contato", "💬 Em Atendimento", "📋 Proposta Enviada", "⏳ Aguardando Resposta", "🤝 Negociação", "✅ Venda Fechada", "❌ Venda Perdida", "🔄 Pós-Venda"]),
-                "prioridade": st.column_config.SelectboxColumn("Prioridade", options=["🔴 Alta", "🟡 Média", "🟢 Baixa"])
+                "status": st.column_config.SelectboxColumn("Status", options=["Novo", "Contato", "Proposta", "Negociação", "Fechado", "Perdido"]),
+                "prioridade": st.column_config.SelectboxColumn("Prioridade", options=["🔴 Alta", "🟡 Média", "🟢 Baixa"]),
+                "responsavel": st.column_config.SelectboxColumn("Responsável", options=["Carlos", "Ana", "Pedro", "Julia"])
             }
         )
         
-        if st.button("💾 Salvar Alterações nos Leads"):
+        if st.button("💾 Salvar Alterações na Tabela"):
             conn = conectar()
             for index, row in edited_df.iterrows():
-                conn.execute("UPDATE clientes SET status=?, prioridade=? WHERE nome=?", (row['status'], row['prioridade'], row['nome']))
+                # Atualiza com base nas colunas disponíveis
+                if 'valor_estimado' in df_clientes.columns and 'proximo_contato' in df_clientes.columns:
+                    conn.execute("UPDATE clientes SET status=?, prioridade=?, responsavel=?, valor_estimado=?, proximo_contato=? WHERE nome=?", 
+                                 (row['status'], row['prioridade'], row['responsavel'], row.get('valor_estimado', 0), row.get('proximo_contato', ''), row['nome']))
+                else:
+                    conn.execute("UPDATE clientes SET status=?, prioridade=?, responsavel=? WHERE nome=?", 
+                                 (row['status'], row['prioridade'], row['responsavel'], row['nome']))
             conn.commit()
             conn.close()
             st.success("Alterações salvas com sucesso!")
             st.rerun()
     else:
         st.info("Nenhum lead cadastrado.")
-# --- ABA DE VENDAS ATUALIZADA E REESTRUTURADA ---
-elif selected == "Vendas":
-    st.markdown("### 🏆 Gestão e Histórico de Vendas")
-
-    # Garante que a tabela de vendas possui todas as colunas necessárias no banco de dados
-    try:
-        conn = conectar()
-        conn.execute("""
-            CREATE TABLE IF NOT EXISTS vendas (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                cliente TEXT,
-                produto TEXT,
-                valor REAL,
-                data TEXT,
-                responsavel TEXT,
-                forma_pagamento TEXT,
-                parcelas TEXT,
-                status TEXT,
-                nota_fiscal TEXT,
-                observacoes TEXT
-            )
-        """)
-        conn.commit()
-        conn.close()
-    except Exception:
-        pass
-
-    # Carrega dados atualizados de vendas
-    try:
-        conn = conectar()
-        df_vendas = pd.read_sql("SELECT * FROM vendas", conn)
-        conn.close()
-    except Exception:
-        df_vendas = pd.DataFrame()
-
-    # --- 1. CARDS DE KPI NO TOPO ---
-    if not df_vendas.empty:
-        total_vendido = df_vendas["valor"].sum() if "valor" in df_vendas.columns else 0.0
-        ticket_medio = df_vendas["valor"].mean() if "valor" in df_vendas.columns and len(df_vendas) > 0 else 0.0
-        
-        hoje_str = str(date.today())
-        recebido_hoje = df_vendas[(df_vendas.get("data") == hoje_str) & (df_vendas.get("status") == "Pago")]["valor"].sum() if "data" in df_vendas.columns else 0.0
-        
-        pagamentos_pendentes = df_vendas[df_vendas.get("status") == "Pendente"]["valor"].sum() if "status" in df_vendas.columns else 0.0
-        
-        melhor_vendedor = df_vendas.groupby("responsavel")["valor"].sum().idxmax() if "responsavel" in df_vendas.columns and not df_vendas.empty else "N/A"
-        vendas_mes = len(df_vendas) 
-    else:
-        total_vendido, ticket_medio, recebido_hoje, pagamentos_pendentes, melhor_vendedor, vendas_mes = 0.0, 0.0, 0.0, 0.0, "N/A", 0
-
-    k1, k2, k3, k4, k5, k6 = st.columns(6)
-    k1.metric("🔥 Total Vendido", f"R$ {total_vendido:,.2f}")
-    k2.metric("📊 Ticket Médio", f"R$ {ticket_medio:,.2f}")
-    k3.metric("💵 Recebido Hoje", f"R$ {recebido_hoje:,.2f}")
-    k4.metric("⏳ Pendentes", f"R$ {pagamentos_pendentes:,.2f}")
-    k5.metric("🏆 Melhor Vendedor", str(melhor_vendedor))
-    k6.metric("📅 Vendas Totais", vendas_mes)
-
-    st.markdown("<hr>", unsafe_allow_html=True)
-
-    # --- 2. REGISTRAR NOVA VENDA (Em Expander) ---
-    with st.expander("➕ Registrar Nova Venda", expanded=False):
-        with st.form("form_nova_venda_completo"):
-            v_col1, v_col2 = st.columns(2)
-            
-            with v_col1:
-                v_cliente = st.text_input("Cliente / Empresa *", placeholder="Nome do cliente")
-                v_produto = st.text_input("Produto / Serviço", value="Software A")
-                v_valor = st.number_input("Valor da Venda (R$)", min_value=0.0, value=1500.0, step=100.0)
-                v_data = st.date_input("Data da Venda", value=date.today())
-                v_resp = st.text_input("Responsável (Vendedor)", value="Carlos")
-
-            with v_col2:
-                v_pagamento = st.selectbox("Forma de Pagamento", ["PIX", "Boleto", "Cartão de Crédito", "Cartão de Débito", "Dinheiro", "Transferência Bancária"])
-                v_parcelas = st.text_input("Parcelas (se Cartão ou Boleto)", value="1x")
-                v_status = st.selectbox("Status", ["Pago", "Pendente", "Cancelado", "Estornado"])
-                v_nf = st.text_input("Número da Nota Fiscal (NF)", placeholder="Ex: 00482")
-                v_obs = st.text_area("Observações", placeholder="Detalhes adicionais da venda...")
-
-            btn_submit_venda = st.form_submit_button("Salvar e Registrar Venda", use_container_width=True)
-            
-            if btn_submit_venda:
-                if v_cliente:
-                    try:
-                        conn = conectar()
-                        conn.execute("""
-                            INSERT INTO vendas (cliente, produto, valor, data, responsavel, forma_pagamento, parcelas, status, nota_fiscal, observacoes)
-                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                        """, (v_cliente, v_produto, v_valor, str(v_data), v_resp, v_pagamento, v_parcelas, v_status, v_nf, v_obs))
-                        conn.commit()
-                        conn.close()
-                        st.success("Venda registrada com sucesso!")
-                        st.rerun()
-                    except Exception as e:
-                        st.error(f"Erro ao salvar venda: {e}")
-                else:
-                    st.error("O campo Cliente / Empresa é obrigatório.")
-
-    st.markdown("<br>", unsafe_allow_html=True)
-
-    # --- 3. HISTÓRICO DE VENDAS (Tabela) ---
-    st.markdown("### 📋 Histórico de Vendas")
-    if not df_vendas.empty:
-        colunas_exibir_vendas = [c for c in ['data', 'cliente', 'produto', 'responsavel', 'valor', 'forma_pagamento', 'status', 'nota_fiscal'] if c in df_vendas.columns]
-        st.dataframe(df_vendas[colunas_exibir_vendas], use_container_width=True, hide_index=True)
-    else:
-        st.info("Nenhuma venda registrada até o momento.")
 
     st.markdown("<br>", unsafe_allow_html=True)
 
