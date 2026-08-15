@@ -549,66 +549,135 @@ elif selected == "Agenda":
 elif selected == "Atividades":
     st.markdown("### 📋 Gestão de Tarefas e Atividades Diárias")
     
-    col_at1, col_at2 = st.columns([3, 1])
-    with col_at1:
-        st.session_state.filtro_atividades = st.selectbox(
-            "Filtrar Atividades", 
-            ["Todas as atividades", "Pendentes", "Concluídas", "Atrasadas"],
-            label_visibility="collapsed"
-        )
-    with col_at2:
-        if st.button("➕ Nova Atividade", use_container_width=True):
-            st.session_state.modal_nova_atividade = True
-
-    if st.session_state.modal_nova_atividade:
-        with st.form("form_nova_atividade"):
-            st.markdown("##### Criar Nova Tarefa")
-            t_titulo = st.text_input("Título da Atividade")
-            t_desc = st.text_area("Descrição")
-            t_vencimento = st.date_input("Data de Vencimento")
-            t_resp = st.selectbox("Responsável Atribuído", ["Carlos", "Ana", "Larissa"])
-            t_btn = st.form_submit_button("Salvar Tarefa")
-            if t_btn:
-                st.success("Atividade criada com sucesso!")
-                st.session_state.modal_nova_atividade = False
-                st.rerun()
+    # 📊 1. KPIs no Topo
+    kpi1, kpi2, kpi3, kpi4, kpi5 = st.columns(5)
+    with kpi1:
+        st.metric("📋 Total", "24")
+    with kpi2:
+        st.metric("🔵 Pendentes", "12")
+    with kpi3:
+        st.metric("🟢 Concluídas", "8")
+    with kpi4:
+        st.metric("🔴 Atrasadas", "3")
+    with kpi5:
+        st.metric("⚠️ Alta Prioridade", "5")
 
     st.markdown("---")
-    df_tarefas = pd.DataFrame([
-        {"Tarefa": "Ligar para João Silva", "Vencimento": "2026-08-15", "Responsável": "Carlos", "Status": "Pendente", "Prioridade": "🔴 Alta"},
-        {"Tarefa": "Enviar proposta comercial Alpha Tech", "Vencimento": "2026-08-14", "Responsável": "Ana", "Status": "Concluída", "Prioridade": "🟡 Média"},
-        {"Tarefa": "Revisar contrato Global Ltda", "Vencimento": "2026-08-18", "Responsável": "Carlos", "Status": "Pendente", "Prioridade": "🟢 Baixa"}
-    ])
-    st.dataframe(df_tarefas, use_container_width=True, hide_index=True)
 
-elif selected == "Pipeline":
-    st.markdown("### 🔄 Pipeline de Vendas & Negócios em Andamento")
-    
-    col_pipe1, col_pipe2 = st.columns([3, 1])
-    with col_pipe1:
-        st.markdown("Gerencie suas oportunidades atualizando as etapas do funil comercial.")
-    with col_pipe2:
-        if st.button("➕ Nova Oportunidade", use_container_width=True):
-            st.session_state.modal_nova_oportunidade = True
+    # Layout dividindo a tela principal entre Tabela/Alertas e o Formulário de Nova Atividade
+    col_at1, col_at2 = st.columns([2, 1])
 
-    if not df_pipeline.empty:
-        estagios = ["Prospecção", "Qualificação", "Proposta", "Negociação", "Fechamento"]
-        cols_estagios = st.columns(len(estagios))
+    with col_at1:
+        # 🚨 7. Seção de Atividades Atrasadas
+        st.markdown("#### 🚨 Atividades Atrasadas")
+        st.error(
+            "**🔴 Ligar para João Silva**\n"
+            "• Vencimento: 14/08/2026 | Responsável: Carlos\n\n"
+            "**🔴 Enviar proposta Alpha Tech**\n"
+            "• Vencimento: 15/08/2026 | Responsável: Ana"
+        )
         
-        for i, estagio in enumerate(estagios):
-            with cols_estagios[i]:
-                st.markdown(f"<div style='background-color: #1e293b; padding: 10px; border-radius: 8px; text-align: center; font-weight: bold;'>{estagio}</div>", unsafe_allow_html=True)
-                df_estagio = df_pipeline[df_pipeline["estagio"] == estagio]
-                for _, row in df_estagio.iterrows():
-                    st.markdown(f"""
-                        <div style="background-color: #161b22; border: 1px solid #30363d; border-radius: 6px; padding: 10px; margin-top: 10px;">
-                            <strong>{row['titulo']}</strong><br>
-                            <span style="color: #38bdf8;">R$ {row['valor']:,.2f}</span><br>
-                            <small style="color: #94a3b8;">Resp: {row['responsavel']}</small>
-                        </div>
-                    """, unsafe_allow_html=True)
-    else:
-        st.info("Nenhuma oportunidade cadastrada no pipeline.")
+        st.markdown("---")
+        
+        # 🔎 6. Filtros e Pesquisa da Tabela
+        st.markdown("#### 📋 Painel de Atividades")
+        f_pesquisa_ativ = st.text_input("🔎 Pesquisar atividade...", "")
+        
+        f1, f2, f3 = st.columns(3)
+        with f1:
+            filtro_status_ativ = st.selectbox("Status", ["Todas", "Pendente", "Em andamento", "Concluída", "Cancelada"])
+        with f2:
+            filtro_periodo_ativ = st.selectbox("Período", ["Hoje", "Semana", "Mês", "Todos"])
+        with f3:
+            filtro_prioridade_ativ = st.selectbox("Prioridade", ["Todas", "🔴 Alta", "🟡 Média", "🟢 Baixa"])
+
+        # 📋 5. Tabela de Atividades Estilizada
+        import pandas as pd
+        dados_atividades = pd.DataFrame([
+            {
+                "Data/Hora": "15/08 10:00", 
+                "Tipo": "📞 Ligação", 
+                "Atividade": "Follow-up", 
+                "Lead/Cliente": "João Silva — Tech Solutions", 
+                "Responsável": "Carlos", 
+                "Status": "Pendente", 
+                "Prioridade": "🔴 Alta"
+            },
+            {
+                "Data/Hora": "16/08 14:00", 
+                "Tipo": "📧 E-mail", 
+                "Atividade": "Enviar proposta", 
+                "Lead/Cliente": "Alpha Tech", 
+                "Responsável": "Ana", 
+                "Status": "Concluída", 
+                "Prioridade": "🟡 Média"
+            },
+            {
+                "Data/Hora": "18/08 09:30", 
+                "Tipo": "📄 Tarefa", 
+                "Atividade": "Revisar contrato", 
+                "Lead/Cliente": "Global Ltda", 
+                "Responsável": "Carlos", 
+                "Status": "Pendente", 
+                "Prioridade": "🟢 Baixa"
+            }
+        ])
+        
+        st.dataframe(dados_atividades, use_container_width=True, hide_index=True)
+
+        st.markdown("---")
+        
+        # 🕐 8. Histórico Recente de Atividades Concluídas
+        st.markdown("#### 🕒 Histórico Recente")
+        st.markdown(
+            "* **Hoje — 14:30** | ✅ Proposta enviada para Alpha Tech *(Carlos)*\n"
+            "* **Hoje — 11:20** | 📞 Ligação realizada com João Silva *(Carlos)*\n"
+            "* **Ontem — 16:40** | 📧 E-mail enviado para Global Ltda *(Ana)*"
+        )
+
+    with col_at2:
+        # 📝 2. & 3. & 4. Formulário de Nova Atividade Completo e Vinculado
+        st.markdown("#### ➕ Nova Atividade")
+        
+        with st.form("form_nova_atividade_completo"):
+            at_tipo = st.selectbox("Tipo de Atividade", [
+                "📞 Ligação", "📧 E-mail", "💬 WhatsApp", "🤝 Reunião", 
+                "🔄 Follow-up", "📄 Tarefa", "💻 Demonstração", "📊 Proposta"
+            ])
+            
+            at_titulo = st.text_input("Título / Assunto da Atividade")
+            
+            # 👤 Vínculo com Lead/Cliente
+            at_lead = st.text_input("Lead / Cliente Relacionado", placeholder="Ex: João Silva — Tech Solutions")
+            
+            at_responsavel = st.selectbox("Responsável", ["Carlos", "Ana", "Larissa"])
+            
+            col_d1, col_d2 = st.columns(2)
+            with col_d1:
+                at_data = st.date_input("Data de Vencimento", value=date.today())
+            with col_d2:
+                at_hora = st.text_input("Hora", value="10:00")
+                
+            at_prioridade = st.selectbox("Prioridade", ["🔴 Alta", "🟡 Média", "🟢 Baixa"])
+            
+            at_status = st.selectbox("Status", ["Pendente", "Em andamento", "Concluída", "Cancelada"])
+            
+            at_descricao = st.text_area("Descrição / Pauta")
+            
+            # 🔄 4. Próxima Ação
+            st.markdown("---")
+            st.markdown("##### 🔄 Próxima Ação (Pós-Atividade)")
+            at_resultado = st.text_input("Resultado / Observação")
+            at_proxima_acao = st.text_input("Próxima Ação Comercial")
+            at_data_proxima = st.date_input("Data da Próxima Ação", value=date.today())
+
+            btn_salvar_ativ = st.form_submit_button("💾 Salvar Atividade")
+            if btn_salvar_ativ:
+                if at_titulo:
+                    st.success("Atividade salva e integrada ao histórico com sucesso!")
+                    st.rerun()
+                else:
+                    st.error("O Título da Atividade é obrigatório.")
 
 elif selected == "Vendas":
     st.markdown("### 💰 Registro e Histórico de Vendas Realizadas")
