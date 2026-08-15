@@ -862,34 +862,125 @@ elif selected == "Vendas":
 
 elif selected == "Propostas":
     st.markdown("### 📄 Gestão de Propostas Comerciais")
-    st.info("Aqui você pode criar, editar e enviar propostas comerciais diretamente para seus clientes.")
     
-    with st.form("form_proposta"):
-        p_cliente = st.text_input("Cliente Destinatário")
-        p_servico = st.selectbox("Serviço / Produto", ["Software A", "Software B", "Consultoria Avançada"])
-        p_valor = st.number_input("Valor Total Proposto (R$)", value=12000.0)
-        p_validade = st.date_input("Validade da Proposta")
-        p_condicoes = st.text_area("Condições de Pagamento", value="50% entrada + 50% na entrega")
-        
-        p_submit = st.form_submit_button("Gerar Proposta Comercial")
-        if p_submit:
-            st.success(f"Proposta gerada com sucesso para {p_cliente} no valor de R$ {p_valor:,.2f}!")
-
-elif selected == "Relatórios":
-    st.markdown("### 📊 Relatórios Executivos & Central de Exportação")
-    
-    # 📊 1. KPIs do Relatório no Topo
-    kpi_r1, kpi_r2, kpi_r3, kpi_r4 = st.columns(4)
-    with kpi_r1:
-        st.metric("👥 Leads", "128", "+12")
-    with kpi_r2:
-        st.metric("💰 Vendas", "23", "+4")
-    with kpi_r3:
-        st.metric("💵 Faturamento", "R$ 125.500", "+15%")
-    with kpi_r4:
-        st.metric("📈 Conversão", "18%", "+2.5%")
+    # 📊 1. KPIs no Topo
+    kpi_p1, kpi_p2, kpi_p3, kpi_p4 = st.columns(4)
+    with kpi_p1:
+        st.metric("📄 Total Propostas", "24", "+3")
+    with kpi_p2:
+        st.metric("💰 Valor Total", "R$ 185.000", "+12%")
+    with kpi_p3:
+        st.metric("🟢 Aceitas", "12", "+2")
+    with kpi_p4:
+        st.metric("🟣 Em Negociação", "8", "+1")
 
     st.markdown("---")
+
+    # Layout dividindo entre a Gestão/Histórico e o Formulário de Nova Proposta
+    col_prop1, col_prop2 = st.columns([1, 1])
+
+    with col_prop1:
+        st.markdown("#### ➕ Nova Proposta Comercial")
+        
+        with st.form("form_nova_proposta_completo"):
+            # 1. Dados do Cliente
+            st.markdown("##### 1. Dados do Cliente & Emissão")
+            p_cliente = st.selectbox("Cliente / Empresa", ["Global Ltda", "Alpha Tech", "Tech Solutions", "Nova Corp"])
+            
+            cp1, cp2 = st.columns(2)
+            with cp1:
+                p_contato = st.text_input("Nome do Contato", value="João Silva")
+                p_email = st.text_input("E-mail", value="joao@techsolutions.com")
+                p_cnpj = st.text_input("CNPJ / CPF", value="00.000.000/0001-00")
+            with cp2:
+                p_responsavel = st.selectbox("Responsável Comercial", ["Carlos", "Ana", "Larissa"])
+                p_telefone = st.text_input("Telefone", value="(11) 98888-7777")
+                p_endereco = st.text_input("Endereço", value="Av. Paulista, 1000 - SP")
+
+            st.markdown("---")
+            # 2. Informações da Proposta
+            st.markdown("##### 2. Identificação da Proposta")
+            ip1, ip2, ip3 = st.columns(3)
+            with ip1:
+                p_numero = st.text_input("Nº da Proposta", value="PROP-2026-004")
+            with ip2:
+                p_emissao = st.date_input("Data de Emissão", value=date(2026, 8, 15))
+            with ip3:
+                p_validade = st.date_input("Data de Validade", value=date(2026, 8, 30))
+
+            ip4, ip5 = st.columns(2)
+            with ip4:
+                p_status = st.selectbox("Status", ["🟡 Rascunho", "🔵 Enviada", "🟣 Em negociação", "🟢 Aceita", "🔴 Recusada", "⚫ Expirada"])
+            with ip5:
+                p_probabilidade = st.slider("Probabilidade de Fechamento (%)", 0, 100, 70)
+
+            st.markdown("---")
+            # 4. Itens da Proposta
+            st.markdown("##### 3. Itens da Proposta")
+            import pandas as pd
+            df_itens_padrao = pd.DataFrame([
+                {"Produto/Serviço": "Software A", "Qtd.": 1, "Valor Unit. (R$)": 10000.0, "Desconto (%)": 0.0},
+                {"Produto/Serviço": "Implantação", "Qtd.": 1, "Valor Unit. (R$)": 2000.0, "Desconto (%)": 0.0}
+            ])
+            # Editor de tabela interativo para os itens
+            df_itens_editados = st.data_editor(df_itens_padrao, num_rows="dynamic", use_container_width=True)
+
+            st.markdown("---")
+            # 3. Condições Comerciais
+            st.markdown("##### 4. Condições Comerciais")
+            cc1, cc2, cc3 = st.columns(3)
+            with cc1:
+                p_forma_pag = st.selectbox("Forma de Pagamento", ["PIX", "Boleto", "Cartão", "Transferência", "Dinheiro"])
+            with cc2:
+                p_condicao = st.selectbox("Condição", ["À vista", "Parcelado", "50% entrada + 50% entrega"])
+            with cc3:
+                p_parcelamento = st.selectbox("Parcelamento", ["1x", "2x", "3x", "6x", "12x"])
+
+            p_obs = st.text_area("Observações Comerciais & Termos", value="Prazo de implantação: 15 dias úteis.\nSuporte incluso durante os primeiros 30 dias.")
+
+            st.markdown("---")
+            # Botões de Ação do Formulário
+            btn_salvar_prop = st.form_submit_button("💾 Salvar Proposta")
+            if btn_salvar_prop:
+                st.success(f"Proposta {p_numero} salva com sucesso!")
+
+        # Ações avulsas fora do formulário para visualização e exportação
+        st.markdown("##### 🚀 Ações Rápidas")
+        ba1, ba2, ba3, ba4 = st.columns(4)
+        with ba1:
+            if st.button("👁️ Visualizar"):
+                st.info("Abrindo visualização em PDF da proposta selecionada.")
+        with ba2:
+            if st.button("📄 Gerar PDF"):
+                st.success("Documento PDF gerado com sucesso!")
+        with ba3:
+            if st.button("📧 Enviar por E-mail"):
+                st.success("E-mail enviado para o cliente!")
+        with ba4:
+            if st.button("💾 Salvar"):
+                st.success("Alterações salvas!")
+
+    with col_prop2:
+        st.markdown("#### 📋 Histórico de Propostas")
+        
+        f_busca_prop = st.text_input("🔎 Pesquisar proposta...", "")
+        
+        df_historico_prop = pd.DataFrame([
+            {"Número": "PROP-2026-001", "Cliente": "Global Ltda", "Valor": "R$ 12.000", "Status": "🔵 Enviada", "Emissão": "15/08/2026"},
+            {"Número": "PROP-2026-002", "Cliente": "Alpha Tech", "Valor": "R$ 8.500", "Status": "🟢 Aceita", "Emissão": "14/08/2026"},
+            {"Número": "PROP-2026-003", "Cliente": "Nova Corp", "Valor": "R$ 15.000", "Status": "🟣 Negociação", "Emissão": "12/08/2026"}
+        ])
+        
+        st.dataframe(df_historico_prop, use_container_width=True, hide_index=True)
+
+        st.markdown("---")
+        st.markdown("#### 💡 Resumo do Funil de Propostas")
+        st.info(
+            "• **Propostas em Aberto:** 12\n\n"
+            "• **Taxa de Conversão de Propostas:** 54%\n\n"
+            "• **Valor Médio por Proposta:** R$ 7.708\n\n"
+            "• **Proposta de Maior Valor:** R$ 24.500 (Tech Solutions)"
+        )
 
     # Layout de Configuração do Relatório
     st.markdown("#### 📑 Configurar Relatório")
