@@ -35,19 +35,23 @@ sidebar_bg = "#0b0f19" if is_escuro else "#f8fafc"
 cor_hex = "#2563EB" 
 
 # --- CSS GLOBAL E CENTRALIZADO ---
-st.markdown(f"""
+st.markdown(
+    f"""
     <style>
-        /* Fundo do App */
+        /* Fundo geral do app */
         .stApp {{ background-color: {bg_app}; color: {text_app}; }}
         
-        /* Sidebar Container */
+        /* Container Principal da Sidebar com Efeito Glassmorphism e Sombra Profunda */
         [data-testid="stSidebar"] {{ 
-            background-color: {sidebar_bg} !important; 
-            border-right: 1px solid #1e293b;
+            background: linear-gradient(180deg, rgba(13, 17, 23, 0.85) 0%, rgba(1, 4, 9, 0.95) 100%) !important;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-right: 1px solid rgba(255, 255, 255, 0.07);
+            box-shadow: 5px 0 25px rgba(0, 0, 0, 0.5);
             padding: 0 !important;
         }}
 
-        /* Estilização da barra de filtros agrupada */
+        /* Container de Filtros do Dashboard */
         .filtros-container {{
             background-color: #161b22;
             border: 1px solid #30363d;
@@ -56,17 +60,17 @@ st.markdown(f"""
             margin-bottom: 20px;
         }}
         
-        /* Estilização dos cards de métricas com borda ciano */
+        /* Cards de métricas com borda ciano e sombra suave */
         .metric-card {{
             background-color: #0e1117;
             border: 1px solid #00d2ff;
             border-radius: 10px;
             padding: 20px;
             text-align: left;
-            box-shadow: 0 0 10px rgba(0, 210, 255, 0.1);
+            box-shadow: 0 4px 20px rgba(0, 210, 255, 0.12);
         }}
 
-        /* Estilização dos Botões da Sidebar */
+        /* Estilização Avançada dos Botões/Itens do Menu na Sidebar */
         [data-testid="stSidebar"] div.stButton > button {{
             display: flex;
             align-items: center;
@@ -74,31 +78,50 @@ st.markdown(f"""
             gap: 12px;
             width: 100%; 
             background-color: transparent !important;
-            color: #94a3b8 !important; 
+            color: #8b949e !important; 
             border: none !important; 
             border-radius: 8px !important;
             padding: 10px 16px !important; 
-            margin-bottom: 2px;
-            transition: all 0.2s ease;
+            margin-bottom: 3px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             font-size: 14px !important;
             font-weight: 500 !important;
         }}
         
+        /* Efeito Hover Moderno com Sombra Interna e Brilho */
         [data-testid="stSidebar"] div.stButton > button:hover {{ 
-            background-color: #1e293b !important; 
+            background: rgba(255, 255, 255, 0.04) !important; 
             color: #ffffff !important;
+            transform: translateX(4px);
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+        }}
+
+        /* Estilização para o item selecionado/ativo do menu do option_menu */
+        .nav-link-selected {{
+            background: linear-gradient(90deg, rgba(37, 99, 235, 0.2) 0%, rgba(37, 99, 235, 0.0) 100%) !important;
+            color: #ffffff !important;
+            border-left: 3px solid #3b82f6 !important;
+            box-shadow: inset 0 0 15px rgba(59, 130, 246, 0.1);
+        }}
+        
+        /* Divisores internos mais sutis na barra lateral */
+        [data-testid="stSidebar"] hr {{
+            border-color: rgba(255, 255, 255, 0.06) !important;
+            margin: 12px 16px !important;
         }}
         
         .sidebar-section-title {{
-            color: #475569;
-            font-size: 10px;
+            color: #484f58;
+            font-size: 11px;
             font-weight: 700;
-            letter-spacing: 0.05em;
+            letter-spacing: 0.08em;
             text-transform: uppercase;
             margin: 20px 0 8px 16px;
         }}
     </style>
-""", unsafe_allow_html=True)
+""",
+    unsafe_allow_html=True,
+)
 
 # --- BANCO DE DADOS E CORREÇÃO DE ESQUEMA ---
 def inicializar_banco():
