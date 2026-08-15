@@ -38,23 +38,26 @@ cor_hex = "#2563EB"
 st.markdown(
     f"""
     <style>
-        /* Fundo geral do app */
-        .stApp {{ background-color: {bg_app}; color: {text_app}; }}
+        /* Fundo geral da página com a cor exata solicitada */
+        .stApp {{ 
+            background-color: #16222A !important; 
+            color: {text_app}; 
+        }}
         
-        /* Sidebar com transparência de vidro real e efeito flutuante */
+        /* Sidebar com transparência de vidro fumê e efeito flutuante sobre a nova cor */
         [data-testid="stSidebar"] {{ 
-            background: rgba(13, 17, 23, 0.45) !important;
+            background: rgba(15, 23, 32, 0.55) !important;
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
-            border-right: 1px solid rgba(255, 255, 255, 0.04);
-            box-shadow: 8px 0 32px rgba(0, 0, 0, 0.6);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 8px 0 32px rgba(0, 0, 0, 0.5);
             padding: 0 !important;
         }}
 
         /* Container de Filtros do Dashboard */
         .filtros-container {{
-            background-color: #161b22;
-            border: 1px solid #30363d;
+            background-color: #1b2836;
+            border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 10px;
             padding: 15px;
             margin-bottom: 20px;
@@ -62,7 +65,7 @@ st.markdown(
         
         /* Cards de métricas */
         .metric-card {{
-            background-color: #0e1117;
+            background-color: #1b2836;
             border: 1px solid #00d2ff;
             border-radius: 10px;
             padding: 20px;
@@ -90,7 +93,7 @@ st.markdown(
             font-weight: 500 !important;
         }}
         
-        /* Efeito de Marca d'Água (Sombra/Silhueta grande translúcida ao fundo do botão) */
+        /* Efeito de Marca d'Água nos botões */
         [data-testid="stSidebar"] div.stButton > button::before {{
             content: "";
             position: absolute;
@@ -100,9 +103,7 @@ st.markdown(
             width: 32px;
             height: 32px;
             background-color: currentColor;
-            opacity: 0.03; /* Efeito marca d'água super sutil */
-            mask-repeat: no-repeat;
-            -webkit-mask-repeat: no-repeat;
+            opacity: 0.03;
             pointer-events: none;
         }}
 
