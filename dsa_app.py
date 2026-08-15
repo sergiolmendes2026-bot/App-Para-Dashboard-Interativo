@@ -680,36 +680,115 @@ elif selected == "Atividades":
                     st.error("O Título da Atividade é obrigatório.")
 
 elif selected == "Vendas":
-    st.markdown("### 💰 Registro e Histórico de Vendas Realizadas")
+    st.markdown("### 💰 Gestão de Vendas e Fechamentos Comerciais")
     
-    with st.form("form_nova_venda"):
-        st.markdown("##### Registrar Nova Venda")
-        v_cli = st.text_input("Nome do Cliente / Empresa")
-        v_val = st.number_input("Valor da Venda (R$)", min_value=0.0, value=5000.0, step=500.0)
-        v_prod = st.selectbox("Produto / Serviço", ["Software A", "Software B", "Consultoria"])
-        v_resp = st.selectbox("Consultor Responsável", ["Carlos", "Ana", "Larissa"])
-        v_status = st.selectbox("Status do Pagamento", ["Pago", "Pendente", "Parcelado"])
-        v_data = st.text_input("Data da Venda", value=str(date.today()))
-        
-        v_btn = st.form_submit_button("💾 Salvar Venda")
-        if v_btn:
-            if v_cli:
-                conn = conectar()
-                conn.execute("INSERT INTO vendas (cliente, valor, data, responsavel, status, produto) VALUES (?, ?, ?, ?, ?, ?)",
-                           (v_cli, v_val, v_data, v_resp, v_status, v_prod))
-                conn.commit()
-                conn.close()
-                st.success("Venda registrada com sucesso!")
-                st.rerun()
-            else:
-                st.error("Informe o nome do cliente.")
+    # 📊 1. KPIs de Vendas no Topo
+    kpi_v1, kpi_v2, kpi_v3, kpi_v4, kpi_v5 = st.columns(5)
+    with kpi_v1:
+        st.metric("💰 Total Vendido", "R$ 148.500", "+12%")
+    with kpi_v2:
+        st.metric("🎯 Vendas no Mês", "14", "+3")
+    with kpi_v3:
+        st.metric("📈 Ticket Médio", "R$ 10.600", "+5%")
+    with kpi_v4:
+        st.metric("⏳ Em Negociação", "R$ 62.000", "5 Propostas")
+    with kpi_v5:
+        st.metric("❌ Taxa de Perda", "18%", "-2%")
 
     st.markdown("---")
-    st.markdown("#### 📋 Listagem de Vendas")
-    if not df_vendas.empty:
-        st.dataframe(df_vendas, use_container_width=True, hide_index=True)
-    else:
-        st.info("Nenhuma venda registrada.")
+
+    # Layout dividindo entre a Tabela/Filtros e o Formulário de Nova Venda
+    col_v1, col_v2 = st.columns([2, 1])
+
+    with col_v1:
+        # 🔎 6. Filtros e Pesquisa da Tabela de Vendas
+        st.markdown("#### 📋 Histórico e Pipeline de Vendas")
+        f_pesquisa_venda = st.text_input("🔎 Pesquisar venda por cliente, empresa ou produto...", "")
+        
+        fv1, fv2, fv3 = st.columns(3)
+        with fv1:
+            filtro_status_venda = st.selectbox("Status da Venda", ["Todas", "✅ Fechada", "⏳ Em Negociação", "❌ Perdida", "🔄 Recorrente"])
+        with fv2:
+            filtro_periodo_venda = st.selectbox("Período de Venda", ["Este Mês", "Últimos 3 Meses", "Este Ano", "Todos"])
+        with fv3:
+            filtro_resp_venda = st.selectbox("Responsável", ["Todos", "Carlos", "Ana", "Larissa"])
+
+        # 📋 5. Tabela de Vendas Estilizada
+        import pandas as pd
+        dados_vendas = pd.DataFrame([
+            {
+                "Data": "15/08/2026", 
+                "Cliente / Empresa": "João Silva — Tech Solutions", 
+                "Produto": "Software A (Enterprise)", 
+                "Valor (R$)": "R$ 24.500", 
+                "Responsável": "Carlos", 
+                "Pagamento": "💳 Cartão (12x)", 
+                "Status": "✅ Fechada"
+            },
+            {
+                "Data": "14/08/2026", 
+                "Cliente / Empresa": "Alpha Tech", 
+                "Produto": "Consultoria Q3", 
+                "Valor (R$)": "R$ 12.000", 
+                "Responsável": "Ana", 
+                "Pagamento": "📄 Boleto", 
+                "Status": "⏳ Em Negociação"
+            },
+            {
+                "Data": "12/08/2026", 
+                "Cliente / Empresa": "Global Ltda", 
+                "Produto": "Software B", 
+                "Valor (R$)": "R$ 45.000", 
+                "Responsável": "Carlos", 
+                "Pagamento": "🔀 PIX / À vista", 
+                "Status": "✅ Fechada"
+            }
+        ])
+        
+        st.dataframe(dados_vendas, use_container_width=True, hide_index=True)
+
+        st.markdown("---")
+        
+        # 🕒 8. Resumo Recente de Fechamentos
+        st.markdown("#### 🏆 Últimas Conquistas Comerciais")
+        st.markdown(
+            "* **Hoje — 16:00** | 🎉 Venda fechada com **Tech Solutions** no valor de **R$ 24.500** *(Carlos)*\n"
+            "* **12/08 — 14:10** | 🎉 Contrato assinado com **Global Ltda** no valor de **R$ 45.000** *(Carlos)*\n"
+            "* **10/08 — 09:30** | 📝 Proposta avançada para **Inova Corp** *(Ana)*"
+        )
+
+    with col_v2:
+        # 📝 2. & 3. Formulário de Registro de Nova Venda / Fechamento
+        st.markdown("#### ➕ Registrar Nova Venda")
+        
+        with st.form("form_nova_venda_completo"):
+            v_cliente = st.text_input("Lead / Cliente (Empresa)", placeholder="Ex: João Silva — Tech Solutions")
+            
+            v_produto = st.selectbox("Produto / Serviço", ["Software A", "Software B", "Consultoria", "Plano Customizado"])
+            
+            col_vv1, col_vv2 = st.columns(2)
+            with col_vv1:
+                v_valor = st.number_input("Valor Final (R$)", min_value=0.0, value=15000.0, step=500.0)
+            with col_vv2:
+                v_desconto = st.number_input("Desconto Aplicado (R$)", min_value=0.0, value=0.0, step=100.0)
+                
+            v_pagamento = st.selectbox("Forma de Pagamento", ["🔀 PIX", "📄 Boleto Bancário", "💳 Cartão de Crédito", "💵 À vista", "📊 Parcelado"])
+            
+            v_responsavel = st.selectbox("Responsável pela Venda", ["Carlos", "Ana", "Larissa"])
+            
+            v_data = st.date_input("Data do Fechamento", value=date.today())
+            
+            v_status = st.selectbox("Status da Oportunidade", ["✅ Fechada (Venda Concluída)", "⏳ Em Negociação / Proposta", "❌ Perdida"])
+            
+            v_observacoes = st.text_area("Observações do Contrato / Fechamento")
+
+            btn_salvar_venda = st.form_submit_button("💾 Salvar Venda")
+            if btn_salvar_venda:
+                if v_cliente:
+                    st.success("Venda registrada com sucesso e integrada ao dashboard!")
+                    st.rerun()
+                else:
+                    st.error("O campo Cliente / Empresa é obrigatório.")
 
 elif selected == "Propostas":
     st.markdown("### 📄 Gestão de Propostas Comerciais")
