@@ -1136,15 +1136,128 @@ elif selected == "Notificações":
         st.success("Preferências salvas com sucesso!")
 
 elif selected == "Configurações":
-    st.markdown("### ⚙️ Configurações Gerais do Sistema")
+    st.markdown("### ⚙️ Configurações Gerais do Sistema & Painel Administrativo")
     
-    col_cfg1, col_cfg2 = st.columns(2)
-    with col_cfg1:
-        st.selectbox("Tema do Sistema", ["🌙 Escuro", "☀️ Claro"], key="tema_sistema")
-        st.text_input("Nome da Empresa no Sistema", value="LMB Pro Ltda")
-    with col_cfg2:
-        st.text_input("Moeda Padrão", value="BRL (R$)")
-        st.text_input("E-mail de Suporte Técnico", value="suporte@crmlmb.com")
+    # 🧩 Central Administrativa com Abas (Streamlit Tabs)
+    tab_geral, tab_comercial, tab_vendas, tab_agenda, tab_notif, tab_seguranca, tab_dados = st.tabs([
+        "⚙️ Geral", "👥 Comercial", "💰 Vendas", "📅 Agenda", "🔔 Notificações", "🔐 Segurança", "💾 Dados"
+    ])
+
+    with tab_geral:
+        st.markdown("#### ⚙️ Configurações Gerais do Sistema")
+        with st.form("form_config_geral"):
+            cg1, cg2 = st.columns(2)
+            with cg1:
+                st.text_input("Nome da Empresa", value="LMB Pro Ltda")
+                st.text_input("E-mail de Suporte", value="suporte@lmbpro.com")
+                st.text_input("Telefone da Empresa", value="(11) 99999-9999")
+                st.text_input("Site", value="https://www.lmbpro.com")
+                st.file_uploader("Logo da Empresa", type=["png", "jpg", "jpeg"])
+            with cg2:
+                st.selectbox("Moeda Padrão", ["BRL (R$)", "USD ($)", "EUR (€)"])
+                st.selectbox("Idioma", ["Português (Brasil)", "English", "Español"])
+                st.selectbox("Fuso Horário", ["America/Sao_Paulo", "America/New_York", "Europe/Lisbon"])
+                st.selectbox("Formato de Data", ["DD/MM/AAAA", "MM/DD/AAAA", "AAAA-MM-DD"])
+                st.selectbox("Primeiro Dia da Semana", ["Segunda-feira", "Domingo"])
+
+            if st.form_submit_button("💾 Salvar Configurações Gerais"):
+                st.success("Configurações gerais salvas com sucesso!")
+
+    with tab_comercial:
+        st.markdown("#### 👥 Configurações Comerciais")
+        with st.form("form_config_comercial"):
+            st.text_area("Pipeline Padrão (Etapas separadas por vírgula)", value="Novo Lead, Qualificação, Proposta, Negociação, Fechamento")
+            st.text_area("Status de Leads", value="Novo, Contatado, Qualificado, Em negociação, Convertido, Perdido")
+            st.text_area("Prioridades", value="Alta, Média, Baixa")
+            st.text_area("Temperatura", value="🔥 Quente, 🟡 Morno, 🔵 Frio")
+            
+            if st.form_submit_button("💾 Salvar Configurações Comerciais"):
+                st.success("Configurações comerciais atualizadas!")
+
+    with tab_vendas:
+        st.markdown("#### 💰 Configurações de Vendas")
+        with st.form("form_config_vendas"):
+            st.text_area("Formas de Pagamento", value="PIX, Cartão, Boleto, Transferência, Dinheiro")
+            st.text_area("Condições de Pagamento", value="À vista, Parcelado")
+            st.text_area("Status de Pagamento", value="Pago, Parcial, Pendente, Em atraso, Cancelado, Estornado")
+            
+            if st.form_submit_button("💾 Salvar Configurações de Vendas"):
+                st.success("Configurações de vendas atualizadas!")
+
+    with tab_agenda:
+        st.markdown("#### 📅 Configurações da Agenda")
+        with st.form("form_config_agenda"):
+            ca1, ca2 = st.columns(2)
+            with ca1:
+                st.text_input("Horário Comercial", value="08:00 – 18:00")
+                st.text_input("Dias Úteis", value="Segunda a Sexta")
+                st.selectbox("Duração Padrão das Reuniões", ["15 minutos", "30 minutos", "45 minutos", "1 hora"])
+            with ca2:
+                st.selectbox("Lembrete Padrão", ["5 minutos antes", "15 minutos antes", "30 minutos antes", "1 hora antes"])
+                st.text_area("Tipos de Compromisso", value="Reunião, Demonstração, Ligação, Follow-up, Proposta")
+            
+            if st.form_submit_button("💾 Salvar Configurações da Agenda"):
+                st.success("Configurações da agenda atualizadas!")
+
+    with tab_notif:
+        st.markdown("#### 🔔 Configurações de Notificações")
+        with st.form("form_config_notif"):
+            st.markdown("Selecione os eventos que deseja receber notificações (Sistema | E-mail):")
+            
+            nc1, nc2, nc3, nc4 = st.columns(4)
+            with nc1:
+                st.checkbox("Novo Lead", value=True)
+                st.checkbox("Nova venda", value=True)
+            with nc2:
+                st.checkbox("Nova proposta", value=True)
+                st.checkbox("Atividade vencendo", value=True)
+            with nc3:
+                st.checkbox("Atividade atrasada", value=True)
+                st.checkbox("Novo compromisso", value=True)
+            with nc4:
+                st.checkbox("Meta atingida", value=True)
+                st.checkbox("Meta em risco", value=True)
+
+            if st.form_submit_button("💾 Salvar Preferências de Notificação"):
+                st.success("Preferências de notificação salvas!")
+
+    with tab_seguranca:
+        st.markdown("#### 🔐 Segurança & Logs de Auditoria")
         
-    if st.button("💾 Salvar Configurações Gerais"):
-        st.success("Configurações atualizadas com sucesso! Recarregue a página se necessário.")
+        with st.form("form_config_seguranca"):
+            s1, s2 = st.columns(2)
+            with s1:
+                st.checkbox("Autenticação em dois fatores (2FA)", value=False)
+                st.number_input("Tempo de expiração da sessão (minutos)", min_value=15, value=60)
+            with s2:
+                st.selectbox("Bloqueio após tentativas inválidas", ["3 tentativas", "5 tentativas", "Desativado"])
+                st.button("🔑 Alterar Senha de Administrador")
+            
+            if st.form_submit_button("💾 Salvar Configurações de Segurança"):
+                st.success("Configurações de segurança atualizadas!")
+
+        st.markdown("---")
+        st.markdown("##### 🛡️ Logs de Auditoria Recentes")
+        import pandas as pd
+        df_logs = pd.DataFrame([
+            {"Ação": "Carlos alterou uma venda", "Data/Hora": "15/08/2026 14:32", "Módulo": "Vendas"},
+            {"Ação": "Ana criou um novo Lead", "Data/Hora": "15/08/2026 13:20", "Módulo": "Leads"},
+            {"Ação": "Carlos alterou uma proposta", "Data/Hora": "15/08/2026 11:05", "Módulo": "Propostas"}
+        ])
+        st.dataframe(df_logs, use_container_width=True, hide_index=True)
+
+    with tab_dados:
+        st.markdown("#### 💾 Gestão de Dados e Backup")
+        
+        d_col1, d_col2 = st.columns(2)
+        with d_col1:
+            st.markdown("##### 📥 Exportação e Backup")
+            if st.button("📥 Exportar Todos os Dados do CRM"):
+                st.success("Arquivo de backup gerado com sucesso!")
+            if st.button("📦 Criar Ponto de Restauração (Backup)"):
+                st.success("Backup salvo no servidor!")
+        with d_col2:
+            st.markdown("##### 📤 Importação e Manutenção")
+            st.file_uploader("Importar Leads / Clientes (.csv / .xlsx)", type=["csv", "xlsx"])
+            if st.button("🧹 Limpar Dados de Teste (Requer Admin)", type="primary"):
+                st.warning("Ação restrita a administradores.")
