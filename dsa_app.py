@@ -913,30 +913,129 @@ elif selected == "Relatórios":
     st.dataframe(df_historico, use_container_width=True, hide_index=True)
 
 elif selected == "Metas":
-    st.markdown("### ⛰️ Metas Comerciais e Acompanhamento de Equipe")
+    st.markdown("### 🎯 Metas Comerciais e Acompanhamento de Equipe")
     
-    col_m1, col_m2 = st.columns(2)
-    with col_m1:
-        st.markdown("#### 🎯 Meta Geral da Empresa (2026)")
-        st.progress(0.72)
-        st.markdown("**Progresso Atual:** 72% atingido (R$ 108.000 / R$ 150.000)")
-    with col_m2:
-        st.markdown("#### 🏆 Metas por Consultor")
-        st.markdown("• **Carlos:** 85% da meta mensal atingida\n• **Ana:** 94% da meta mensal atingida\n• **Larissa:** 60% da meta mensal atingida")
+    # 📊 1. KPIs no Topo (5 Cards)
+    kpi_m1, kpi_m2, kpi_m3, kpi_m4, kpi_m5 = st.columns(5)
+    with kpi_m1:
+        st.metric("🎯 Meta Total", "R$ 150.000")
+    with kpi_m2:
+        st.metric("💰 Realizado", "R$ 108.000")
+    with kpi_m3:
+        st.metric("📊 Atingimento", "72%")
+    with kpi_m4:
+        st.metric("⏳ Falta", "R$ 42.000")
+    with kpi_m5:
+        st.metric("📅 Dias Restantes", "16 dias")
 
-elif selected == "Campanhas":
-    st.markdown("### 📢 Campanhas de Marketing & Disparos")
-    st.info("Gerencie campanhas de e-mail marketing, disparos via WhatsApp e anúncios integrados.")
-    
-    with st.form("form_campanha"):
-        c_nome = st.text_input("Nome da Campanha")
-        c_canal = st.selectbox("Canal", ["E-mail Marketing", "WhatsApp", "Remarketing Google Ads"])
-        c_publico = st.selectbox("Público-Alvo", ["Todos os Leads", "Leads Frios (> 30 dias)", "Clientes Fechados (Pós-Venda)"])
-        c_mensagem = st.text_area("Corpo da Mensagem / Oferta")
+    st.markdown("---")
+
+    # Layout Principal em Colunas
+    col_m_esq, col_m_dir = st.columns([2, 1])
+
+    with col_m_esq:
+        # 🎯 2. Meta Geral Mais Completa & Barra de Progresso
+        st.markdown("#### 🎯 Meta Comercial — Agosto 2026")
         
-        c_btn = st.form_submit_button("🚀 Disparar Campanha")
-        if c_btn:
-            st.success(f"Campanha '{c_nome}' iniciada com sucesso via {c_canal}!")
+        mg1, mg2, mg3, mg4 = st.columns(4)
+        with mg1:
+            st.markdown("**Meta:** R$ 150.000")
+        with mg2:
+            st.markdown("**Realizado:** R$ 108.000")
+        with mg3:
+            st.markdown("**Faltante:** R$ 42.000")
+        with mg4:
+            st.markdown("**Atingimento:** 72%")
+            
+        # Barra de progresso visual do Streamlit
+        st.progress(0.72)
+        
+        mp1, mp2 = st.columns(2)
+        with mp1:
+            st.info("💡 **Meta diária necessária:** R$ 2.625")
+        with mp2:
+            st.success("🚀 **Previsão de fechamento:** R$ 164.000 (Superada)")
+
+        st.markdown("---")
+
+        # 📈 8. Gráfico de Evolução (Meta acumulada x Realizado)
+        st.markdown("#### 📈 Evolução da Meta (Acumulado)")
+        import pandas as pd
+        import numpy as np
+        
+        # Exemplo de dados para o gráfico de evolução temporal
+        dias_mes = [f"Dia {i*5}" for i in range(1, 7)]
+        df_evolucao = pd.DataFrame({
+            "Meta Acumulada": [25000, 50000, 75000, 100000, 125000, 150000],
+            "Realizado Acumulado": [20000, 48000, 72000, 95000, 108000, 108000]
+        }, index=dias_mes)
+        st.line_chart(df_evolucao)
+
+        st.markdown("---")
+
+        # 👥 3. Metas por Consultor (Tabela Detalhada)
+        st.markdown("#### 🏆 Desempenho e Metas por Consultor")
+        df_consultores = pd.DataFrame([
+            {"Consultor": "Ana", "Meta": "R$ 50k", "Realizado": "R$ 47k", "% Atingido": "94%", "Faltante": "R$ 3k", "Previsão": "R$ 61k", "Status": "🟢 Ótimo"},
+            {"Consultor": "Carlos", "Meta": "R$ 50k", "Realizado": "R$ 42,5k", "% Atingido": "85%", "Faltante": "R$ 7,5k", "Previsão": "R$ 54k", "Status": "🟢 No Ritmo"},
+            {"Consultor": "Larissa", "Meta": "R$ 50k", "Realizado": "R$ 30k", "% Atingido": "60%", "Faltante": "R$ 20k", "Previsão": "R$ 39k", "Status": "🟡 Atenção"}
+        ])
+        st.dataframe(df_consultores, use_container_width=True, hide_index=True)
+
+        st.markdown("---")
+
+        # 📊 4. Outros Tipos de Metas (Métricas Secundárias)
+        st.markdown("#### 📊 Outras Metas Operacionais do Período")
+        om1, om2, om3, om4, om5 = st.columns(5)
+        with om1:
+            st.metric("🧑‍💼 Vendas", "23 / 30")
+        with om2:
+            st.metric("👥 Leads", "84 / 100")
+        with om3:
+            st.metric("📞 Atividades", "165 / 200")
+        with om4:
+            st.metric("📄 Propostas", "42 / 50")
+        with om5:
+            st.metric("🤝 Reuniões", "35 / 40")
+
+    with col_m_dir:
+        # 🏆 7. Ranking Comercial
+        st.markdown("#### 🏆 Ranking Comercial")
+        st.markdown(
+            "🥇 **Ana** — 94% *(R$ 47k)*\n\n"
+            "🥈 **Carlos** — 85% *(R$ 42,5k)*\n\n"
+            "🥉 **Larissa** — 60% *(R$ 30k)*"
+        )
+        
+        st.markdown("---")
+
+        # 📝 5. & 6. Criar e Configurar Nova Meta
+        st.markdown("#### ➕ Criar Nova Meta")
+        
+        with st.form("form_criar_meta_comercial"):
+            m_tipo = st.selectbox("Tipo de Meta", ["Faturamento", "Vendas", "Leads Qualificados", "Atividades", "Propostas", "Reuniões"])
+            
+            m_responsavel = st.selectbox("Responsável / Equipe", ["Geral (Equipe)", "Carlos", "Ana", "Larissa"])
+            
+            m_periodo = st.selectbox("Período", ["Mensal", "Diário", "Semanal", "Trimestral", "Anual"])
+            
+            col_d_ini, col_d_fim = st.columns(2)
+            with col_d_ini:
+                m_dt_inicio = st.date_input("Data Inicial", value=date(2026, 8, 1))
+            with col_d_fim:
+                m_dt_fim = st.date_input("Data Final", value=date(2026, 8, 31))
+                
+            m_valor = st.number_input("Valor / Meta Numérica", min_value=0.0, value=50000.0, step=1000.0)
+            
+            m_descricao = st.text_area("Descrição da Meta", value="Meta comercial de agosto")
+
+            btn_salvar_meta = st.form_submit_button("💾 Salvar Meta")
+            if btn_salvar_meta:
+                if m_valor > 0:
+                    st.success("Nova meta cadastrada e vinculada com sucesso!")
+                    st.rerun()
+                else:
+                    st.error("O valor da meta deve ser maior que zero.")
 
 elif selected == "Usuários":
     st.markdown("### 👤 Gestão de Usuários do Sistema")
