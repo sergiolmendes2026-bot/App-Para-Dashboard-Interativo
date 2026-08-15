@@ -1224,6 +1224,10 @@ elif selected == "Configurações":
     with tab_seguranca:
         st.markdown("#### 🔐 Segurança & Logs de Auditoria")
         
+        # Botão fora do form para evitar conflito de API do Streamlit
+        if st.button("🔑 Alterar Senha de Administrador"):
+            st.info("Painel de alteração de senha acionado.")
+
         with st.form("form_config_seguranca"):
             s1, s2 = st.columns(2)
             with s1:
@@ -1231,7 +1235,6 @@ elif selected == "Configurações":
                 st.number_input("Tempo de expiração da sessão (minutos)", min_value=15, value=60)
             with s2:
                 st.selectbox("Bloqueio após tentativas inválidas", ["3 tentativas", "5 tentativas", "Desativado"])
-                st.button("🔑 Alterar Senha de Administrador")
             
             if st.form_submit_button("💾 Salvar Configurações de Segurança"):
                 st.success("Configurações de segurança atualizadas!")
