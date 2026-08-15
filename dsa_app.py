@@ -1199,32 +1199,127 @@ elif selected == "Metas":
                     st.error("O valor da meta deve ser maior que zero.")
 
 elif selected == "Usuários":
-    st.markdown("### 👤 Gestão de Usuários do Sistema")
-    st.markdown("Adicione e gerencie os colaboradores que possuem acesso ao CRM Pro.")
+    st.markdown("### 👥 Gestão de Usuários e Equipe")
+    st.markdown("Gerencie usuários, acessos, perfis e permissões do CRM.")
     
-    df_usuarios = pd.DataFrame([
-        {"Nome": "Carlos Mendes", "E-mail": "carlos@crm.com", "Perfil": "Administrador", "Status": "Ativo"},
-        {"Nome": "Ana Paula", "E-mail": "ana@crm.com", "Perfil": "Comercial Sênior", "Status": "Ativo"},
-        {"Nome": "Larissa Souza", "E-mail": "larissa@crm.com", "Perfil": "Comercial Júnior", "Status": "Ativo"}
+    # 📊 1. Cards no Topo (4 KPIs)
+    uk1, uk2, uk3, uk4 = st.columns(4)
+    with uk1:
+        st.metric("👥 Usuários", "12")
+    with uk2:
+        st.metric("🟢 Ativos", "10")
+    with uk3:
+        st.metric("🔴 Inativos", "2")
+    with uk4:
+        st.metric("🛡️ Admins", "1")
+
+    st.markdown("---")
+
+    # 🔎 Filtros e Botão Novo Usuário
+    f_col1, f_col2, f_col3 = st.columns([2, 1, 1])
+    with f_col1:
+        pesquisa_usuario = st.text_input("🔎 Pesquisar usuário...", "")
+    with f_col2:
+        filtro_perfil = st.selectbox("Perfil", ["Todos os perfis", "Administrador", "Gerente", "Comercial Sênior", "Comercial Júnior", "Suporte"])
+    with f_col3:
+        filtro_status = st.selectbox("Status", ["Todos os status", "🟢 Ativo", "🟡 Ausente", "🔴 Bloqueado", "⚫ Offline"])
+
+    # Botão para expandir formulário de Novo Usuário
+    with st.expander("➕ Adicionar Novo Usuário"):
+        with st.form("form_novo_usuario"):
+            st.markdown("##### Dados Pessoais e Acesso")
+            nu1, nu2 = st.columns(2)
+            with nu1:
+                u_nome = st.text_input("Nome Completo")
+                u_email = st.text_input("E-mail")
+                u_cargo = st.selectbox("Cargo", ["Administrador", "Gerente", "Comercial Sênior", "Comercial Júnior", "Suporte"])
+            with nu2:
+                u_telefone = st.text_input("Telefone")
+                u_login = st.text_input("Usuário / Login")
+                u_senha = st.text_input("Senha Temporária", type="password")
+
+            nu3, nu4 = st.columns(2)
+            with nu3:
+                u_perfil = st.selectbox("Perfil de Acesso", ["Administrador", "Gerente", "Comercial Sênior", "Comercial Júnior", "Suporte"])
+            with nu4:
+                u_status_inicial = st.selectbox("Status Inicial", ["🟢 Ativo", "🟡 Ausente", "🔴 Bloqueado"])
+
+            st.markdown("##### 🔐 Matriz de Permissões Rápidas")
+            import pandas as pd
+            df_perm_modelo = pd.DataFrame([
+                {"Módulo": "Leads", "Visualizar": True, "Criar": True, "Editar": True, "Excluir": False},
+                {"Módulo": "Vendas", "Visualizar": True, "Criar": True, "Editar": True, "Excluir": False},
+                {"Módulo": "Propostas", "Visualizar": True, "Criar": True, "Editar": True, "Excluir": False},
+                {"Módulo": "Metas", "Visualizar": True, "Criar": False, "Editar": False, "Excluir": False},
+                {"Módulo": "Usuários", "Visualizar": False, "Criar": False, "Editar": False, "Excluir": False}
+            ])
+            st.data_editor(df_perm_modelo, use_container_width=True, hide_index=True)
+
+            if st.form_submit_button("💾 Salvar Novo Usuário"):
+                if u_nome and u_email:
+                    st.success(f"Usuário {u_nome} cadastrado com sucesso!")
+                else:
+                    st.error("Preencha ao menos o Nome e E-mail.")
+
+    st.markdown("---")
+
+    # 📋 Tabela Principal de Usuários & Desempenho Comercial
+    st.markdown("#### 📋 Equipe Cadastrada & Desempenho Comercial")
+    
+    df_usuarios_equipe = pd.DataFrame([
+        {
+            "Nome": "Carlos Mendes", 
+            "Cargo": "Administrador", 
+            "Leads": "32 Leads", 
+            "Vendas": "R$ 48.500", 
+            "Meta": "85%", 
+            "Status": "🟢 Ativo", 
+            "Último Acesso": "Hoje, 20:15",
+            "Ações": "👁️ | ✏️ | 🔒 | 🗑️"
+        },
+        {
+            "Nome": "Ana Souza", 
+            "Cargo": "Comercial Sênior", 
+            "Leads": "45 Leads", 
+            "Vendas": "R$ 62.300", 
+            "Meta": "94%", 
+            "Status": "🟢 Ativo", 
+            "Último Acesso": "Hoje, 19:40",
+            "Ações": "👁️ | ✏️ | 🔒 | 🗑️"
+        },
+        {
+            "Nome": "Larissa Lima", 
+            "Cargo": "Comercial Júnior", 
+            "Leads": "20 Leads", 
+            "Vendas": "R$ 31.200", 
+            "Meta": "60%", 
+            "Status": "🟡 Ausente", 
+            "Último Acesso": "Ontem, 18:20",
+            "Ações": "👁️ | ✏️ | 🔒 | 🗑️"
+        }
     ])
-    st.dataframe(df_usuarios, use_container_width=True, hide_index=True)
 
-elif selected == "Permissões":
-    st.markdown("### 🛡️ Controle de Permissões e Perfis de Acesso")
-    st.selectbox("Selecione o Perfil para Editar", ["Administrador", "Gerente Comercial", "Consultor Padrão"])
-    st.checkbox("Permitir exclusão de registros", value=True)
-    st.checkbox("Permitir visualização de relatórios financeiros", value=False)
-    st.checkbox("Permitir exportação de dados", value=True)
-    if st.button("Salvar Permissões"):
-        st.success("Permissões atualizadas com sucesso!")
+    st.dataframe(df_usuarios_equipe, use_container_width=True, hide_index=True)
 
-elif selected == "Notificações":
-    st.markdown("### 🔔 Configuração de Notificações & Alertas")
-    st.checkbox("Receber e-mail diário de resumo comercial", value=True)
-    st.checkbox("Alertar sobre leads sem contato há mais de 5 dias", value=True)
-    st.checkbox("Notificar quando uma venda for fechada", value=True)
-    if st.button("Salvar Preferências de Notificação"):
-        st.success("Preferências salvas com sucesso!")
+    st.markdown("---")
+
+    # 🛡️ Detalhes de Segurança e Auditoria de Acessos
+    st.markdown("#### 🛡️ Segurança & Sessões Ativas")
+    ac1, ac2 = st.columns(2)
+    with ac1:
+        st.markdown(
+            "🔒 **Ações administrativas rápidas:**\n\n"
+            "• [Forçar Logout Geral para Sessões Inativas]\n\n"
+            "• [Auditar Logs de Tentativas de Login Falhas]\n\n"
+            "• [Exportar Relatório de Atividade da Equipe]"
+        )
+    with ac2:
+        st.info(
+            "📌 **Nota de Governança:**\n"
+            "A exclusão definitiva de usuários está desativada para preservar a integridade "
+            "do histórico de vendas, propostas e conversões vinculadas. Utilize a opção "
+            "de **Desativar** para revogar acessos com segurança."
+        )
 
 elif selected == "Configurações":
     st.markdown("### ⚙️ Configurações Gerais do Sistema & Painel Administrativo")
