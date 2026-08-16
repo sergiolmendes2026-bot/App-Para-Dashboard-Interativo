@@ -49,7 +49,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- CSS GLOBAL E CENTRALIZADO ---
+# --- CSS GLOBAL ---
 text_app = "#ffffff"
 bg_app = "#16222A"
 
@@ -69,7 +69,10 @@ st.markdown(
             border-right: 1px solid rgba(255, 255, 255, 0.05);
         }}
     </style>
-    """, unsafe_allow_html=True)
+    """, unsafe_allow_html=True
+)
+
+# A partir daqui, seu código continua normalmente sem espaços extras na margem esquerda
 
         /* Container de Filtros do Dashboard */
         .filtros-container {{
