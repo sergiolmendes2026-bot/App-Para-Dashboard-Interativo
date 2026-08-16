@@ -8,12 +8,13 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
 from email.mime.text import MIMEText
 from email import encoders
-from streamlit_option_menu import option_menu
+from streamlit_option_menu import option_menu 
 from email.message import EmailMessage
 import plotly.express as px
 
 def atualizar_banco():
     conn = sqlite3.connect("crm_pro.db")
+    # Este comando cria a tabela se não existir
     conn.execute("""
         CREATE TABLE IF NOT EXISTS clientes (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -36,9 +37,11 @@ def atualizar_banco():
     """)
     conn.commit()
     conn.close()
+    print("Tabela verificada/atualizada com sucesso!")
 
 atualizar_banco()
 
+# Configuração da Página
 st.set_page_config(
     page_title="CRM Pro - Gestão Comercial",
     page_icon="💼",
@@ -46,32 +49,28 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- CSS GLOBAL ---
+# --- CSS GLOBAL E CENTRALIZADO ---
 text_app = "#ffffff"
 bg_app = "#16222A"
 
 st.markdown(
     f"""
     <style>
+        /* Fundo geral da página com a cor exata solicitada */
         .stApp {{ 
-            background-color: {bg_app} !important; 
+            background-color: #16222A !important; 
             color: {text_app}; 
         }}
+        
+        /* Sidebar com transparência de vidro fumê e efeito flutuante sobre a nova cor */
         [data-testid="stSidebar"] {{ 
-            background-color: #0b0f19 !important;
-            box-shadow: 4px 0px 24px rgba(0, 0, 0, 0.45) !important;
+            background: rgba(15, 23, 32, 0.55) !important;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
             border-right: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 8px 0 32px rgba(0, 0, 0, 0.5);
+            padding: 0 !important;
         }}
-        .filtros-container {{
-            background-color: #1b2836;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 20px;
-        }}
-    </style>
-    """, unsafe_allow_html=True
-)
 
         /* Container de Filtros do Dashboard */
         .filtros-container {{
