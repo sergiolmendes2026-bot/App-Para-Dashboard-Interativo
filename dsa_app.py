@@ -531,33 +531,6 @@ elif selected == "Leads":
 Importante: Garanta que sua função conectar() crie a tabela assim:
 No topo do seu código Python, onde você define a conexão com o SQLite, certifique-se de que a estrutura inclua todas as colunas que o formulário envia:
 
-Python
-import sqlite3
-def conectar():
-    conn = sqlite3.connect("crm_pro.db", check_same_thread=False)
-    conn.execute("""
-        CREATE TABLE IF NOT EXISTS clientes (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            nome TEXT,
-            empresa TEXT,
-            email TEXT,
-            telefone TEXT,
-            status TEXT,
-            origem TEXT,
-            responsavel TEXT,
-            prioridade TEXT,
-            data TEXT,
-            ultimo_contato TEXT,
-            valor REAL,
-            produto TEXT,
-            temperatura TEXT,
-            score INTEGER,
-            proxima_acao TEXT
-        )
-    """)
-    conn.commit()
-    return conn
-
     st.markdown("---")
     st.markdown("### 📋 Tabela Dinâmica de Leads")
     
