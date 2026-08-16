@@ -9,6 +9,7 @@ from email.mime.base import MIMEBase
 from email.mime.text import MIMEText
 from email import encoders
 from streamlit_option_menu import option_menu 
+from email.message import EmailMessage
 
 def atualizar_banco():
     conn = sqlite3.connect("crm_pro.db")
