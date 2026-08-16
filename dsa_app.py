@@ -54,49 +54,50 @@ text_app = "#ffffff"
 bg_app = "#16222A"
 
 st.markdown(
-    f"""
+    """
     <style>
-        /* 1. Fundo da página (Cor de fundo escura da imagem) */
-        .stApp {{ 
-            background-color: #0f1115 !important; 
-        }}
+        /* Fundo geral da página - Azul bem escuro */
+        .stApp { 
+            background: radial-gradient(circle at top right, #1a202c, #0f1115) !important;
+        }
         
-        /* 2. Sidebar (Painel lateral) */
-        [data-testid="stSidebar"] {{ 
-            background-color: #1a1d23 !important;
+        /* Sidebar - Fundo transparente para deixar brilhar o fundo da página */
+        [data-testid="stSidebar"] { 
+            background: rgba(20, 25, 35, 0.4) !important;
+            backdrop-filter: blur(20px) !important;
             border-right: 1px solid rgba(255, 255, 255, 0.05);
-        }}
+        }
 
-        /* 3. O "Card" do menu (onde ficam os itens) */
-        /* Ajustamos o container interno para ter cor diferente e bordas arredondadas */
-        [data-testid="stSidebar"] div[data-testid="stVerticalBlock"] > div:first-child {{
-            background-color: #21262d !important;
-            border-radius: 20px !important;
-            padding: 20px !important;
+        /* O "Card" do menu - Onde está o brilho e a sombra */
+        [data-testid="stSidebar"] div[data-testid="stVerticalBlock"] > div:first-child {
+            background: rgba(30, 35, 45, 0.6) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            border-radius: 24px !important;
+            padding: 24px !important;
             margin: 15px !important;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3) !important;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-        }}
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.05) !important;
+        }
 
-        /* 4. Estilo do item selecionado (Aquele azul suave da imagem) */
-        .nav-link-selected {{
-            background-color: #2d3748 !important; /* Cor de fundo do item selecionado */
-            border-left: 4px solid #4a5568 !important; /* Detalhe lateral */
-            border-radius: 8px !important;
-            color: #ffffff !important;
-        }}
+        /* Destaque do item selecionado (o brilho azul) */
+        .nav-link-selected {
+            background: linear-gradient(90deg, #3182ce, #2b6cb0) !important;
+            color: white !important;
+            box-shadow: 0 4px 15px rgba(49, 130, 206, 0.4) !important;
+            border-radius: 12px !important;
+        }
 
-        /* 5. Estilo dos itens não selecionados */
-        .nav-link {{
+        /* Estilo dos textos dos itens */
+        .nav-link {
             color: #a0aec0 !important;
-            padding: 10px 15px !important;
-        }}
-        
-        /* 6. Ajuste da seção de Usuário (fica fora do cartão do menu) */
-        [data-testid="stSidebar"] div[data-testid="stVerticalBlock"] > div:last-child {{
-            padding-left: 30px !important;
-            color: #718096 !important;
-        }}
+            font-weight: 500 !important;
+        }
+
+        /* Rodapé (Usuário/Status) */
+        [data-testid="stSidebar"] div[data-testid="stVerticalBlock"] > div:last-child {
+            margin-top: auto;
+            padding: 20px;
+            color: #718096;
+        }
     </style>
     """, unsafe_allow_html=True
 )
