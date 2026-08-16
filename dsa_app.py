@@ -1073,6 +1073,128 @@ elif selected == "Propostas":
     ])
     st.dataframe(df_historico, use_container_width=True, hide_index=True)
 
+elif selected == "Relatórios":
+    st.markdown("### 📊 Relatórios Executivos & Central de Exportação")
+    
+    # 📊 1. KPIs de Resumo no Topo
+    rk1, rk2, rk3, rk4 = st.columns(4)
+    with rk1:
+        st.metric("👥 Leads", "128")
+    with rk2:
+        st.metric("💰 Vendas", "23")
+    with rk3:
+        st.metric("💵 Faturamento", "R$ 125.500")
+    with rk4:
+        st.metric("📈 Conversão", "18%")
+
+    st.markdown("---")
+
+    # 📑 2. Configurar Relatório & Filtros Avançados
+    st.markdown("#### 📑 Configurar Relatório")
+    
+    r_col1, r_col2 = st.columns(2)
+    with r_col1:
+        tipo_relatorio = st.selectbox(
+            "Tipo de Relatório", 
+            [
+                "📊 Vendas Consolidadas", 
+                "👥 Relatório de Leads", 
+                "🎯 Conversão de Leads", 
+                "💰 Faturamento", 
+                "📈 Performance Comercial", 
+                "🏆 Performance por Vendedor", 
+                "📦 Vendas por Produto", 
+                "💳 Relatório de Pagamentos", 
+                "📋 Pipeline Comercial", 
+                "📅 Atividades e Compromissos", 
+                "📄 Propostas", 
+                "📣 Campanhas"
+            ]
+        )
+        
+        from datetime import date
+        rc_dt1, rc_dt2 = st.columns(2)
+        with rc_dt1:
+            r_ini = st.date_input("Data Inicial", value=date(2026, 8, 1))
+        with rc_dt2:
+            r_fim = st.date_input("Data Final", value=date(2026, 8, 31))
+
+        r_resp = st.selectbox("Responsável", ["Todos", "Carlos", "Ana", "Larissa"])
+
+    with r_col2:
+        r_prod = st.selectbox("Produto / Serviço", ["Todos", "Software A", "Software B", "Enterprise", "Consultoria"])
+        r_status = st.selectbox("Status", ["Todos", "Pago", "Pendente", "Em Atraso", "Cancelado"])
+        r_origem = st.selectbox("Origem do Lead", ["Todos", "Google Ads", "Instagram", "WhatsApp", "Site"])
+        r_pipeline = st.selectbox("Pipeline / Etapa", ["Todas", "Novo Lead", "Qualificação", "Proposta", "Negociação", "Fechamento"])
+
+    st.markdown("---")
+
+    # 👁️ 3. Pré-visualização e Resumo antes da Exportação
+    st.markdown("#### 👁️ Pré-visualização dos Dados")
+    import pandas as pd
+    df_preview = pd.DataFrame([
+        {"Cliente": "João Silva", "Produto": "Software A", "Valor": "R$ 5.000", "Responsável": "Carlos", "Status": "Pago"},
+        {"Cliente": "Alpha Tech", "Produto": "Software B", "Valor": "R$ 8.500", "Responsável": "Ana", "Status": "Pendente"},
+        {"Cliente": "Global Ltda", "Produto": "Enterprise", "Valor": "R$ 12.000", "Responsável": "Carlos", "Status": "Pago"}
+    ])
+    st.dataframe(df_preview, use_container_width=True, hide_index=True)
+
+    st.markdown("---")
+
+    # 📊 Resumo Executivo Rápido
+    st.markdown("#### 📊 Resumo do Relatório Selecionado")
+    rs1, rs2, rs3, rs4, rs5, rs6 = st.columns(6)
+    with rs1:
+        st.metric("Leads", "128")
+    with rs2:
+        st.metric("Oportunidades", "47")
+    with rs3:
+        st.metric("Vendas", "23")
+    with rs4:
+        st.metric("Faturamento", "R$ 125.5k")
+    with rs5:
+        st.metric("Ticket Médio", "R$ 5.456")
+    with rs6:
+        st.metric("Conversão", "18%")
+
+    st.markdown("---")
+
+    # 📤 5. Opções de Exportação
+    st.markdown("#### 📤 Opções de Exportação")
+    
+    ex_col1, ex_col2 = st.columns(2)
+    with ex_col1:
+        formato_export = st.radio("Formato do Arquivo", ["Excel (.xlsx)", "CSV (.csv)", "PDF (.pdf)"], horizontal=True)
+    with ex_col2:
+        st.markdown("**Opções Adicionais:**")
+        chk_resumo = st.checkbox("Incluir resumo executivo", value=True)
+        chk_graficos = st.checkbox("Incluir gráficos", value=True)
+        chk_filtros = st.checkbox("Incluir filtros aplicados", value=True)
+
+    # Botões de Ação Separados
+    ac_ex1, ac_ex2, ac_ex3 = st.columns(3)
+    with ac_ex1:
+        if st.button("👁️ Visualizar Relatório Completo"):
+            st.success("Visualização gerada com sucesso!")
+    with ac_ex2:
+        if st.button("📥 Exportar Arquivo"):
+            st.success(f"Relatório exportado em {formato_export} com sucesso!")
+    with ac_ex3:
+        if st.button("📧 Enviar por E-mail"):
+            st.success("Relatório disparado para os e-mails cadastrados!")
+
+    st.markdown("---")
+
+    # 🕒 6. Histórico de Exportações
+    st.markdown("#### 🕒 Histórico de Exportações Recentes")
+    df_historico_exp = pd.DataFrame([
+        {"Data": "15/08/2026 14:30", "Relatório": "Vendas Consolidadas", "Período": "Agosto", "Formato": "Excel (.xlsx)", "Usuário": "Carlos", "Ações": "📥"},
+        {"Data": "15/08/2026 13:10", "Relatório": "Relatório de Leads", "Período": "Agosto", "Formato": "PDF (.pdf)", "Usuário": "Ana", "Ações": "📥"}
+    ])
+    st.dataframe(df_historico_exp, use_container_width=True, hide_index=True)
+    
+    if st.button("🔄 Reutilizar Filtros da Última Exportação"):
+        st.info("Filtros aplicados com base no histórico selecionado.")   
 elif selected == "Metas":
     st.markdown("### 🎯 Metas Comerciais e Acompanhamento de Equipe")
     
