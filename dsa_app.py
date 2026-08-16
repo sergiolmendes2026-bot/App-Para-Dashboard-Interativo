@@ -220,34 +220,37 @@ criar_tabelas()
 
 # Função de Disparo de E-mail Automático
 def disparar_email_automatico(destinatario, arquivo_bytes, nome_arquivo):
-    servidor_smtp = "smtp.gmail.com"
+   servidor_smtp = "smtp.gmail.com"
     porta_smtp = 587
     remetente = "sergiolmendes2026@gmail.com"
     senha_app = "xkhrditqfoapjtr"
 
-    msg = MIMEMultipart()
-    msg['From'] = remetente
-    msg['To'] = destinatario
-    msg['Subject'] = "📊 Dashboard  & Indicadores de Desempenho"
-
-    corpo = "Olá,\n\nSegue em anexo o relatório comercial consolidado gerado automaticamente pelo CRM Pro.\n\nAtenciosamente,\nEquipe CRM Pro"
-    msg.attach(MIMEText(corpo, 'plain'))
-
-    parte = MIMEBase('application', 'octet-stream')
-    parte.set_payload(arquivo_bytes)
-    encoders.encode_base64(parte)
-    parte.add_header('Content-Disposition', f'attachment; filename= {nome_arquivo}')
-    msg.attach(parte)
-
     try:
-        server = smtplib.SMTP(servidor_smtp, porta_smtp)
-        server.starttls()
-        server.login(remetente, senha_app)
-        server.sendmail(remetente, destinatario, msg.as_string())
-        server.quit()
+        # 1. Estruturar a mensagem
+        mensagem = MIMEMultipart()
+        mensagem["From"] = remetente
+        mensagem["To"] = destinatario
+        mensagem["Subject"] = "Relatório / Proposta Comercial - CRM Pro"
+
+        mensagem.attach(MIMEText("Segue em anexo o arquivo solicitado através do nosso sistema CRM.", "plain"))
+
+        # 2. Anexar o arquivo em bytes
+        parte = MIMEBase("application", "octet-stream")
+        parte.set_payload(arquivo_bytes)
+        encoders.encode_base64(parte)
+        parte.add_header("Content-Disposition", f"attachment; filename={nome_arquivo}")
+        mensagem.attach(parte)
+
+        # 3. Conectar ao servidor SMTP e enviar
+        servidor = smtplib.SMTP(servidor_smtp, porta_smtp)
+        servidor.starttls()
+        servidor.login(remetente, senha_app)
+        servidor.sendmail(remetente, destinatario, mensagem.as_string())
+        servidor.quit()
+        
         return True
     except Exception as e:
-        print(f"Erro ao enviar e-mail: {e}")
+        print(f"Erro detalhado no envio: {e}")
         return False
 
 # Inicialização de Estados de Sessão
