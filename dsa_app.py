@@ -1058,10 +1058,16 @@ elif selected == "Propostas":
                 st.success("Documento PDF gerado com sucesso!")
         with ba3:
             if st.button("📧 Enviar por E-mail"):
-                st.success("E-mail enviado para o cliente!")
-        with ba4:
-            if st.button("💾 Salvar"):
-                st.success("Alterações salvas!")
+    # Força o envio direto para o seu e-mail para testarmos
+    email_destino = "sergiolmendes2026@gmail.com"
+    
+    # Chama a função que criamos antes
+    sucesso = disparar_email_automatico(email_destino, arquivo_bytes, nome_arquivo)
+    
+    if sucesso:
+        st.success(f"E-mail disparado com sucesso para {email_destino}!")
+    else:
+        st.error("Erro ao enviar.")
 
     with col_prop2:
         st.markdown("#### 📋 Histórico de Propostas")
