@@ -451,25 +451,28 @@ elif selected == "Leads":
 
             l_obs = st.text_area("5. Histórico Inicial / Observações")
 
-            btn_salvar_lead = st.form_submit_button("💾 Salvar Lead Completo")
+           btn_salvar_lead = st.form_submit_button("💾 Salvar Lead Completo")
             if btn_salvar_lead:
                 if l_nome:
                     conn = conectar()
-                    # Certifique-se de ajustar a query caso seu banco possua mais colunas correspondentes
-                    conn.execute("""
-                        INSERT INTO clientes (
-                            nome, empresa, email, telefone, status, origem, responsavel, prioridade, 
-                            data, ultimo_contato, valor, produto, temperatura, score, proxima_acao
-                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    """, (
-                        l_nome, l_empresa, l_email, l_telefone, l_status, l_origem, l_responsavel, l_prioridade, 
-                        str(date.today()), str(date.today()), l_valor, l_produto, l_temperatura, l_score, l_proxima_acao
-                    ))
-                    conn.commit()
-                    conn.close()
-                    st.success("Lead cadastrado com sucesso!")
-                    st.session_state.modal_novo_lead = False
-                    st.rerun()
+                    try:
+                        conn.execute("""
+                            INSERT INTO clientes (
+                                nome, empresa, email, telefone, status, origem, responsavel, prioridade, 
+                                data, ultimo_contato, valor, produto, temperatura, score, proxima_acao
+                            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        """, (
+                            l_nome, l_empresa, l_email, l_telefone, l_status, l_origem, l_responsavel, l_prioridade, 
+                            str(date.today()), str(date.today()), l_valor, l_produto, l_temperatura, l_score, l_proxima_acao
+                        ))
+                        conn.commit()
+                        st.success("Lead cadastrado com sucesso!")
+                        st.session_state.modal_novo_lead = False
+                        st.rerun()
+                    except Exception as e:
+                        st.error(f"Erro ao inserir no banco de dados. Verifique as colunas da tabela: {e}")
+                    finally:
+                        conn.close()
                 else:
                     st.error("O campo Nome do Contato é obrigatório.")
 
