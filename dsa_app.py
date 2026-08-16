@@ -63,14 +63,12 @@ st.markdown(
         }}
         
         /* Sidebar com transparência de vidro fumê e efeito flutuante sobre a nova cor */
-        [data-testid="stSidebar"] {{ 
-            background: rgba(15, 23, 32, 0.55) !important;
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border-right: 1px solid rgba(255, 255, 255, 0.05);
-            box-shadow: 8px 0 32px rgba(0, 0, 0, 0.5);
+        [data-testid="stSidebar"] { 
+            background-color: #0b0f19 !important; /* Cor da imagem que você enviou */
+            box-shadow: 4px 0px 24px rgba(0, 0, 0, 0.45) !important; /* Sombra suave */
+            border-right: 1px solid rgba(255, 255, 255, 0.05); /* Borda sutil para definir o limite */
             padding: 0 !important;
-        }}
+        }
 
         /* Container de Filtros do Dashboard */
         .filtros-container {{
