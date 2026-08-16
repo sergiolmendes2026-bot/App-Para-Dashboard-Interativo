@@ -1050,10 +1050,10 @@ elif selected == "Propostas":
             with st.spinner("Enviando e-mail..."):
                 sucesso = disparar_email_automatico(email_destino, arquivo_bytes, nome_arquivo)
             
-            if sucesso:
-                st.success(f"E-mail disparado com sucesso para {email_destino}!")
-            else:
-                st.error("A função retornou falso. Verifique o console para mais detalhes.")
+                if sucesso:
+                    st.success(f"E-mail disparado com sucesso para {email_destino}!")
+                else:
+                    st.error("A função retornou falso. Verifique o console para mais detalhes.")
                 
         except Exception as e:
             # Exibe o erro exato na interface do Streamlit
