@@ -1041,11 +1041,9 @@ elif selected == "Propostas":
             if st.button("👁️ Visualizar"):
                 st.info("Abrindo visualização em PDF da proposta selecionada.")
                 
-       with ba2:
-            # O 'if' abaixo deve estar um nível à frente do 'with'
+        with ba2:
             if st.button("📧 Enviar por E-mail"):
                 email_destino = "sergiolmendes2026@gmail.com"
-                # A variável sucesso deve estar alinhada com o 'if'
                 sucesso = disparar_email_automatico(email_destino, arquivo_bytes, nome_arquivo)
                 
                 if sucesso:
