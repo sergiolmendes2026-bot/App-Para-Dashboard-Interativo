@@ -344,7 +344,11 @@ elif selected == "Leads":
     
     col_l1, col_l2 = st.columns([3, 1])
     with col_l1:
-        pesquisa_lead = st.text_input("🔍 Pesquisar Lead por Nome, Empresa ou E-mail", "")
+        pesquisa_lead = st.text_input(
+    "Pesquisar",
+    placeholder="Pesquisar...",
+    label_visibility="collapsed",
+)
     with col_l2:
         if st.button("➕ Novo Lead Completo", use_container_width=True):
             st.session_state.modal_novo_lead = True
