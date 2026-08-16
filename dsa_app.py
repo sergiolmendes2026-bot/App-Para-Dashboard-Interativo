@@ -517,18 +517,24 @@ elif selected == "Leads":
     with st.expander("🔎 Filtros Avançados da Tabela"):
         fa1, fa2, fa3, fa4 = st.columns(4)
         with fa1:
+            # Adicionei key="filtro_status_unique"
             filtro_status = st.selectbox("Filtrar por Status", ["Todos"] + [
                 "🆕 Novo Lead", "📞 Primeiro Contato", "💬 Em Atendimento",
                 "📋 Proposta Enviada", "⏳ Aguardando Resposta", "🤝 Negociação",
                 "✅ Venda Fechada", "❌ Venda Perdida", "🔄 Pós-Venda"
-            ])
+            ], key="filtro_status_unique")
+            
         with fa2:
-            filtro_temp = st.selectbox("Filtrar por Temperatura", ["Todas", "🔥 Quente", "⛅ Morno", "❄️ Frio"])
+            # Adicionei key="filtro_temp_unique"
+            filtro_temp = st.selectbox("Filtrar por Temperatura", ["Todas", "🔥 Quente", "⛅ Morno", "❄️ Frio"], key="filtro_temp_unique")
+            
         with fa3:
-            filtro_prioridade = st.selectbox("Filtrar por Prioridade", ["Todas", "🔴 Alta", "🟡 Média", "🟢 Baixa"])
+            # Adicionei key="filtro_prioridade_unique"
+            filtro_prioridade = st.selectbox("Filtrar por Prioridade", ["Todas", "🔴 Alta", "🟡 Média", "🟢 Baixa"], key="filtro_prioridade_unique")
+            
         with fa4:
-            filtro_resp = st.selectbox("Filtrar por Responsável", ["Todos", "Carlos", "Ana", "Larissa"])
-
+            # Adicionei key="filtro_resp_unique"
+            filtro_resp = st.selectbox("Filtrar por Responsável", ["Todos", "Carlos", "Ana", "Larissa"], key="filtro_resp_unique")
     # Lógica de exibição com os filtros aplicados
     if 'df_clientes' in locals() and not df_clientes.empty:
         df_filtrado = df_clientes.copy()
