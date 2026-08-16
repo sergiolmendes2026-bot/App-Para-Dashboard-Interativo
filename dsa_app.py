@@ -56,45 +56,49 @@ bg_app = "#16222A"
 st.markdown(
     f"""
     <style>
-        /* Fundo geral da página (Aplicação do gradiente da sua imagem) */
+        /* 1. Fundo da página (Cor de fundo escura da imagem) */
         .stApp {{ 
-            background: linear-gradient(135deg, #0b0f19 0%, #16222A 50%, #0f1720 100%) !important;
-            color: #ffffff !important;
+            background-color: #0f1115 !important; 
         }}
         
-        /* Sidebar com o mesmo gradiente, mas com efeito de profundidade */
+        /* 2. Sidebar (Painel lateral) */
         [data-testid="stSidebar"] {{ 
-            background: linear-gradient(180deg, #0b0f19 0%, #16222A 100%) !important;
+            background-color: #1a1d23 !important;
             border-right: 1px solid rgba(255, 255, 255, 0.05);
-            box-shadow: 10px 0 30px rgba(0, 0, 0, 0.6);
-            padding: 0 !important;
         }}
 
-        /* O Card do Menu (onde fica o seu option_menu) */
-        /* Aplicando a sombra profunda e o fundo mais claro para destacar */
+        /* 3. O "Card" do menu (onde ficam os itens) */
+        /* Ajustamos o container interno para ter cor diferente e bordas arredondadas */
         [data-testid="stSidebar"] div[data-testid="stVerticalBlock"] > div:first-child {{
-            background: rgba(255, 255, 255, 0.04) !important;
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            border-radius: 16px;
-            padding: 15px !important;
-            margin: 20px 15px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4) !important;
+            background-color: #21262d !important;
+            border-radius: 20px !important;
+            padding: 20px !important;
+            margin: 15px !important;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3) !important;
+            border: 1px solid rgba(255, 255, 255, 0.08);
         }}
 
-        /* Estilização dos itens do menu */
-        .nav-link {{
-            color: #94a3b8 !important;
+        /* 4. Estilo do item selecionado (Aquele azul suave da imagem) */
+        .nav-link-selected {{
+            background-color: #2d3748 !important; /* Cor de fundo do item selecionado */
+            border-left: 4px solid #4a5568 !important; /* Detalhe lateral */
             border-radius: 8px !important;
-            margin-bottom: 5px !important;
+            color: #ffffff !important;
+        }}
+
+        /* 5. Estilo dos itens não selecionados */
+        .nav-link {{
+            color: #a0aec0 !important;
+            padding: 10px 15px !important;
         }}
         
-        .nav-link-selected {{
-            background: linear-gradient(90deg, #2563eb 0%, #1d4ed8 100%) !important;
-            color: #ffffff !important;
-            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3) !important;
+        /* 6. Ajuste da seção de Usuário (fica fora do cartão do menu) */
+        [data-testid="stSidebar"] div[data-testid="stVerticalBlock"] > div:last-child {{
+            padding-left: 30px !important;
+            color: #718096 !important;
         }}
     </style>
-    """, unsafe_allow_html=True,
+    """, unsafe_allow_html=True
 )
 
 # Inicialização do Banco de Dados SQLite
