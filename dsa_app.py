@@ -9,6 +9,36 @@ from email.mime.base import MIMEBase
 from email.mime.text import MIMEText
 from email import encoders
 from streamlit_option_menu import option_menu
+import sqlite3
+
+def atualizar_banco():
+    conn = sqlite3.connect("crm_pro.db")
+    # Este comando cria a tabela se não existir
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS clientes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nome TEXT,
+            empresa TEXT,
+            email TEXT,
+            telefone TEXT,
+            status TEXT,
+            origem TEXT,
+            responsavel TEXT,
+            prioridade TEXT,
+            data TEXT,
+            ultimo_contato TEXT,
+            valor REAL,
+            produto TEXT,
+            temperatura TEXT,
+            score INTEGER,
+            proxima_acao TEXT
+        )
+    """)
+    conn.commit()
+    conn.close()
+    print("Tabela verificada/atualizada com sucesso!")
+
+atualizar_banco()
 
 # Configuração da Página
 st.set_page_config(
