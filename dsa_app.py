@@ -56,47 +56,39 @@ bg_app = "#16222A"
 st.markdown(
     """
     <style>
-        /* Fundo geral da página - Azul bem escuro */
+        /* 1. Gradiente profundo de fundo (o azul escuro que você enviou) */
         .stApp { 
-            background: radial-gradient(circle at top right, #1a202c, #0f1115) !important;
+            background: linear-gradient(135deg, #0f111a 0%, #161b22 50%, #0d1117 100%) !important;
+        }
+
+        /* 2. Sidebar Transparente */
+        [data-testid="stSidebar"] { 
+            background: transparent !important;
+        }
+
+        /* 3. Painel Flutuante do Menu (Onde está o efeito de sombra e brilho) */
+        [data-testid="stSidebar"] > div:first-child {
+            background: rgba(22, 27, 34, 0.7) !important;
+            backdrop-filter: blur(20px) !important;
+            -webkit-backdrop-filter: blur(20px) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            border-radius: 25px !important;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5), 0 0 15px rgba(66, 153, 225, 0.2) !important;
+            margin: 20px 15px !important;
+            padding: 20px !important;
+        }
+
+        /* 4. Estilo do item selecionado (Brilho Azul) */
+        .nav-link-selected {
+            background: linear-gradient(90deg, #3182ce 0%, #2b6cb0 100%) !important;
+            box-shadow: 0 4px 15px rgba(49, 130, 206, 0.5) !important;
+            border-radius: 12px !important;
+            color: white !important;
         }
         
-        /* Sidebar - Fundo transparente para deixar brilhar o fundo da página */
-        [data-testid="stSidebar"] { 
-            background: rgba(20, 25, 35, 0.4) !important;
-            backdrop-filter: blur(20px) !important;
-            border-right: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        /* O "Card" do menu - Onde está o brilho e a sombra */
-        [data-testid="stSidebar"] div[data-testid="stVerticalBlock"] > div:first-child {
-            background: rgba(30, 35, 45, 0.6) !important;
-            border: 1px solid rgba(255, 255, 255, 0.1) !important;
-            border-radius: 24px !important;
-            padding: 24px !important;
-            margin: 15px !important;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.05) !important;
-        }
-
-        /* Destaque do item selecionado (o brilho azul) */
-        .nav-link-selected {
-            background: linear-gradient(90deg, #3182ce, #2b6cb0) !important;
-            color: white !important;
-            box-shadow: 0 4px 15px rgba(49, 130, 206, 0.4) !important;
-            border-radius: 12px !important;
-        }
-
-        /* Estilo dos textos dos itens */
+        /* 5. Ajuste de texto para ficar visível */
         .nav-link {
             color: #a0aec0 !important;
-            font-weight: 500 !important;
-        }
-
-        /* Rodapé (Usuário/Status) */
-        [data-testid="stSidebar"] div[data-testid="stVerticalBlock"] > div:last-child {
-            margin-top: auto;
-            padding: 20px;
-            color: #718096;
         }
     </style>
     """, unsafe_allow_html=True
