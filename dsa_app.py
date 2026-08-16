@@ -1047,21 +1047,22 @@ elif selected == "Propostas":
             if btn_salvar_prop:
                 st.success(f"Proposta {p_numero} salva com sucesso!")
 
-        # Ações avulsas fora do formulário para visualização e exportação
         st.markdown("##### 🚀 Ações Rápidas")
         ba1, ba2, ba3, ba4 = st.columns(4)
+        
         with ba1:
             if st.button("👁️ Visualizar"):
                 st.info("Abrindo visualização em PDF da proposta selecionada.")
+                
         with ba2:
             if st.button("📧 Enviar por E-mail"):
-    email_destino = "sergiolmendes2026@gmail.com"
-    sucesso = disparar_email_automatico(email_destino, arquivo_bytes, nome_arquivo)
-    
-    if sucesso:
-        st.success(f"E-mail disparado com sucesso para {email_destino}!")
-    else:
-        st.error("Erro ao enviar.")
+                email_destino = "sergiolmendes2026@gmail.com"
+                sucesso = disparar_email_automatico(email_destino, arquivo_bytes, nome_arquivo)
+                
+                if sucesso:
+                    st.success(f"E-mail disparado com sucesso para {email_destino}!")
+                else:
+                    st.error("Erro ao enviar.")
 
     with col_prop2:
         st.markdown("#### 📋 Histórico de Propostas")
