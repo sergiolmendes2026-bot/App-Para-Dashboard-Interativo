@@ -56,49 +56,49 @@ bg_app = "#16222A"
 st.markdown(
     """
     <style>
-        /* Fundo geral da página (removido o azul petróleo, agora mais neutro e elegante) */
+        /* Fundo com gradiente rico e um brilho difuso (Ambient Glow) */
         .stApp { 
-            background: linear-gradient(135deg, #090d16 0%, #111827 50%, #06090f 100%) !important;
+            background: radial-gradient(circle at 15% 15%, #1e293b 0%, #0f172a 45%, #07090e 100%) !important;
         }
 
-        /* Sidebar Transparente */
+        /* Sidebar com transparência suave para absorver o brilho do fundo */
         [data-testid="stSidebar"] { 
-            background: rgba(10, 14, 23, 0.7) !important;
-            backdrop-filter: blur(16px);
-            border-right: 1px solid rgba(255, 255, 255, 0.04);
+            background: rgba(15, 23, 42, 0.45) !important;
+            backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(255, 255, 255, 0.06);
         }
 
-        /* O Cartão do Menu com Sombra Profunda */
+        /* O Cartão do Menu com profundidade e brilho nas bordas */
         [data-testid="stSidebar"] div[data-testid="stVerticalBlock"] > div:first-child {
-            background: rgba(17, 24, 39, 0.9) !important;
+            background: rgba(30, 41, 59, 0.75) !important;
             border-radius: 20px !important;
             padding: 18px !important;
             margin: 15px 12px !important;
-            border: 1px solid rgba(255, 255, 255, 0.06) !important;
-            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.8), 
-                        0 0 25px rgba(59, 130, 246, 0.08),
-                        inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+            border: 1px solid rgba(255, 255, 255, 0.12) !important;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7), 
+                        0 0 30px rgba(59, 130, 246, 0.15),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
         }
 
-        /* Estilo padrão dos itens do menu (texto e ícones) */
+        /* Estilo padrão dos itens do menu */
         .nav-link {
-            color: #9ca3af !important;
+            color: #94a3b8 !important;
             border-radius: 10px !important;
             transition: all 0.3s ease !important;
         }
 
-        /* BRILHO AO PASSAR O MOUSE (Hover) */
+        /* Efeito Brilhante ao passar o mouse */
         .nav-link:hover {
-            background: rgba(59, 130, 246, 0.12) !important;
+            background: rgba(59, 130, 246, 0.18) !important;
             color: #ffffff !important;
-            box-shadow: 0 0 15px rgba(59, 130, 246, 0.3) !important;
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.3) !important;
             transform: translateX(4px);
         }
 
-        /* Estilo do item selecionado com brilho fixo */
+        /* Item selecionado com destaque luminoso */
         .nav-link-selected {
-            background: linear-gradient(90deg, #2563eb 0%, #1d4ed8 100%) !important;
-            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4), 0 0 15px rgba(59, 130, 246, 0.5) !important;
+            background: linear-gradient(90deg, #3b82f6 0%, #1d4ed8 100%) !important;
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.5), 0 0 20px rgba(59, 130, 246, 0.4) !important;
             border-radius: 10px !important;
             color: white !important;
         }
