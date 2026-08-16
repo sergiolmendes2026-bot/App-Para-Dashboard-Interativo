@@ -220,50 +220,36 @@ criar_tabelas()
 
 # Função de Disparo de E-mail Automático
 def disparar_email_automatico(destinatario, arquivo_bytes, nome_arquivo):
-    # 1. Configurações básicas de envio
-    servidor_smtp = "smtp.gmail.com"
-    porta_smtp = 587
-    remetente = "sergiolmendes2026@gmail.com"
-    senha_app = "xkhrditqfoapjtr"
-    
     try:
-        # Importando as bibliotecas necessárias para montar o e-mail com anexo
-        import smtplib
-        from email.mime.multipart import MIMEMultipart
-        from email.mime.text import MIMEText
-        from email.mime.base import MIMEBase
-        from email import encoders
+        # Substitua pelas suas configurações reais
+        servidor_smtp = "smtp.gmail.com"
+        porta = 587
+        remetente = "sergiolmendes2026@gmail.com"
+        senha = "xkhrditqfoapjtr"
 
-        # 2. Criando a estrutura da mensagem
-        mensagem = MIMEMultipart()
-        mensagem["From"] = remetente
-        mensagem["To"] = destinatario
-        mensagem["Subject"] = "Relatório / Proposta Comercial - CRM Pro"
+        msg = EmailMessage()
+        msg['Subject'] = "Proposta Comercial em Anexo"
+        msg['From'] = remetente
+        msg['To'] = email_destino
+        msg.set_content("Olá, segue em anexo a proposta solicitada.")
 
-        # Adicionando o texto principal do e-mail
-        corpo_texto = "Segue em anexo o arquivo solicitado através do nosso sistema CRM."
-        mensagem.attach(MIMEText(corpo_texto, "plain"))
+        # Anexando o arquivo
+        msg.add_attachment(
+            arquivo_bytes,
+            maintype='application',
+            subtype='pdf',
+            filename=nome_arquivo
+        )
 
-        # 3. Preparando e anexando o arquivo (PDF, Excel, etc.)
-        parte_arquivo = MIMEBase("application", "octet-stream")
-        parte_arquivo.set_payload(arquivo_bytes)
-        encoders.encode_base64(parte_arquivo)
-        parte_arquivo.add_header("Content-Disposition", f"attachment; filename={nome_arquivo}")
-        mensagem.attach(parte_arquivo)
-
-        # 4. Conectando ao servidor do Gmail e enviando
-        servidor = smtplib.SMTP(servidor_smtp, porta_smtp)
-        servidor.starttls()  # Ativa a segurança da conexão
-        servidor.login(remetente, senha_app)  # Faz o login com a Senha de App
-        servidor.sendmail(remetente, destinatario, mensagem.as_string())  # Dispara o e-mail
-        servidor.quit()  # Fecha a conexão com o servidor
-        
-        # Se deu tudo certo, retorna Verdadeiro
+        # Conexão e envio
+        with smtplib.SMTP(servidor_smtp, porta) as smtp:
+            smtp.starttls()
+            smtp.login(remetente, senha)
+            smtp.send_message(msg)
+            
         return True
-
     except Exception as e:
-        # Se acontecer qualquer erro, ele avisa no console/terminal
-        print(f"Erro detalhado no envio: {e}")
+        print(f"Erro detalhado no envio do e-mail: {e}")
         return False
 
 # Inicialização de Estados de Sessão
