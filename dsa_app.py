@@ -56,39 +56,38 @@ bg_app = "#16222A"
 st.markdown(
     """
     <style>
-        /* 1. Gradiente profundo de fundo (o azul escuro que você enviou) */
+        /* Fundo geral da página */
         .stApp { 
             background: linear-gradient(135deg, #0f111a 0%, #161b22 50%, #0d1117 100%) !important;
         }
 
-        /* 2. Sidebar Transparente */
+        /* Sidebar Transparente */
         [data-testid="stSidebar"] { 
-            background: transparent !important;
+            background: rgba(15, 18, 25, 0.6) !important;
+            backdrop-filter: blur(16px);
+            border-right: 1px solid rgba(255, 255, 255, 0.04);
         }
 
-        /* 3. Painel Flutuante do Menu (Onde está o efeito de sombra e brilho) */
-        [data-testid="stSidebar"] > div:first-child {
-            background: rgba(22, 27, 34, 0.7) !important;
-            backdrop-filter: blur(20px) !important;
-            -webkit-backdrop-filter: blur(20px) !important;
-            border: 1px solid rgba(255, 255, 255, 0.1) !important;
-            border-radius: 25px !important;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5), 0 0 15px rgba(66, 153, 225, 0.2) !important;
-            margin: 20px 15px !important;
-            padding: 20px !important;
+        /* O Cartão do Menu com Sombra Premium e Brilho Sutil */
+        [data-testid="stSidebar"] div[data-testid="stVerticalBlock"] > div:first-child {
+            background: rgba(22, 27, 34, 0.85) !important;
+            border-radius: 20px !important;
+            padding: 18px !important;
+            margin: 15px 12px !important;
+            border: 1px solid rgba(255, 255, 255, 0.08) !important;
+            
+            /* Sombra principal profunda + Brilho azulado suave nas bordas */
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.75), 
+                        0 0 25px rgba(49, 130, 206, 0.12),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.07) !important;
         }
 
-        /* 4. Estilo do item selecionado (Brilho Azul) */
+        /* Estilo do item selecionado com brilho */
         .nav-link-selected {
             background: linear-gradient(90deg, #3182ce 0%, #2b6cb0 100%) !important;
-            box-shadow: 0 4px 15px rgba(49, 130, 206, 0.5) !important;
-            border-radius: 12px !important;
+            box-shadow: 0 6px 20px rgba(49, 130, 206, 0.4) !important;
+            border-radius: 10px !important;
             color: white !important;
-        }
-        
-        /* 5. Ajuste de texto para ficar visível */
-        .nav-link {
-            color: #a0aec0 !important;
         }
     </style>
     """, unsafe_allow_html=True
