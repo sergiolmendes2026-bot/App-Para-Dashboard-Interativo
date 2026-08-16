@@ -1054,14 +1054,8 @@ elif selected == "Propostas":
             if st.button("👁️ Visualizar"):
                 st.info("Abrindo visualização em PDF da proposta selecionada.")
         with ba2:
-            if st.button("📄 Gerar PDF"):
-                st.success("Documento PDF gerado com sucesso!")
-        with ba3:
             if st.button("📧 Enviar por E-mail"):
-    # Força o envio direto para o seu e-mail para testarmos
     email_destino = "sergiolmendes2026@gmail.com"
-    
-    # Chama a função que criamos antes
     sucesso = disparar_email_automatico(email_destino, arquivo_bytes, nome_arquivo)
     
     if sucesso:
