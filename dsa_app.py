@@ -223,7 +223,7 @@ def disparar_email_automatico(destinatario, arquivo_bytes, nome_arquivo):
     servidor_smtp = "smtp.gmail.com"
     porta_smtp = 587
     remetente = "sergiolmendes2026@gmail.com"
-    senha_app = "sua_senha_de_app_aqui"
+    senha_app = "xkhrditqfoapjtr"
 
     msg = MIMEMultipart()
     msg['From'] = remetente
