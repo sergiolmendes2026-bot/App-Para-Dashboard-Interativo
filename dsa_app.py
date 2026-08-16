@@ -56,36 +56,49 @@ bg_app = "#16222A"
 st.markdown(
     """
     <style>
-        /* Fundo geral da página */
+        /* Fundo geral da página (removido o azul petróleo, agora mais neutro e elegante) */
         .stApp { 
-            background: linear-gradient(135deg, #0f111a 0%, #161b22 50%, #0d1117 100%) !important;
+            background: linear-gradient(135deg, #090d16 0%, #111827 50%, #06090f 100%) !important;
         }
 
         /* Sidebar Transparente */
         [data-testid="stSidebar"] { 
-            background: rgba(15, 18, 25, 0.6) !important;
+            background: rgba(10, 14, 23, 0.7) !important;
             backdrop-filter: blur(16px);
             border-right: 1px solid rgba(255, 255, 255, 0.04);
         }
 
-        /* O Cartão do Menu com Sombra Premium e Brilho Sutil */
+        /* O Cartão do Menu com Sombra Profunda */
         [data-testid="stSidebar"] div[data-testid="stVerticalBlock"] > div:first-child {
-            background: rgba(22, 27, 34, 0.85) !important;
+            background: rgba(17, 24, 39, 0.9) !important;
             border-radius: 20px !important;
             padding: 18px !important;
             margin: 15px 12px !important;
-            border: 1px solid rgba(255, 255, 255, 0.08) !important;
-            
-            /* Sombra principal profunda + Brilho azulado suave nas bordas */
-            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.75), 
-                        0 0 25px rgba(49, 130, 206, 0.12),
-                        inset 0 1px 0 rgba(255, 255, 255, 0.07) !important;
+            border: 1px solid rgba(255, 255, 255, 0.06) !important;
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.8), 
+                        0 0 25px rgba(59, 130, 246, 0.08),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
         }
 
-        /* Estilo do item selecionado com brilho */
+        /* Estilo padrão dos itens do menu (texto e ícones) */
+        .nav-link {
+            color: #9ca3af !important;
+            border-radius: 10px !important;
+            transition: all 0.3s ease !important;
+        }
+
+        /* BRILHO AO PASSAR O MOUSE (Hover) */
+        .nav-link:hover {
+            background: rgba(59, 130, 246, 0.12) !important;
+            color: #ffffff !important;
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.3) !important;
+            transform: translateX(4px);
+        }
+
+        /* Estilo do item selecionado com brilho fixo */
         .nav-link-selected {
-            background: linear-gradient(90deg, #3182ce 0%, #2b6cb0 100%) !important;
-            box-shadow: 0 6px 20px rgba(49, 130, 206, 0.4) !important;
+            background: linear-gradient(90deg, #2563eb 0%, #1d4ed8 100%) !important;
+            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4), 0 0 15px rgba(59, 130, 246, 0.5) !important;
             border-radius: 10px !important;
             color: white !important;
         }
