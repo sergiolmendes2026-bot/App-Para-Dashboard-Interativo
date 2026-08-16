@@ -56,19 +56,18 @@ bg_app = "#16222A"
 st.markdown(
     f"""
     <style>
-        /* Fundo geral da página com a cor exata solicitada */
+        /* Fundo geral da página */
         .stApp {{ 
-            background-color: #16222A !important; 
+            background-color: {bg_app} !important; 
             color: {text_app}; 
         }}
         
-      st.markdown("""
-    <style>
-    [data-testid="stSidebar"] { 
-        background-color: #0b0f19 !important;
-        box-shadow: 4px 0px 24px rgba(0, 0, 0, 0.45) !important;
-        border-right: 1px solid rgba(255, 255, 255, 0.05);
-    }
+        /* Sidebar com a sombra e cor solicitada */
+        [data-testid="stSidebar"] {{ 
+            background-color: #0b0f19 !important;
+            box-shadow: 4px 0px 24px rgba(0, 0, 0, 0.45) !important;
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+        }}
     </style>
     """, unsafe_allow_html=True)
 
