@@ -533,7 +533,6 @@ No topo do seu código Python, onde você define a conexão com o SQLite, certif
 
 Python
 import sqlite3
-
 def conectar():
     conn = sqlite3.connect("crm_pro.db", check_same_thread=False)
     conn.execute("""
