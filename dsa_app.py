@@ -272,7 +272,7 @@ with st.sidebar:
         default_index=0,
     )
     st.markdown("---")
-    st.markdown("👤 **Usuário:** Carlos Mendes")
+    st.markdown("👤 **Usuário:** Sergio Luiz")
     st.markdown("🟢 **Status:** Online")
 
 # Carregamento de Dados Globais
