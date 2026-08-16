@@ -1041,23 +1041,17 @@ elif selected == "Propostas":
             if st.button("👁️ Visualizar"):
                 st.info("Abrindo visualização em PDF da proposta selecionada.")
                 
-        with ba2:
-    if st.button("📧 Enviar por E-mail"):
-        email_destino = "sergiolmendes2026@gmail.com"
-        
-        try:
-            # Mostra um aviso de que está tentando enviar
-            with st.spinner("Enviando e-mail..."):
+       with ba2:
+            # O 'if' abaixo deve estar um nível à frente do 'with'
+            if st.button("📧 Enviar por E-mail"):
+                email_destino = "sergiolmendes2026@gmail.com"
+                # A variável sucesso deve estar alinhada com o 'if'
                 sucesso = disparar_email_automatico(email_destino, arquivo_bytes, nome_arquivo)
-            
+                
                 if sucesso:
                     st.success(f"E-mail disparado com sucesso para {email_destino}!")
                 else:
-                    st.error("A função retornou falso. Verifique o console para mais detalhes.")
-                
-        except Exception as e:
-            # Exibe o erro exato na interface do Streamlit
-            st.error(f"Erro crítico ao tentar enviar: {e}")
+                    st.error("Erro ao enviar.")
 
     with col_prop2:
         st.markdown("#### 📋 Histórico de Propostas")
