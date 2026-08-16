@@ -83,6 +83,8 @@ st.markdown(
 
 # A partir daqui, seu código continua normalmente sem espaços extras na margem esquerda
 
+# A partir daqui, seu código continua normalmente sem espaços extras na margem esquerda
+
         /* Container de Filtros do Dashboard */
         .filtros-container {{
             background-color: #1b2836;
