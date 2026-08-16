@@ -56,50 +56,42 @@ bg_app = "#16222A"
 st.markdown(
     f"""
     <style>
-        /* Fundo geral da página */
+        /* Fundo geral da página (Aplicação do gradiente da sua imagem) */
         .stApp {{ 
-            background-color: #16222A !important; 
-            color: {text_app}; 
+            background: linear-gradient(135deg, #0b0f19 0%, #16222A 50%, #0f1720 100%) !important;
+            color: #ffffff !important;
         }}
         
-        /* Sidebar (vidro fumê) */
+        /* Sidebar com o mesmo gradiente, mas com efeito de profundidade */
         [data-testid="stSidebar"] {{ 
-            background: rgba(15, 23, 32, 0.55) !important;
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
+            background: linear-gradient(180deg, #0b0f19 0%, #16222A 100%) !important;
             border-right: 1px solid rgba(255, 255, 255, 0.05);
-            box-shadow: 8px 0 32px rgba(0, 0, 0, 0.5);
+            box-shadow: 10px 0 30px rgba(0, 0, 0, 0.6);
             padding: 0 !important;
         }}
 
-        /* --- O SEGREDO: Estilizando o contêiner do Option Menu --- */
+        /* O Card do Menu (onde fica o seu option_menu) */
+        /* Aplicando a sombra profunda e o fundo mais claro para destacar */
         [data-testid="stSidebar"] div[data-testid="stVerticalBlock"] > div:first-child {{
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(255, 255, 255, 0.04) !important;
+            border: 1px solid rgba(255, 255, 255, 0.06);
             border-radius: 16px;
-            padding: 10px !important;
-            margin: 15px;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+            padding: 15px !important;
+            margin: 20px 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4) !important;
         }}
 
-        /* Garantir que o texto do menu fique branco */
+        /* Estilização dos itens do menu */
         .nav-link {{
             color: #94a3b8 !important;
+            border-radius: 8px !important;
+            margin-bottom: 5px !important;
         }}
         
-        /* Estilo do item selecionado no seu Option Menu */
         .nav-link-selected {{
-            background: linear-gradient(90deg, rgba(37, 99, 235, 0.25) 0%, rgba(37, 99, 235, 0.02) 100%) !important;
+            background: linear-gradient(90deg, #2563eb 0%, #1d4ed8 100%) !important;
             color: #ffffff !important;
-            border-left: 3px solid #3b82f6 !important;
-        }}
-
-        /* Mantém seus estilos de métricas e filtros */
-        .filtros-container, .metric-card {{
-            background-color: #1b2836;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 10px;
-            padding: 15px;
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3) !important;
         }}
     </style>
     """, unsafe_allow_html=True,
