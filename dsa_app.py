@@ -68,6 +68,15 @@ st.markdown(
             box-shadow: 4px 0px 24px rgba(0, 0, 0, 0.45) !important;
             border-right: 1px solid rgba(255, 255, 255, 0.05);
         }}
+
+        /* Container de Filtros do Dashboard */
+        .filtros-container {{
+            background-color: #1b2836;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }}
     </style>
     """, unsafe_allow_html=True
 )
