@@ -528,9 +528,7 @@ elif selected == "Leads":
             st.warning("Nenhum lead encontrado com os filtros selecionados.")
     else:
         st.info("Nenhum lead cadastrado no sistema.")
-Importante: Garanta que sua função conectar() crie a tabela assim:
-No topo do seu código Python, onde você define a conexão com o SQLite, certifique-se de que a estrutura inclua todas as colunas que o formulário envia:
-
+        
     st.markdown("---")
     st.markdown("### 📋 Tabela Dinâmica de Leads")
     
