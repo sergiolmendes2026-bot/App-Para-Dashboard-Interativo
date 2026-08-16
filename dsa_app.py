@@ -451,7 +451,7 @@ elif selected == "Leads":
 
             l_obs = st.text_area("5. Histórico Inicial / Observações")
 
-           btn_salvar_lead = st.form_submit_button("💾 Salvar Lead Completo")
+            btn_salvar_lead = st.form_submit_button("💾 Salvar Lead Completo")
             if btn_salvar_lead:
                 if l_nome:
                     conn = conectar()
@@ -470,7 +470,7 @@ elif selected == "Leads":
                         st.session_state.modal_novo_lead = False
                         st.rerun()
                     except Exception as e:
-                        st.error(f"Erro ao inserir no banco de dados. Verifique as colunas da tabela: {e}")
+                        st.error(f"Erro ao inserir no banco de dados: {e}")
                     finally:
                         conn.close()
                 else:
