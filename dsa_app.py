@@ -8,13 +8,12 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
 from email.mime.text import MIMEText
 from email import encoders
-from streamlit_option_menu import option_menu 
+from streamlit_option_menu import option_menu
 from email.message import EmailMessage
 import plotly.express as px
 
 def atualizar_banco():
     conn = sqlite3.connect("crm_pro.db")
-    # Este comando cria a tabela se não existir
     conn.execute("""
         CREATE TABLE IF NOT EXISTS clientes (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -37,11 +36,9 @@ def atualizar_banco():
     """)
     conn.commit()
     conn.close()
-    print("Tabela verificada/atualizada com sucesso!")
 
 atualizar_banco()
 
-# Configuração da Página
 st.set_page_config(
     page_title="CRM Pro - Gestão Comercial",
     page_icon="💼",
@@ -56,20 +53,15 @@ bg_app = "#16222A"
 st.markdown(
     f"""
     <style>
-        /* Fundo geral da página */
         .stApp {{ 
             background-color: {bg_app} !important; 
             color: {text_app}; 
         }}
-        
-        /* Sidebar com a sombra e cor solicitada */
         [data-testid="stSidebar"] {{ 
             background-color: #0b0f19 !important;
             box-shadow: 4px 0px 24px rgba(0, 0, 0, 0.45) !important;
             border-right: 1px solid rgba(255, 255, 255, 0.05);
         }}
-
-        /* Container de Filtros do Dashboard */
         .filtros-container {{
             background-color: #1b2836;
             border: 1px solid rgba(255, 255, 255, 0.08);
@@ -80,10 +72,6 @@ st.markdown(
     </style>
     """, unsafe_allow_html=True
 )
-
-# A partir daqui, seu código continua normalmente sem espaços extras na margem esquerda
-
-# A partir daqui, seu código continua normalmente sem espaços extras na margem esquerda
 
         /* Container de Filtros do Dashboard */
         .filtros-container {{
