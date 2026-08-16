@@ -9,12 +9,6 @@ from email.mime.base import MIMEBase
 from email.mime.text import MIMEText
 from email import encoders
 from streamlit_option_menu import option_menu
-import sqlite3
-import smtplib
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
-from email.mime.base import MIMEBase
-from email import encoders
 
 def atualizar_banco():
     conn = sqlite3.connect("crm_pro.db")
