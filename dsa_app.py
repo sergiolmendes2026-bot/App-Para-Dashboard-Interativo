@@ -371,8 +371,7 @@ elif selected == "Leads":
     if st.session_state.get("modal_novo_lead", False):
         st.markdown("---")
         st.markdown("#### 📝 Cadastro e Qualificação de Novo Lead")
-  
-    df_filtrado = df.copy() 
+      df_filtrado = df.copy() 
     
     if pesquisa_lead:
         # Filtra buscando em 'nome' e 'empresa'
