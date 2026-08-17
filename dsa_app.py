@@ -355,7 +355,7 @@ elif selected == "Leads":
         if st.button("➕ Novo Lead Completo", use_container_width=True):
             st.session_state.modal_novo_lead = True
 
-    # ⚠️ MUDE AQUI: Troque 'df_clientes' para o nome exato da variável do seu DataFrame se for diferente
+    # Lógica da tabela com base no dataframe de clientes
     if 'df_clientes' in locals():
         df_filtrado = df_clientes.copy()
         
