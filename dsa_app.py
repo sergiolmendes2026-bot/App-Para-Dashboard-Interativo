@@ -384,19 +384,20 @@ def modal_novo_lead():
     st.write("Preencha os dados abaixo para cadastrar um novo cliente.")
     nome = st.text_input("Nome Completo")
     empresa = st.text_input("Empresa")
+    
     col1, col2 = st.columns(2)
     email = col1.text_input("E-mail")
     telefone = col2.text_input("Telefone")
     
-    if st.button("Salvar Lead"):
+    if st.button("Salvar Lead", type="primary"):
         st.success(f"Lead {nome} cadastrado com sucesso!")
         st.rerun()
 
-# --- Conteúdo da Aba Leads ---
+# 2. Conteúdo principal da Aba Leads
 def mostrar_leads():
     st.markdown("### 👥 Gestão Avançada de Leads e Clientes")
     
-    # 1. Cabeçalho: Pesquisa encurtada (coluna de peso 1.2) + Botões
+    # Cabeçalho: Pesquisa encurtada + Botões
     col_h1, col_h2, col_h3, col_h4 = st.columns([1.2, 0.8, 0.8, 1])
     
     with col_h1:
@@ -413,11 +414,11 @@ def mostrar_leads():
             st.toast("Exportando dados...")
     with col_h4:
         if st.button("➕ Novo Lead", use_container_width=True, type="primary"):
-            modal_novo_lead() # Chama o modal de cadastro
+            modal_novo_lead() # Agora o dialog vai abrir perfeitamente
 
     st.markdown("---")
 
-    # 2. Indicadores (KPIs)
+    # Indicadores (KPIs)
     kpi1, kpi2, kpi3, kpi4 = st.columns(4)
     kpi1.metric("Total de Leads", "248")
     kpi2.metric("Novos", "32")
@@ -426,7 +427,7 @@ def mostrar_leads():
 
     st.markdown("---")
 
-    # 3. Exemplo de Dados
+    # Exemplo de Dados
     dados_exemplo = {
         "Lead": ["João Silva", "Maria Souza", "Carlos Alberto"],
         "Empresa": ["Empresa ABC", "XYZ Ltda", "Tech Soluções"],
@@ -436,10 +437,9 @@ def mostrar_leads():
     }
     df_leads = pd.DataFrame(dados_exemplo)
 
-    # 4. Tabela com Botões de Ação por linha
+    # Tabela com Botões de Ação por linha
     st.write("#### 📋 Leads Ativos")
     
-    # Cabeçalho da tabela personalizado
     header_cols = st.columns([2, 2, 1.5, 1.5, 1.5, 2])
     header_cols[0].write("**Nome**")
     header_cols[1].write("**Empresa**")
@@ -450,7 +450,6 @@ def mostrar_leads():
     
     st.divider()
 
-    # Linhas com botões funcionais
     for index, row in df_leads.iterrows():
         cols = st.columns([2, 2, 1.5, 1.5, 1.5, 2])
         cols[0].write(row["Lead"])
@@ -459,7 +458,6 @@ def mostrar_leads():
         cols[3].write(row["Temperatura"])
         cols[4].write(row["Valor"])
         
-        # Botões de Ação por linha
         btn_cols = cols[5].columns(3)
         if btn_cols[0].button("👁️", key=f"det_{index}", help="Ver Detalhes"):
             st.info(f"Visualizando detalhes de {row['Lead']}")
@@ -469,9 +467,6 @@ def mostrar_leads():
             st.error(f"Excluindo {row['Lead']}")
         
     st.divider()
-
-# --- Chamar a função (Coloque isso dentro do seu elif selected == "Leads":) ---
-mostrar_leads()
 
 elif selected == "Agenda":
     st.markdown("### 📅 Agenda e Compromissos Comerciais")
