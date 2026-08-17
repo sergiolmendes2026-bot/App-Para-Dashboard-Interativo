@@ -378,7 +378,8 @@ if selected == "Dashboard":
 import streamlit as st
 import pandas as pd
 
-# --- Função do Modal de Novo Lead (Para aparecer como Janela) ---
+elif selected == "Leads":
+    mostrar_leads()
 @st.dialog("➕ Cadastro de Novo Lead")
 def modal_novo_lead():
     st.write("Preencha os dados abaixo para cadastrar um novo cliente.")
