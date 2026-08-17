@@ -618,7 +618,7 @@ if f_busca_agenda:
 
 f_periodo = st.radio("Período:", ["Hoje", "Semana", "Mês", "Todos"], horizontal=True)       
         # Exemplo estruturado de tabela de compromissos
-        import pandas as pd
+        
         dados_compromissos = pd.DataFrame([
             {"Horário": "10:00", "Evento": "Reunião", "Lead": "Tech Solutions", "Responsável": "Carlos", "Status": "🟡 Confirmado"},
             {"Horário": "14:30", "Evento": "Demonstração", "Lead": "Inova Corp", "Responsável": "Ana", "Status": "🔵 Agendado"},
