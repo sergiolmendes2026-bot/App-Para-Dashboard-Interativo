@@ -355,7 +355,7 @@ elif selected == "Leads":
         if st.button("➕ Novo Lead Completo", use_container_width=True):
             st.session_state.modal_novo_lead = True
 
-    # Lógica da tabela com base no dataframe de clientes
+    # Lógica única de filtragem e exibição
     if 'df_clientes' in locals():
         df_filtrado = df_clientes.copy()
         
@@ -366,12 +366,13 @@ elif selected == "Leads":
             
         st.dataframe(df_filtrado, use_container_width=True)
     else:
-        st.warning("Variável de dados dos leads não encontrada.")
+        st.warning("Variável 'df_clientes' não encontrada.")
 
+    # Modal de cadastro
     if st.session_state.get("modal_novo_lead", False):
         st.markdown("---")
         st.markdown("#### 📝 Cadastro e Qualificação de Novo Lead")
-      df_filtrado = df.copy() 
+       df_filtrado = df.copy() 
     
     if pesquisa_lead:
         # Filtra buscando em 'nome' e 'empresa'
