@@ -11,6 +11,7 @@ from email import encoders
 from streamlit_option_menu import option_menu 
 from email.message import EmailMessage
 import plotly.express as px
+import plotly.graph_objects as go
 
 def atualizar_banco():
     conn = sqlite3.connect("crm_pro.db")
