@@ -601,12 +601,20 @@ elif selected == "Agenda":
         
         # 7. Histórico / Todos os Compromissos com Filtros
         st.markdown("#### 📋 Todos os Compromissos")
-        pesquisa_agenda = st.text_input(
+        # 1. Caixa de texto da Agenda
+f_busca_agenda = st.text_input(
     "Pesquisar compromisso...", 
     placeholder="Pesquisar compromisso...", 
     key="busca_agenda", 
     label_visibility="collapsed"
 )
+
+# 2. Lógica de filtro (ajuste o nome das colunas se necessário)
+if f_busca_agenda:
+    df_agenda = df_agenda[
+        df_agenda['compromisso'].str.contains(f_busca_agenda, case=False, na=False) |
+        df_agenda['cliente'].str.contains(f_busca_agenda, case=False, na=False)
+    ]
         
         f_periodo = st.radio("Período:", ["Hoje", "Semana", "Mês", "Todos"], horizontal=True)
         
