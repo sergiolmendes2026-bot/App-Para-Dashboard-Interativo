@@ -236,7 +236,8 @@ df_pipeline = pd.read_sql("SELECT * FROM pipeline", conn)
 conn.close()
 
 # Roteamento das Telas
-elif selected == "Dashboard":
+# Certifique-se de que o bloco de navegação começa com um 'if' na primeira aba
+if selected == "Dashboard":
     st.markdown("### 📊 Dashboard Executivo & Indicadores de Desempenho")
     
     # 🌟 KPIs Principais no Topo
@@ -308,7 +309,7 @@ elif selected == "Dashboard":
 
     st.markdown("---")
 
-    # Linha 3: Funil de Conversão Comercial & Status dos Pagamentos (Donut com Cores Semafóricas)
+    # Linha 3: Funil de Conversão Comercial & Status dos Pagamentos
     col_d_5, col_d_6 = st.columns(2)
 
     with col_d_5:
@@ -359,6 +360,22 @@ elif selected == "Dashboard":
         fig_ativ.add_trace(go.Bar(x=df_ativ['Tipo'], y=df_ativ['Pendentes'], name='Pendentes', marker_color='#f59e0b'))
         fig_ativ.update_layout(barmode='stack', template='plotly_dark', margin=dict(t=20, b=20, l=20, r=20), height=300)
         st.plotly_chart(fig_ativ, use_container_width=True)
+
+elif selected == "Leads":
+    st.markdown("### 👥 Gestão Avançada de Leads e Clientes")
+    
+    col_l1, col_l2 = st.columns([3, 1])
+    
+    with col_l1:
+        pesquisa_lead = st.text_input(
+            "Pesquisar",
+            placeholder="Pesquisar...",
+            label_visibility="collapsed",
+        )
+        
+    with col_l2:
+        if st.button("➕ Novo Lead Completo", use_container_width=True):
+            pass
 
 elif selected == "Leads":
     st.markdown("### 👥 Gestão Avançada de Leads e Clientes")
