@@ -379,28 +379,13 @@ elif selected == "Leads":
     st.markdown("### 👥 Gestão Avançada de Leads e Clientes")
     
     col_l1, col_l2 = st.columns([3, 1])
-    
     with col_l1:
-        pesquisa_lead = st.text_input(
-            "Pesquisar",
-            placeholder="Pesquisar...",
-            label_visibility="collapsed",
-        )
-        
-    with col_l2:
-        if st.button("➕ Novo Lead Completo", use_container_width=True):
-            pass
-
-elif selected == "Leads":
-    st.markdown("### 👥 Gestão Avançada de Leads e Clientes")
-    
-    col_l1, col_l2 = st.columns([3, 1])
-    with col_l1:
-        pesquisa_lead = st.text_input("🔍 Pesquisar Lead por Nome, Empresa ou E-mail", "")
+        pesquisa_lead = st.text_input("🔍 Pesquisar Lead por Nome, Empresa ou E-mail", "", key="input_pesquisa_leads_geral")
     with col_l2:
         if st.button("➕ Novo Lead Completo", use_container_width=True):
             st.session_state.modal_novo_lead = True
 
+    # Modal / Seção de Cadastro de Novo Lead Completo
     if st.session_state.get("modal_novo_lead", False):
         st.markdown("---")
         st.markdown("#### 📝 Cadastro e Qualificação de Novo Lead")
@@ -512,62 +497,7 @@ elif selected == "Leads":
     st.markdown("---")
     st.markdown("### 📋 Tabela Dinâmica de Leads")
     
-    # Filtros Avançados na Tabela
-    with st.expander("🔎 Filtros Avançados da Tabela"):
-        fa1, fa2, fa3, fa4 = st.columns(4)
-        with fa1:
-            # Adicionei key="filtro_status_unique"
-            filtro_status = st.selectbox("Filtrar por Status", ["Todos"] + [
-                "🆕 Novo Lead", "📞 Primeiro Contato", "💬 Em Atendimento",
-                "📋 Proposta Enviada", "⏳ Aguardando Resposta", "🤝 Negociação",
-                "✅ Venda Fechada", "❌ Venda Perdida", "🔄 Pós-Venda"
-            ], key="filtro_status_unique")
-            
-        with fa2:
-            # Adicionei key="filtro_temp_unique"
-            filtro_temp = st.selectbox("Filtrar por Temperatura", ["Todas", "🔥 Quente", "⛅ Morno", "❄️ Frio"], key="filtro_temp_unique")
-            
-        with fa3:
-            # Adicionei key="filtro_prioridade_unique"
-            filtro_prioridade = st.selectbox("Filtrar por Prioridade", ["Todas", "🔴 Alta", "🟡 Média", "🟢 Baixa"], key="filtro_prioridade_unique")
-            
-        with fa4:
-            # Adicionei key="filtro_resp_unique"
-            filtro_resp = st.selectbox("Filtrar por Responsável", ["Todos", "Carlos", "Ana", "Larissa"], key="filtro_resp_unique")
-    # Lógica de exibição com os filtros aplicados
-    if 'df_clientes' in locals() and not df_clientes.empty:
-        df_filtrado = df_clientes.copy()
-        
-        # Aplicação da barra de pesquisa geral
-        if pesquisa_lead:
-            df_filtrado = df_filtrado[
-                df_filtrado['nome'].str.contains(pesquisa_lead, case=False, na=False) |
-                df_filtrado['empresa'].str.contains(pesquisa_lead, case=False, na=False) |
-                df_filtrado['email'].str.contains(pesquisa_lead, case=False, na=False)
-            ]
-            
-        # Aplicação dos filtros do expander
-        if filtro_status != "Todos":
-            df_filtrado = df_filtrado[df_filtrado['status'] == filtro_status]
-        if filtro_temp != "Todas":
-            df_filtrado = df_filtrado[df_filtrado['temperatura'] == filtro_temp]
-        if filtro_prioridade != "Todas":
-            df_filtrado = df_filtrado[df_filtrado['prioridade'] == filtro_prioridade]
-        if filtro_resp != "Todos":
-            df_filtrado = df_filtrado[df_filtrado['responsavel'] == filtro_resp]
-
-        if not df_filtrado.empty:
-            colunas_exibicao = [c for c in ['id', 'nome', 'empresa', 'status', 'temperatura', 'valor', 'responsavel', 'proxima_acao'] if c in df_filtrado.columns]
-            st.dataframe(df_filtrado[colunas_exibicao], use_container_width=True, hide_index=True)
-        else:
-            st.warning("Nenhum lead encontrado com os filtros selecionados.")
-    else:
-        st.info("Nenhum lead cadastrado no sistema.")
-        
-    st.markdown("---")
-    st.markdown("### 📋 Tabela Dinâmica de Leads")
-    
-    # Filtros Avançados na Tabela
+    # Filtros Avançados na Tabela (Com keys exclusivas para evitar DuplicateWidgetID)
     with st.expander("🔎 Filtros Avançados da Tabela"):
         fa1, fa2, fa3, fa4 = st.columns(4)
         with fa1:
@@ -575,15 +505,18 @@ elif selected == "Leads":
                 "🆕 Novo Lead", "📞 Primeiro Contato", "💬 Em Atendimento",
                 "📋 Proposta Enviada", "⏳ Aguardando Resposta", "🤝 Negociação",
                 "✅ Venda Fechada", "❌ Venda Perdida", "🔄 Pós-Venda"
-            ])
+            ], key="filtro_status_unique_clean")
+            
         with fa2:
-            filtro_temp = st.selectbox("Filtrar por Temperatura", ["Todas", "🔥 Quente", "⛅ Morno", "❄️ Frio"])
+            filtro_temp = st.selectbox("Filtrar por Temperatura", ["Todas", "🔥 Quente", "⛅ Morno", "❄️ Frio"], key="filtro_temp_unique_clean")
+            
         with fa3:
-            filtro_prioridade = st.selectbox("Filtrar por Prioridade", ["Todas", "🔴 Alta", "🟡 Média", "🟢 Baixa"])
+            filtro_prioridade = st.selectbox("Filtrar por Prioridade", ["Todas", "🔴 Alta", "🟡 Média", "🟢 Baixa"], key="filtro_prioridade_unique_clean")
+            
         with fa4:
-            filtro_resp = st.selectbox("Filtrar por Responsável", ["Todos", "Carlos", "Ana", "Larissa"])
+            filtro_resp = st.selectbox("Filtrar por Responsável", ["Todos", "Carlos", "Ana", "Larissa"], key="filtro_resp_unique_clean")
 
-    # Lógica de exibição com os filtros aplicados
+    # Lógica de exibição e filtragem unificada
     if 'df_clientes' in locals() and not df_clientes.empty:
         df_filtrado = df_clientes.copy()
         
