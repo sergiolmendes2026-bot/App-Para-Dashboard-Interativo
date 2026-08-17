@@ -609,22 +609,23 @@ f_busca_agenda = st.text_input(
     label_visibility="collapsed"
 )
 
-# 2. Lógica de filtro (ajuste o nome das colunas se necessário)
+# Lógica de filtro
 if f_busca_agenda:
     df_agenda = df_agenda[
         df_agenda['compromisso'].str.contains(f_busca_agenda, case=False, na=False) |
         df_agenda['cliente'].str.contains(f_busca_agenda, case=False, na=False)
     ]
 
-f_periodo = st.radio("Período:", ["Hoje", "Semana", "Mês", "Todos"], horizontal=True)       
-        # Exemplo estruturado de tabela de compromissos
-        
-        dados_compromissos = pd.DataFrame([
-            {"Horário": "10:00", "Evento": "Reunião", "Lead": "Tech Solutions", "Responsável": "Carlos", "Status": "🟡 Confirmado"},
-            {"Horário": "14:30", "Evento": "Demonstração", "Lead": "Inova Corp", "Responsável": "Ana", "Status": "🔵 Agendado"},
-            {"Horário": "16:00", "Evento": "Fechamento", "Lead": "Global Ltda", "Responsável": "Carlos", "Status": "🟢 Concluído"}
-        ])
-        st.dataframe(dados_compromissos, use_container_width=True, hide_index=True)
+f_periodo = st.radio("Período:", ["Hoje", "Semana", "Mês", "Todos"], horizontal=True)
+
+# Tabela de compromissos
+dados_compromissos = pd.DataFrame([
+    {"Horário": "10:00", "Evento": "Reunião", "Lead": "Tech Solutions", "Responsável": "Carlos", "Status": "🟡 Confirmado"},
+    {"Horário": "14:30", "Evento": "Demonstração", "Lead": "Inova Corp", "Responsável": "Ana", "Status": "🔵 Agendado"},
+    {"Horário": "16:00", "Evento": "Fechamento", "Lead": "Global Ltda", "Responsável": "Carlos", "Status": "🟢 Concluído"}
+])
+
+st.dataframe(dados_compromissos, use_container_width=True, hide_index=True)
 
     with col_ag2:
         st.markdown("#### ➕ Agendar Novo Evento")
