@@ -602,39 +602,39 @@ elif selected == "Agenda":
         # 7. Histórico / Todos os Compromissos com Filtros
         st.markdown("#### 📋 Todos os Compromissos")
         # 1. Caixa de texto da Agenda
-f_busca_agenda = st.text_input(
-    "Pesquisar compromisso...", 
-    placeholder="Pesquisar compromisso...", 
-    key="busca_agenda", 
-    label_visibility="collapsed"
-)
+if selected == "Agenda":
+    f_busca_agenda = st.text_input(
+        "Pesquisar compromisso...", 
+        placeholder="Pesquisar compromisso...", 
+        key="busca_agenda", 
+        label_visibility="collapsed"
+    )
 
-# Lógica de filtro
-if f_busca_agenda:
-    df_agenda = df_agenda[
-        df_agenda['compromisso'].str.contains(f_busca_agenda, case=False, na=False) |
-        df_agenda['cliente'].str.contains(f_busca_agenda, case=False, na=False)
-    ]
+    # Lógica de filtro
+    if f_busca_agenda:
+        df_agenda = df_agenda[
+            df_agenda['compromisso'].str.contains(f_busca_agenda, case=False, na=False) |
+            df_agenda['cliente'].str.contains(f_busca_agenda, case=False, na=False)
+        ]
 
-f_periodo = st.radio("Período:", ["Hoje", "Semana", "Mês", "Todos"], horizontal=True)
+    f_periodo = st.radio("Período:", ["Hoje", "Semana", "Mês", "Todos"], horizontal=True)
 
-# Tabela de compromissos
-dados_compromissos = pd.DataFrame([
-    {"Horário": "10:00", "Evento": "Reunião", "Lead": "Tech Solutions", "Responsável": "Carlos", "Status": "🟡 Confirmado"},
-    {"Horário": "14:30", "Evento": "Demonstração", "Lead": "Inova Corp", "Responsável": "Ana", "Status": "🔵 Agendado"},
-    {"Horário": "16:00", "Evento": "Fechamento", "Lead": "Global Ltda", "Responsável": "Carlos", "Status": "🟢 Concluído"}
-])
+    # Tabela de compromissos
+    dados_compromissos = pd.DataFrame([
+        {"Horário": "10:00", "Evento": "Reunião", "Lead": "Tech Solutions", "Responsável": "Carlos", "Status": "🟡 Confirmado"},
+        {"Horário": "14:30", "Evento": "Demonstração", "Lead": "Inova Corp", "Responsável": "Ana", "Status": "🔵 Agendado"},
+        {"Horário": "16:00", "Evento": "Fechamento", "Lead": "Global Ltda", "Responsável": "Carlos", "Status": "🟢 Concluído"}
+    ])
 
-st.dataframe(dados_compromissos, use_container_width=True, hide_index=True)
+    st.dataframe(dados_compromissos, use_container_width=True, hide_index=True)
 
-with col_ag2:
+    with col_ag2:
         st.markdown("#### ➕ Agendar Novo Evento")
         
         with st.form("form_agendar_evento_completo"):
             ev_titulo = st.text_input("Título do Evento")
             ev_tipo = st.selectbox("Tipo de Evento", ["Reunião", "Demonstração", "Ligação", "Follow-up", "Proposta", "Fechamento"])
             
-            # Relacionar com Lead/Cliente cadastrado
             ev_lead = st.text_input("Lead / Cliente (Empresa)")
             ev_responsavel = st.selectbox("Responsável", ["Carlos", "Ana", "Larissa"])
             
