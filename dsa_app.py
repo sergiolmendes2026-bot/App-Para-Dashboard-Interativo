@@ -539,8 +539,54 @@ elif selected == "Leads":
             df_filtrado = df_filtrado[df_filtrado['responsavel'] == filtro_resp]
 
         if not df_filtrado.empty:
-            colunas_exibicao = [c for c in ['id', 'nome', 'empresa', 'status', 'temperatura', 'valor', 'responsavel', 'proxima_acao'] if c in df_filtrado.columns]
-            st.dataframe(df_filtrado[colunas_exibicao], use_container_width=True, hide_index=True)
+            st.markdown("---")
+            # Cabeçalho personalizado da tabela
+            h_cols = st.columns([0.6, 1.5, 1.5, 1.2, 1, 1, 1.2, 1.2])
+            headers = ["ID", "Nome", "Empresa", "Status", "Temp.", "Valor", "Resp.", "Ações"]
+            for i, h in enumerate(headers):
+                h_cols[i].markdown(f"**{h}**")
+            
+            st.divider()
+
+            # Linhas interativas com botões de ação
+            for index, row in df_filtrado.iterrows():
+                r_cols = st.columns([0.6, 1.5, 1.5, 1.2, 1, 1, 1.2, 1.2])
+                r_cols[0].write(str(row.get('id', '')))
+                r_cols[1].write(str(row.get('nome', '')))
+                r_cols[2].write(str(row.get('empresa', '')))
+                r_cols[3].write(str(row.get('status', '')))
+                r_cols[4].write(str(row.get('temperatura', '')))
+                
+                # Formatação segura do valor
+                val_raw = row.get('valor', 0)
+                val_fmt = f"R$ {val_raw:,.2f}" if pd.notnull(val_raw) else "R$ 0,00"
+                r_cols[5].write(val_fmt)
+                
+                r_cols[6].write(str(row.get('responsavel', '')))
+                
+                # Mini-colunas para os botões de ação na última coluna
+                act_cols = r_cols[7].columns(3)
+                
+                # Botão Ver Detalhes (👁️)
+                if act_cols[0].button("👁️", key=f"ver_{row['id']}_{index}", help="Ver Detalhes do Lead"):
+                    st.info(f"Visualizando painel de detalhes de: {row['nome']}")
+                
+                # Botão Editar (✏️)
+                if act_cols[1].button("✏️", key=f"edit_{row['id']}_{index}", help="Editar Lead"):
+                    st.toast(f"Abrindo edição para: {row['nome']}")
+                
+                # Botão Excluir (🗑️)
+                if act_cols[2].button("🗑️", key=f"del_{row['id']}_{index}", help="Excluir Lead"):
+                    conn = conectar()
+                    try:
+                        conn.execute("DELETE FROM clientes WHERE id = ?", (row['id'],))
+                        conn.commit()
+                        st.success(f"Lead {row['nome']} excluído com sucesso!")
+                        st.rerun()
+                    except Exception as e:
+                        st.error(f"Erro ao excluir no banco de dados: {e}")
+                    finally:
+                        conn.close()
         else:
             st.warning("Nenhum lead encontrado com os filtros selecionados.")
     else:
