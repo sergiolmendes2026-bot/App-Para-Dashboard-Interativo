@@ -601,7 +601,12 @@ elif selected == "Agenda":
         
         # 7. Histórico / Todos os Compromissos com Filtros
         st.markdown("#### 📋 Todos os Compromissos")
-        f_busca_agenda = st.text_input("🔎 Pesquisar compromisso...", "")
+        pesquisa_agenda = st.text_input(
+    "Pesquisar compromisso...", 
+    placeholder="Pesquisar compromisso...", 
+    key="busca_agenda", 
+    label_visibility="collapsed"
+)
         
         f_periodo = st.radio("Período:", ["Hoje", "Semana", "Mês", "Todos"], horizontal=True)
         
