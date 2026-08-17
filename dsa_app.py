@@ -378,240 +378,100 @@ if selected == "Dashboard":
 elif selected == "Leads":
     st.markdown("### 👥 Gestão Avançada de Leads e Clientes")
     
-    col_l1, col_l2 = st.columns([3, 1])
+    # 1. Cabeçalho: Pesquisa e Ações Principais
+    col_h1, col_h2, col_h3, col_h4 = st.columns([2.5, 0.8, 0.8, 1])
     
-    with col_l1:
+    with col_h1:
         pesquisa_lead = st.text_input(
             "Pesquisar",
-            placeholder="Pesquisar...",
+            placeholder="🔎 Pesquisar por nome, empresa, telefone...",
             label_visibility="collapsed",
         )
-        
-    with col_l2:
-        if st.button("➕ Novo Lead Completo", use_container_width=True):
-            pass
-
-elif selected == "Leads":
-    st.markdown("### 👥 Gestão Avançada de Leads e Clientes")
-    
-    col_l1, col_l2 = st.columns([3, 1])
-    with col_l1:
-        pesquisa_lead = st.text_input("🔍 Pesquisar Lead por Nome, Empresa ou E-mail", "")
-    with col_l2:
-        if st.button("➕ Novo Lead Completo", use_container_width=True):
-            st.session_state.modal_novo_lead = True
-
-    if st.session_state.get("modal_novo_lead", False):
-        st.markdown("---")
-        st.markdown("#### 📝 Cadastro e Qualificação de Novo Lead")
-        
-        with st.form("form_novo_lead_completo"):
-            # 1. Informações do Lead
-            st.markdown("##### 1. Informações do Lead")
-            cc1, cc2, cc3, cc4 = st.columns(4)
-            with cc1:
-                l_nome = st.text_input("Nome do Contato *")
-                l_empresa = st.text_input("Empresa")
-                l_cargo = st.text_input("Cargo")
-                l_segmento = st.text_input("Segmento da Empresa")
-            with cc2:
-                l_email = st.text_input("E-mail")
-                l_telefone = st.text_input("Telefone")
-                l_tipo_pessoa = st.selectbox("Tipo de Cliente", ["Pessoa Jurídica", "Pessoa Física"])
-                l_origem = st.selectbox("Origem", ["Google Ads", "Indicação", "LinkedIn", "Instagram", "Outros"])
-            with cc3:
-                l_cidade = st.text_input("Cidade/Estado")
-                l_site = st.text_input("Site")
-                l_linkedin = st.text_input("LinkedIn")
-                l_tags = st.text_input("Tags (ex: VIP, Q3, Inbound)")
-            with cc4:
-                l_status = st.selectbox("Status", [
-                    "🆕 Novo Lead", "📞 Primeiro Contato", "💬 Em Atendimento",
-                    "📋 Proposta Enviada", "⏳ Aguardando Resposta", "🤝 Negociação",
-                    "✅ Venda Fechada", "❌ Venda Perdida", "🔄 Pós-Venda"
-                ])
-                l_prioridade = st.selectbox("Prioridade", ["🔴 Alta", "🟡 Média", "🟢 Baixa"])
-                l_responsavel = st.selectbox("Responsável", ["Carlos", "Ana", "Larissa"])
-
-            st.markdown("---")
-            # 2. Qualificação Comercial
-            st.markdown("##### 2. Qualificação Comercial ⭐")
-            qc1, qc2, qc3, qc4, qc5 = st.columns(5)
-            with qc1:
-                l_temperatura = st.selectbox("Temperatura", ["🔥 Quente", "⛅ Morno", "❄️ Frio"])
-            with qc2:
-                l_score = st.slider("Score do Lead (0-100)", 0, 100, 50)
-            with qc3:
-                l_potencial = st.selectbox("Potencial de Compra", ["Alto", "Médio", "Baixo"])
-            with qc4:
-                l_probabilidade = st.slider("Probabilidade de Conversão (%)", 0, 100, 30)
-            with qc5:
-                l_previsao_fechamento = st.text_input("Previsão de Fechamento", value=str(date.today()))
-
-            qi1, qi2 = st.columns(2)
-            with qi1:
-                l_interesse_principal = st.text_input("Interesse Principal")
-            with qi2:
-                l_necessidade = st.text_input("Necessidade do Cliente")
-
-            st.markdown("---")
-            # 3. Informações Comerciais & Financeiras
-            st.markdown("##### 3. Informações Comerciais & Financeiras")
-            fc1, fc2, fc3, fc4 = st.columns(4)
-            with fc1:
-                l_valor = st.number_input("Valor Estimado (R$)", min_value=0.0, value=10000.0, step=1000.0)
-            with fc2:
-                l_produto = st.selectbox("Produto/Serviço de Interesse", ["Software A", "Software B", "Consultoria"])
-            with fc3:
-                l_forma_pagamento = st.selectbox("Forma de Pagamento", ["PIX", "Boleto", "Cartão", "À vista", "Parcelado"])
-            with fc4:
-                l_desconto = st.number_input("Desconto (R$)", min_value=0.0, value=0.0, step=100.0)
-
-            st.markdown("---")
-            # 4. Controle de Relacionamento
-            st.markdown("##### 4. Controle de Relacionamento")
-            rc1, rc2, rc3 = st.columns(3)
-            with rc1:
-                l_canal_contato = st.selectbox("Canal de Contato Preferido", ["WhatsApp", "E-mail", "Telefone", "Reunião", "Instagram", "Site"])
-            with rc2:
-                l_proxima_acao = st.text_input("Próxima Ação", value="Enviar proposta comercial")
-            with rc3:
-                l_data_proximo_contato = st.text_input("Data do Próximo Contato", value=str(date.today()))
-
-            l_obs = st.text_area("5. Histórico Inicial / Observações")
-
-            btn_salvar_lead = st.form_submit_button("💾 Salvar Lead Completo")
-            if btn_salvar_lead:
-                if l_nome:
-                    conn = conectar()
-                    try:
-                        conn.execute("""
-                            INSERT INTO clientes (
-                                nome, empresa, email, telefone, status, origem, responsavel, prioridade, 
-                                data, ultimo_contato, valor, produto, temperatura, score, proxima_acao
-                            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                        """, (
-                            l_nome, l_empresa, l_email, l_telefone, l_status, l_origem, l_responsavel, l_prioridade, 
-                            str(date.today()), str(date.today()), l_valor, l_produto, l_temperatura, l_score, l_proxima_acao
-                        ))
-                        conn.commit()
-                        st.success("Lead cadastrado com sucesso!")
-                        st.session_state.modal_novo_lead = False
-                        st.rerun()
-                    except Exception as e:
-                        st.error(f"Erro ao inserir no banco de dados: {e}")
-                    finally:
-                        conn.close()
-                else:
-                    st.error("O campo Nome do Contato é obrigatório.")
-
-        if st.button("❌ Fechar Formulário"):
-            st.session_state.modal_novo_lead = False
-            st.rerun()
+    with col_h2:
+        if st.button("📥 Importar", use_container_width=True):
+            st.toast("Funcionalidade de importação em desenvolvimento.")
+    with col_h3:
+        if st.button("📤 Exportar", use_container_width=True):
+            st.toast("Exportando dados para CSV...")
+    with col_h4:
+        if st.button("➕ Novo Lead", use_container_width=True, type="primary"):
+            st.session_state["modal_novo_lead"] = True
 
     st.markdown("---")
-    st.markdown("### 📋 Tabela Dinâmica de Leads")
-    
-    # Filtros Avançados na Tabela
-    with st.expander("🔎 Filtros Avançados da Tabela"):
-        fa1, fa2, fa3, fa4 = st.columns(4)
-        with fa1:
-            # Adicionei key="filtro_status_unique"
-            filtro_status = st.selectbox("Filtrar por Status", ["Todos"] + [
-                "🆕 Novo Lead", "📞 Primeiro Contato", "💬 Em Atendimento",
-                "📋 Proposta Enviada", "⏳ Aguardando Resposta", "🤝 Negociação",
-                "✅ Venda Fechada", "❌ Venda Perdida", "🔄 Pós-Venda"
-            ], key="filtro_status_unique")
-            
-        with fa2:
-            # Adicionei key="filtro_temp_unique"
-            filtro_temp = st.selectbox("Filtrar por Temperatura", ["Todas", "🔥 Quente", "⛅ Morno", "❄️ Frio"], key="filtro_temp_unique")
-            
-        with fa3:
-            # Adicionei key="filtro_prioridade_unique"
-            filtro_prioridade = st.selectbox("Filtrar por Prioridade", ["Todas", "🔴 Alta", "🟡 Média", "🟢 Baixa"], key="filtro_prioridade_unique")
-            
-        with fa4:
-            # Adicionei key="filtro_resp_unique"
-            filtro_resp = st.selectbox("Filtrar por Responsável", ["Todos", "Carlos", "Ana", "Larissa"], key="filtro_resp_unique")
-    # Lógica de exibição com os filtros aplicados
-    if 'df_clientes' in locals() and not df_clientes.empty:
-        df_filtrado = df_clientes.copy()
-        
-        # Aplicação da barra de pesquisa geral
-        if pesquisa_lead:
-            df_filtrado = df_filtrado[
-                df_filtrado['nome'].str.contains(pesquisa_lead, case=False, na=False) |
-                df_filtrado['empresa'].str.contains(pesquisa_lead, case=False, na=False) |
-                df_filtrado['email'].str.contains(pesquisa_lead, case=False, na=False)
-            ]
-            
-        # Aplicação dos filtros do expander
-        if filtro_status != "Todos":
-            df_filtrado = df_filtrado[df_filtrado['status'] == filtro_status]
-        if filtro_temp != "Todas":
-            df_filtrado = df_filtrado[df_filtrado['temperatura'] == filtro_temp]
-        if filtro_prioridade != "Todas":
-            df_filtrado = df_filtrado[df_filtrado['prioridade'] == filtro_prioridade]
-        if filtro_resp != "Todos":
-            df_filtrado = df_filtrado[df_filtrado['responsavel'] == filtro_resp]
 
-        if not df_filtrado.empty:
-            colunas_exibicao = [c for c in ['id', 'nome', 'empresa', 'status', 'temperatura', 'valor', 'responsavel', 'proxima_acao'] if c in df_filtrado.columns]
-            st.dataframe(df_filtrado[colunas_exibicao], use_container_width=True, hide_index=True)
-        else:
-            st.warning("Nenhum lead encontrado com os filtros selecionados.")
-    else:
-        st.info("Nenhum lead cadastrado no sistema.")
-        
+    # 2. Indicadores no Topo (KPIs)
+    kpi1, kpi2, kpi3, kpi4, kpi5, kpi6, kpi7 = st.columns(7)
+    kpi1.metric("Total", "248")
+    kpi2.metric("Novos", "32")
+    kpi3.metric("Qualificados", "86")
+    kpi4.metric("Atendimento", "54")
+    kpi5.metric("Potencial", "R$ 185k")
+    kpi6.metric("Convertidos", "41")
+    kpi7.metric("Perdidos", "27")
+
     st.markdown("---")
-    st.markdown("### 📋 Tabela Dinâmica de Leads")
+
+    # 3. Filtros Avançados
+    with st.expander("⚙️ Filtros Avançados", expanded=False):
+        f1, f2, f3, f4, f5, f6 = st.columns(6)
+        with f1:
+            st.selectbox("Status", ["Todos", "Novo", "Em contato", "Qualificado", "Negociação", "Convertido", "Perdido"])
+        with f2:
+            st.selectbox("Origem", ["Todas", "Site", "WhatsApp", "Instagram", "Google", "Indicação"])
+        with f3:
+            st.selectbox("Responsável", ["Todos", "Carlos", "Ana", "Sergio"])
+        with f4:
+            st.selectbox("Etapa", ["Todas", "Prospecção", "Apresentação", "Fechamento"])
+        with f5:
+            st.selectbox("Temperatura", ["Todas", "🔥 Quente", "🟡 Morno", "🔵 Frio"])
+        with f6:
+            st.selectbox("Período", ["Todo o período", "Hoje", "Últimos 7 dias", "Este mês"])
+
+    st.markdown("### 📋 Lista de Leads")
+
+    # 4. Tabela de Leads Exemplo
+    import pandas as pd
     
-    # Filtros Avançados na Tabela
-    with st.expander("🔎 Filtros Avançados da Tabela"):
-        fa1, fa2, fa3, fa4 = st.columns(4)
-        with fa1:
-            filtro_status = st.selectbox("Filtrar por Status", ["Todos"] + [
-                "🆕 Novo Lead", "📞 Primeiro Contato", "💬 Em Atendimento",
-                "📋 Proposta Enviada", "⏳ Aguardando Resposta", "🤝 Negociação",
-                "✅ Venda Fechada", "❌ Venda Perdida", "🔄 Pós-Venda"
-            ])
-        with fa2:
-            filtro_temp = st.selectbox("Filtrar por Temperatura", ["Todas", "🔥 Quente", "⛅ Morno", "❄️ Frio"])
-        with fa3:
-            filtro_prioridade = st.selectbox("Filtrar por Prioridade", ["Todas", "🔴 Alta", "🟡 Média", "🟢 Baixa"])
-        with fa4:
-            filtro_resp = st.selectbox("Filtrar por Responsável", ["Todos", "Carlos", "Ana", "Larissa"])
+    dados_exemplo = {
+        "Lead": ["João Silva", "Maria Souza", "Carlos Alberto", "Beatriz Lima"],
+        "Empresa": ["Empresa ABC", "XYZ Ltda", "Tech Soluções", "Comércio Silva"],
+        "Contato": ["(11) 99999-9999", "maria@email.com", "(21) 98888-8888", "(31) 97777-7777"],
+        "Origem": ["WhatsApp", "Site", "Instagram", "Google"],
+        "Etapa": ["Qualificado", "Novo", "Negociação", "Proposta"],
+        "Temperatura": ["🔥 Quente", "🟡 Morno", "🔥 Quente", "🔵 Frio"],
+        "Score": ["92 🔥", "67 🟡", "88 🔥", "35 🔵"],
+        "Valor": ["R$ 8.500", "R$ 4.200", "R$ 15.000", "R$ 3.000"],
+        "Responsável": ["Carlos", "Ana", "Carlos", "Ana"],
+        "Próxima Atividade": ["Hoje 15:00", "Amanhã 10:00", "Hoje 17:00", "20/08"],
+    }
+    
+    df_leads = pd.DataFrame(dados_exemplo)
 
-    # Lógica de exibição com os filtros aplicados
-    if 'df_clientes' in locals() and not df_clientes.empty:
-        df_filtrado = df_clientes.copy()
+    # Exibindo a tabela interativa com seleção de linhas
+    event = st.dataframe(
+        df_leads,
+        use_container_width=True,
+        hide_index=True,
+        selection_mode="single-row",
+        on_select="rerun"
+    )
+
+    # 8. Ações Rápidas / Detalhamento ao selecionar um lead
+    selected_rows = event.selection.get("rows", [])
+    if selected_rows:
+        lead_selecionado = df_leads.iloc[selected_rows[0]]["Lead"]
+        st.markdown(f"---")
+        st.info(f"⚡ **Ações Rápidas para: {lead_selecionado}**")
         
-        # Aplicação da barra de pesquisa geral
-        if pesquisa_lead:
-            df_filtrado = df_filtrado[
-                df_filtrado['nome'].str.contains(pesquisa_lead, case=False, na=False) |
-                df_filtrado['empresa'].str.contains(pesquisa_lead, case=False, na=False) |
-                df_filtrado['email'].str.contains(pesquisa_lead, case=False, na=False)
-            ]
-            
-        # Aplicação dos filtros do expander
-        if filtro_status != "Todos":
-            df_filtrado = df_filtrado[df_filtrado['status'] == filtro_status]
-        if filtro_temp != "Todas":
-            df_filtrado = df_filtrado[df_filtrado['temperatura'] == filtro_temp]
-        if filtro_prioridade != "Todas":
-            df_filtrado = df_filtrado[df_filtrado['prioridade'] == filtro_prioridade]
-        if filtro_resp != "Todos":
-            df_filtrado = df_filtrado[df_filtrado['responsavel'] == filtro_resp]
-
-        if not df_filtrado.empty:
-            colunas_exibicao = [c for c in ['id', 'nome', 'empresa', 'status', 'temperatura', 'valor', 'responsavel', 'proxima_acao'] if c in df_filtrado.columns]
-            st.dataframe(df_filtrado[colunas_exibicao], use_container_width=True, hide_index=True)
-        else:
-            st.warning("Nenhum lead encontrado com os filtros selecionados.")
-    else:
-        st.info("Nenhum lead cadastrado no sistema.")
+        ar1, ar2, ar3, ar4, ar5, ar6, ar7, ar8 = st.columns(8)
+        if ar1.button("📞 Ligar", use_container_width=True): st.toast(f"Ligando para {lead_selecionado}...")
+        if ar2.button("💬 WhatsApp", use_container_width=True): st.toast(f"Abrindo WhatsApp de {lead_selecionado}...")
+        if ar3.button("📧 E-mail", use_container_width=True): st.toast(f"Redigindo e-mail...")
+        if ar4.button("📅 Agendar", use_container_width=True): st.toast(f"Abrindo Agenda...")
+        if ar5.button("📝 Nota", use_container_width=True): st.toast(f"Adicionando observação...")
+        if ar6.button("📄 Proposta", use_container_width=True): st.toast(f"Criando proposta...")
+        if ar7.button("✅ Converter", use_container_width=True): st.toast(f"Lead convertido com sucesso! 🎉")
+        if ar8.button("❌ Perdido", use_container_width=True): st.toast(f"Lead marcado como perdido.")
 
 elif selected == "Agenda":
     st.markdown("### 📅 Agenda e Compromissos Comerciais")
