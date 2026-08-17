@@ -375,103 +375,103 @@ if selected == "Dashboard":
         fig_ativ.update_layout(barmode='stack', template='plotly_dark', margin=dict(t=20, b=20, l=20, r=20), height=300)
         st.plotly_chart(fig_ativ, use_container_width=True)
 
-elif selected == "Leads":
+import streamlit as st
+import pandas as pd
+
+# --- Função do Modal de Novo Lead (Para aparecer como Janela) ---
+@st.dialog("➕ Cadastro de Novo Lead")
+def modal_novo_lead():
+    st.write("Preencha os dados abaixo para cadastrar um novo cliente.")
+    nome = st.text_input("Nome Completo")
+    empresa = st.text_input("Empresa")
+    col1, col2 = st.columns(2)
+    email = col1.text_input("E-mail")
+    telefone = col2.text_input("Telefone")
+    
+    if st.button("Salvar Lead"):
+        st.success(f"Lead {nome} cadastrado com sucesso!")
+        st.rerun()
+
+# --- Conteúdo da Aba Leads ---
+def mostrar_leads():
     st.markdown("### 👥 Gestão Avançada de Leads e Clientes")
     
-    # 1. Cabeçalho: Pesquisa e Ações Principais
-    col_h1, col_h2, col_h3, col_h4 = st.columns([2.5, 0.8, 0.8, 1])
+    # 1. Cabeçalho: Pesquisa encurtada (coluna de peso 1.2) + Botões
+    col_h1, col_h2, col_h3, col_h4 = st.columns([1.2, 0.8, 0.8, 1])
     
     with col_h1:
         pesquisa_lead = st.text_input(
             "Pesquisar",
-            placeholder="🔎 Pesquisar por nome, empresa, telefone...",
+            placeholder="🔎 Pesquisar leads...",
             label_visibility="collapsed",
         )
     with col_h2:
         if st.button("📥 Importar", use_container_width=True):
-            st.toast("Funcionalidade de importação em desenvolvimento.")
+            st.toast("Funcionalidade de importação aberta.")
     with col_h3:
         if st.button("📤 Exportar", use_container_width=True):
-            st.toast("Exportando dados para CSV...")
+            st.toast("Exportando dados...")
     with col_h4:
         if st.button("➕ Novo Lead", use_container_width=True, type="primary"):
-            st.session_state["modal_novo_lead"] = True
+            modal_novo_lead() # Chama o modal de cadastro
 
     st.markdown("---")
 
-    # 2. Indicadores no Topo (KPIs)
-    kpi1, kpi2, kpi3, kpi4, kpi5, kpi6, kpi7 = st.columns(7)
-    kpi1.metric("Total", "248")
+    # 2. Indicadores (KPIs)
+    kpi1, kpi2, kpi3, kpi4 = st.columns(4)
+    kpi1.metric("Total de Leads", "248")
     kpi2.metric("Novos", "32")
-    kpi3.metric("Qualificados", "86")
-    kpi4.metric("Atendimento", "54")
-    kpi5.metric("Potencial", "R$ 185k")
-    kpi6.metric("Convertidos", "41")
-    kpi7.metric("Perdidos", "27")
+    kpi3.metric("Valor Potencial", "R$ 185k")
+    kpi4.metric("Convertidos", "41")
 
     st.markdown("---")
 
-    # 3. Filtros Avançados
-    with st.expander("⚙️ Filtros Avançados", expanded=False):
-        f1, f2, f3, f4, f5, f6 = st.columns(6)
-        with f1:
-            st.selectbox("Status", ["Todos", "Novo", "Em contato", "Qualificado", "Negociação", "Convertido", "Perdido"])
-        with f2:
-            st.selectbox("Origem", ["Todas", "Site", "WhatsApp", "Instagram", "Google", "Indicação"])
-        with f3:
-            st.selectbox("Responsável", ["Todos", "Carlos", "Ana", "Sergio"])
-        with f4:
-            st.selectbox("Etapa", ["Todas", "Prospecção", "Apresentação", "Fechamento"])
-        with f5:
-            st.selectbox("Temperatura", ["Todas", "🔥 Quente", "🟡 Morno", "🔵 Frio"])
-        with f6:
-            st.selectbox("Período", ["Todo o período", "Hoje", "Últimos 7 dias", "Este mês"])
-
-    st.markdown("### 📋 Lista de Leads")
-
-    # 4. Tabela de Leads Exemplo
-    import pandas as pd
-    
+    # 3. Exemplo de Dados
     dados_exemplo = {
-        "Lead": ["João Silva", "Maria Souza", "Carlos Alberto", "Beatriz Lima"],
-        "Empresa": ["Empresa ABC", "XYZ Ltda", "Tech Soluções", "Comércio Silva"],
-        "Contato": ["(11) 99999-9999", "maria@email.com", "(21) 98888-8888", "(31) 97777-7777"],
-        "Origem": ["WhatsApp", "Site", "Instagram", "Google"],
-        "Etapa": ["Qualificado", "Novo", "Negociação", "Proposta"],
-        "Temperatura": ["🔥 Quente", "🟡 Morno", "🔥 Quente", "🔵 Frio"],
-        "Score": ["92 🔥", "67 🟡", "88 🔥", "35 🔵"],
-        "Valor": ["R$ 8.500", "R$ 4.200", "R$ 15.000", "R$ 3.000"],
-        "Responsável": ["Carlos", "Ana", "Carlos", "Ana"],
-        "Próxima Atividade": ["Hoje 15:00", "Amanhã 10:00", "Hoje 17:00", "20/08"],
+        "Lead": ["João Silva", "Maria Souza", "Carlos Alberto"],
+        "Empresa": ["Empresa ABC", "XYZ Ltda", "Tech Soluções"],
+        "Etapa": ["Qualificado", "Novo", "Negociação"],
+        "Temperatura": ["🔥 Quente", "🟡 Morno", "🔥 Quente"],
+        "Valor": ["R$ 8.500", "R$ 4.200", "R$ 15.000"]
     }
-    
     df_leads = pd.DataFrame(dados_exemplo)
 
-    # Exibindo a tabela interativa com seleção de linhas
-    event = st.dataframe(
-        df_leads,
-        use_container_width=True,
-        hide_index=True,
-        selection_mode="single-row",
-        on_select="rerun"
-    )
+    # 4. Tabela com Botões de Ação por linha
+    st.write("#### 📋 Leads Ativos")
+    
+    # Cabeçalho da tabela personalizado
+    header_cols = st.columns([2, 2, 1.5, 1.5, 1.5, 2])
+    header_cols[0].write("**Nome**")
+    header_cols[1].write("**Empresa**")
+    header_cols[2].write("**Etapa**")
+    header_cols[3].write("**Temp.**")
+    header_cols[4].write("**Valor**")
+    header_cols[5].write("**Ações**")
+    
+    st.divider()
 
-    # 8. Ações Rápidas / Detalhamento ao selecionar um lead
-    selected_rows = event.selection.get("rows", [])
-    if selected_rows:
-        lead_selecionado = df_leads.iloc[selected_rows[0]]["Lead"]
-        st.markdown(f"---")
-        st.info(f"⚡ **Ações Rápidas para: {lead_selecionado}**")
+    # Linhas com botões funcionais
+    for index, row in df_leads.iterrows():
+        cols = st.columns([2, 2, 1.5, 1.5, 1.5, 2])
+        cols[0].write(row["Lead"])
+        cols[1].write(row["Empresa"])
+        cols[2].write(row["Etapa"])
+        cols[3].write(row["Temperatura"])
+        cols[4].write(row["Valor"])
         
-        ar1, ar2, ar3, ar4, ar5, ar6, ar7, ar8 = st.columns(8)
-        if ar1.button("📞 Ligar", use_container_width=True): st.toast(f"Ligando para {lead_selecionado}...")
-        if ar2.button("💬 WhatsApp", use_container_width=True): st.toast(f"Abrindo WhatsApp de {lead_selecionado}...")
-        if ar3.button("📧 E-mail", use_container_width=True): st.toast(f"Redigindo e-mail...")
-        if ar4.button("📅 Agendar", use_container_width=True): st.toast(f"Abrindo Agenda...")
-        if ar5.button("📝 Nota", use_container_width=True): st.toast(f"Adicionando observação...")
-        if ar6.button("📄 Proposta", use_container_width=True): st.toast(f"Criando proposta...")
-        if ar7.button("✅ Converter", use_container_width=True): st.toast(f"Lead convertido com sucesso! 🎉")
-        if ar8.button("❌ Perdido", use_container_width=True): st.toast(f"Lead marcado como perdido.")
+        # Botões de Ação por linha
+        btn_cols = cols[5].columns(3)
+        if btn_cols[0].button("👁️", key=f"det_{index}", help="Ver Detalhes"):
+            st.info(f"Visualizando detalhes de {row['Lead']}")
+        if btn_cols[1].button("✏️", key=f"edit_{index}", help="Editar"):
+            st.toast(f"Editando {row['Lead']}")
+        if btn_cols[2].button("🗑️", key=f"del_{index}", help="Excluir"):
+            st.error(f"Excluindo {row['Lead']}")
+        
+    st.divider()
+
+# --- Chamar a função (Coloque isso dentro do seu elif selected == "Leads":) ---
+mostrar_leads()
 
 elif selected == "Agenda":
     st.markdown("### 📅 Agenda e Compromissos Comerciais")
