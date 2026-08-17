@@ -627,7 +627,7 @@ dados_compromissos = pd.DataFrame([
 
 st.dataframe(dados_compromissos, use_container_width=True, hide_index=True)
 
-    with col_ag2:
+with col_ag2:
         st.markdown("#### ➕ Agendar Novo Evento")
         
         with st.form("form_agendar_evento_completo"):
