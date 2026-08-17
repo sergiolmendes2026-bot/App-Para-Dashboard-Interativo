@@ -355,9 +355,23 @@ elif selected == "Leads":
         if st.button("➕ Novo Lead Completo", use_container_width=True):
             st.session_state.modal_novo_lead = True
 
+    # ⚠️ MUDE AQUI: Troque 'df_clientes' para o nome exato da variável do seu DataFrame se for diferente
+    if 'df_clientes' in locals():
+        df_filtrado = df_clientes.copy()
+        
+        if pesquisa_lead:
+            filtro = df_filtrado['nome'].astype(str).str.contains(pesquisa_lead, case=False, na=False) | \
+                     df_filtrado['empresa'].astype(str).str.contains(pesquisa_lead, case=False, na=False)
+            df_filtrado = df_filtrado[filtro]
+            
+        st.dataframe(df_filtrado, use_container_width=True)
+    else:
+        st.warning("Variável de dados dos leads não encontrada.")
+
     if st.session_state.get("modal_novo_lead", False):
         st.markdown("---")
         st.markdown("#### 📝 Cadastro e Qualificação de Novo Lead")
+  
     df_filtrado = df.copy() 
     
     if pesquisa_lead:
