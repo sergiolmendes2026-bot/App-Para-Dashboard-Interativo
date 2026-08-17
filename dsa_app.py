@@ -379,7 +379,7 @@ import streamlit as st
 import pandas as pd
 
 elif selected == "Leads":
-    mostrar_leads()
+     st.markdown("### 👥 Gestão Avançada de Leads e Clientes")
 @st.dialog("➕ Cadastro de Novo Lead")
 def modal_novo_lead():
     st.write("Preencha os dados abaixo para cadastrar um novo cliente.")
