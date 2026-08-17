@@ -615,8 +615,8 @@ if f_busca_agenda:
         df_agenda['compromisso'].str.contains(f_busca_agenda, case=False, na=False) |
         df_agenda['cliente'].str.contains(f_busca_agenda, case=False, na=False)
     ]
-        
-   f_periodo = st.radio("Período:", ["Hoje", "Semana", "Mês", "Todos"], horizontal=True)        
+
+f_periodo = st.radio("Período:", ["Hoje", "Semana", "Mês", "Todos"], horizontal=True)       
         # Exemplo estruturado de tabela de compromissos
         import pandas as pd
         dados_compromissos = pd.DataFrame([
