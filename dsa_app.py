@@ -236,7 +236,7 @@ df_pipeline = pd.read_sql("SELECT * FROM pipeline", conn)
 conn.close()
 
 # Roteamento das Telas
-if selected == "Dashboard":
+elif selected == "Dashboard":
     st.markdown("### 📊 Dashboard Executivo & Indicadores de Desempenho")
     
     # 🌟 KPIs Principais no Topo
@@ -252,72 +252,85 @@ if selected == "Dashboard":
 
     st.markdown("---")
 
-    import pandas as pd
-
-    # Linha 1: Evolução de Vendas x Meta (Essencial) & Leads por Origem (Muito Importante)
+    # Linha 1: Produção de Vendas (Combo Chart) & Leads por Origem (Donut)
     col_d_1, col_d_2 = st.columns(2)
     
     with col_d_1:
-        st.markdown("#### 📈 1. Evolução de Vendas (vs. Meta)")
+        st.markdown("#### 📈 1. Produção de Vendas (vs. Meta)")
         df_ev_meta = pd.DataFrame({
-            "Realizado": [20000, 48000, 72000, 95000, 125500],
-            "Meta": [25000, 50000, 75000, 100000, 150000]
-        }, index=["Abr", "Mai", "Jun", "Jul", "Ago"])
-        st.line_chart(df_ev_meta)
+            'Mes': ['Abr', 'Mai', 'Jun', 'Jul', 'Ago'],
+            'Realizado': [20000, 48000, 72000, 95000, 125500],
+            'Meta': [25000, 50000, 75000, 100000, 150000]
+        })
+        fig_vendas = go.Figure()
+        fig_vendas.add_trace(go.Bar(x=df_ev_meta['Mes'], y=df_ev_meta['Realizado'], name='Realizado', marker_color='#3b82f6'))
+        fig_vendas.add_trace(go.Scatter(x=df_ev_meta['Mes'], y=df_ev_meta['Meta'], name='Meta', mode='lines+markers', line=dict(color='#ef4444', width=3)))
+        fig_vendas.update_layout(template='plotly_dark', margin=dict(t=20, b=20, l=20, r=20), height=300)
+        st.plotly_chart(fig_vendas, use_container_width=True)
 
     with col_d_2:
         st.markdown("#### 🎯 2. Leads por Origem")
         df_origem = pd.DataFrame({
-            "Leads": [45, 30, 20, 15, 10, 8]
-        }, index=["Google Ads", "Instagram", "WhatsApp", "Site", "Indicação", "LinkedIn"])
-        st.bar_chart(df_origem)
+            'Origem': ["Google Ads", "Instagram", "WhatsApp", "Site", "Indicação", "LinkedIn"],
+            'Leads': [45, 30, 20, 15, 10, 8]
+        })
+        fig_origem = px.pie(df_origem, values='Leads', names='Origem', hole=0.4, template='plotly_dark')
+        fig_origem.update_layout(margin=dict(t=20, b=20, l=20, r=20), height=300)
+        st.plotly_chart(fig_origem, use_container_width=True)
 
     st.markdown("---")
 
-    # Linha 2: Pipeline por Etapa (Essencial) & Vendas por Consultor (Muito Importante)
+    # Linha 2: Pipeline por Etapa (Funil) & Vendas por Consultor (Colunas Agrupadas)
     col_d_3, col_d_4 = st.columns(2)
 
     with col_d_3:
         st.markdown("#### 🔄 3. Pipeline por Etapa (Valor)")
         df_pipe = pd.DataFrame({
-            "Valor (R$)": [80000, 60000, 42000, 30000, 20000]
-        }, index=["Novo Lead", "Qualificação", "Proposta", "Negociação", "Fechamento"])
-        st.bar_chart(df_pipe, horizontal=True)
+            'Etapa': ["Novo Lead", "Qualificação", "Proposta", "Negociação", "Fechamento"],
+            'Valor': [80000, 60000, 42000, 30000, 20000]
+        })
+        fig_funil = go.Figure(go.Funnel(y=df_pipe['Etapa'], x=df_pipe['Valor'], textinfo="value+percent initial"))
+        fig_funil.update_layout(template='plotly_dark', margin=dict(t=20, b=20, l=20, r=20), height=300)
+        st.plotly_chart(fig_funil, use_container_width=True)
 
     with col_d_4:
         st.markdown("#### 👥 4. Vendas por Consultor (vs. Meta)")
         df_cons = pd.DataFrame({
-            "Realizado": [47000, 42500, 36000],
-            "Meta": [50000, 50000, 50000]
-        }, index=["Ana", "Carlos", "Larissa"])
-        st.bar_chart(df_cons)
+            'Consultor': ["Ana", "Carlos", "Larissa"],
+            'Realizado': [47000, 42500, 36000],
+            'Meta': [50000, 50000, 50000]
+        })
+        fig_cons = go.Figure()
+        fig_cons.add_trace(go.Bar(x=df_cons['Consultor'], y=df_cons['Realizado'], name='Realizado', marker_color='#10b981'))
+        fig_cons.add_trace(go.Bar(x=df_cons['Consultor'], y=df_cons['Meta'], name='Meta', marker_color='#64748b'))
+        fig_cons.update_layout(barmode='group', template='plotly_dark', margin=dict(t=20, b=20, l=20, r=20), height=300)
+        st.plotly_chart(fig_cons, use_container_width=True)
 
     st.markdown("---")
 
-    # Linha 3: Funil de Conversão (Essencial) & Status dos Pagamentos (Importante)
+    # Linha 3: Funil de Conversão Comercial & Status dos Pagamentos (Donut com Cores Semafóricas)
     col_d_5, col_d_6 = st.columns(2)
 
     with col_d_5:
-        st.markdown("#### 🎯 5. Funil de Conversão de Leads")
-        # Representação visual limpa do funil comercial em métricas empilhadas / markdown
-        st.info(
-            "📌 **Leads Totais:** 128 (100%)\n\n"
-            "⬇️ ↓ *64% de conversão*\n\n"
-            "📌 **Qualificados:** 82 (64%)\n\n"
-            "⬇️ ↓ *57% de conversão*\n\n"
-            "📌 **Oportunidades:** 47 (36%)\n\n"
-            "⬇️ ↓ *66% de conversão*\n\n"
-            "📌 **Propostas:** 31 (24%)\n\n"
-            "⬇️ ↓ *74% de conversão*\n\n"
-            "🎉 **Vendas Fechadas:** 23 (18% Conversão Global)"
-        )
+        st.markdown("#### 🎯 5. Funil de Conversão Geral")
+        df_funil_geral = pd.DataFrame({
+            'Fase': ['Leads Totais', 'Qualificados', 'Oportunidades', 'Propostas', 'Fechados'],
+            'Quantidade': [128, 82, 47, 31, 23]
+        })
+        fig_fgeral = go.Figure(go.Funnel(y=df_funil_geral['Fase'], x=df_funil_geral['Quantidade']))
+        fig_fgeral.update_layout(template='plotly_dark', margin=dict(t=20, b=20, l=20, r=20), height=300)
+        st.plotly_chart(fig_fgeral, use_container_width=True)
 
     with col_d_6:
         st.markdown("#### 💳 6. Status dos Pagamentos")
         df_pag = pd.DataFrame({
-            "Volume (R$)": [85000, 25500, 10000, 5000]
-        }, index=["🟢 Pago", "🟡 Parcial", "🟠 Pendente", "🔴 Em atraso"])
-        st.bar_chart(df_pag)
+            'Status': ["🟢 Pago", "🟡 Parcial", "🟠 Pendente", "🔴 Em atraso"],
+            'Volume': [85000, 25500, 10000, 5000]
+        })
+        fig_pag = px.pie(df_pag, values='Volume', names='Status', hole=0.6, template='plotly_dark')
+        fig_pag.update_traces(marker=dict(colors=['#10b981', '#f59e0b', '#f97316', '#ef4444']))
+        fig_pag.update_layout(margin=dict(t=20, b=20, l=20, r=20), height=300)
+        st.plotly_chart(fig_pag, use_container_width=True)
 
     st.markdown("---")
 
@@ -326,18 +339,26 @@ if selected == "Dashboard":
 
     with col_d_7:
         st.markdown("#### 📦 7. Vendas por Produto / Serviço")
-        df_prod_vendas = pd.DataFrame({
-            "Faturamento (R$)": [45000, 32000, 28000, 20500]
-        }, index=["Software A", "Software B", "Enterprise", "Consultoria"])
-        st.bar_chart(df_prod_vendas, horizontal=True)
+        df_prod = pd.DataFrame({
+            'Produto': ["Software A", "Software B", "Enterprise", "Consultoria"],
+            'Faturamento': [45000, 32000, 28000, 20500]
+        })
+        fig_prod = px.bar(df_prod, x='Faturamento', y='Produto', orientation='h', template='plotly_dark')
+        fig_prod.update_layout(margin=dict(t=20, b=20, l=20, r=20), height=300, yaxis={'categoryorder':'total ascending'})
+        st.plotly_chart(fig_prod, use_container_width=True)
 
     with col_d_8:
         st.markdown("#### 📋 8. Atividades Comerciais (Concluídas x Pendentes)")
-        df_ativ_comp = pd.DataFrame({
-            "Concluídas": [40, 30, 25, 20, 15],
-            "Pendentes": [10, 8, 5, 12, 4]
-        }, index=["Ligações", "E-mails", "WhatsApp", "Reuniões", "Propostas"])
-        st.bar_chart(df_ativ_comp)
+        df_ativ = pd.DataFrame({
+            'Tipo': ["Ligações", "E-mails", "WhatsApp", "Reuniões", "Propostas"],
+            'Concluídas': [40, 30, 25, 20, 15],
+            'Pendentes': [10, 8, 5, 12, 4]
+        })
+        fig_ativ = go.Figure()
+        fig_ativ.add_trace(go.Bar(x=df_ativ['Tipo'], y=df_ativ['Concluídas'], name='Concluídas', marker_color='#10b981'))
+        fig_ativ.add_trace(go.Bar(x=df_ativ['Tipo'], y=df_ativ['Pendentes'], name='Pendentes', marker_color='#f59e0b'))
+        fig_ativ.update_layout(barmode='stack', template='plotly_dark', margin=dict(t=20, b=20, l=20, r=20), height=300)
+        st.plotly_chart(fig_ativ, use_container_width=True)
 
 elif selected == "Leads":
     st.markdown("### 👥 Gestão Avançada de Leads e Clientes")
