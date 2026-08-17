@@ -340,22 +340,24 @@ if selected == "Dashboard":
         st.bar_chart(df_ativ_comp)
 
 elif selected == "Leads":
-   st.markdown("### 👥 Gestão Avançada de Leads e Clientes")
+    st.markdown("### 👥 Gestão Avançada de Leads e Clientes")
     
-    # 1. Barra de pesquisa menor e botão lado a lado
-    col_l1, col_l2 = st.columns([3, 1]) 
+    col_l1, col_l2 = st.columns([3, 1])
+    
     with col_l1:
         pesquisa_lead = st.text_input(
             "Pesquisar",
-            placeholder="Pesquisar por nome ou empresa...", # Dica para o usuário
+            placeholder="Pesquisar...",
             label_visibility="collapsed",
         )
+        
     with col_l2:
         if st.button("➕ Novo Lead Completo", use_container_width=True):
             st.session_state.modal_novo_lead = True
 
-    # 2. Lógica para filtrar a tabela (É AQUI QUE A MÁGICA ACONTECE)
-    # Certifique-se de que 'df' seja o nome da variável do seu dataframe de leads
+    if st.session_state.get("modal_novo_lead", False):
+        st.markdown("---")
+        st.markdown("#### 📝 Cadastro e Qualificação de Novo Lead")
     df_filtrado = df.copy() 
     
     if pesquisa_lead:
