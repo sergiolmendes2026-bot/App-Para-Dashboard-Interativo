@@ -470,7 +470,7 @@ def mostrar_leads():
         
     st.divider()
 
-if selected == "Agenda":
+elif selected == "Agenda":
     st.markdown("### 📅 Agenda e Compromissos Comerciais")
     
     # 1. KPIs no Topo
