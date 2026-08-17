@@ -345,8 +345,21 @@ if selected == "Dashboard":
             'Produto': ["Software A", "Software B", "Enterprise", "Consultoria"],
             'Faturamento': [45000, 32000, 28000, 20500]
         })
-        fig_prod = px.bar(df_prod, x='Faturamento', y='Produto', orientation='h', template='plotly_dark')
-        fig_prod.update_layout(margin=dict(t=20, b=20, l=20, r=20), height=300, yaxis={'categoryorder':'total ascending'})
+        # Adicionado o parâmetro color='Produto' para gerar cores distintas por barra
+        fig_prod = px.bar(
+            df_prod, 
+            x='Faturamento', 
+            y='Produto', 
+            orientation='h', 
+            color='Produto', 
+            template='plotly_dark'
+        )
+        fig_prod.update_layout(
+            margin=dict(t=20, b=20, l=20, r=20), 
+            height=300, 
+            yaxis={'categoryorder':'total ascending'},
+            showlegend=False  # Oculta a legenda lateral se preferir o visual mais limpo
+        )
         st.plotly_chart(fig_prod, use_container_width=True)
 
     with col_d_8:
