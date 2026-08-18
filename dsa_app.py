@@ -1320,8 +1320,9 @@ elif selected == "Metas":
         with mp2:
             st.success("🚀 **Previsão de fechamento:** R$ 164.000 (Superada)")
 
-        st.markdown("---")
+    st.markdown("---")
     
+    # 📈 8. Gráfico de Evolução (Meta acumulada x Realizado com Gradiente)
     st.markdown("#### 📈 Evolução da Meta (Acumulado)")
 
     dias_mes = [f"Dia {i*5}" for i in range(1, 7)]
@@ -1366,19 +1367,16 @@ elif selected == "Metas":
 
     st.markdown("---")
 
-    st.markdown("#### 🏆 Desempenho e Metas por Consultor")       
-   
+    # 👥 3. Metas por Consultor (Tabela Detalhada)
+    st.markdown("#### 🏆 Desempenho e Metas por Consultor")
+    df_consultores = pd.DataFrame([
+        {"Consultor": "Ana", "Meta": "R$ 50k", "Realizado": "R$ 47k", "% Atingido": "94%", "Faltante": "R$ 3k", "Previsão": "R$ 61k", "Status": "🟢 Ótimo"},
+        {"Consultor": "Carlos", "Meta": "R$ 50k", "Realizado": "R$ 42,5k", "% Atingido": "85%", "Faltante": "R$ 7,5k", "Previsão": "R$ 54k", "Status": "🟢 No Ritmo"},
+        {"Consultor": "Larissa", "Meta": "R$ 50k", "Realizado": "R$ 30k", "% Atingido": "60%", "Faltante": "R$ 20k", "Previsão": "R$ 39k", "Status": "🟡 Atenção"}
+    ])
+    st.dataframe(df_consultores, use_container_width=True, hide_index=True)
 
-        # 👥 3. Metas por Consultor (Tabela Detalhada)
-        st.markdown("#### 🏆 Desempenho e Metas por Consultor")
-        df_consultores = pd.DataFrame([
-            {"Consultor": "Ana", "Meta": "R$ 50k", "Realizado": "R$ 47k", "% Atingido": "94%", "Faltante": "R$ 3k", "Previsão": "R$ 61k", "Status": "🟢 Ótimo"},
-            {"Consultor": "Carlos", "Meta": "R$ 50k", "Realizado": "R$ 42,5k", "% Atingido": "85%", "Faltante": "R$ 7,5k", "Previsão": "R$ 54k", "Status": "🟢 No Ritmo"},
-            {"Consultor": "Larissa", "Meta": "R$ 50k", "Realizado": "R$ 30k", "% Atingido": "60%", "Faltante": "R$ 20k", "Previsão": "R$ 39k", "Status": "🟡 Atenção"}
-        ])
-        st.dataframe(df_consultores, use_container_width=True, hide_index=True)
-
-        st.markdown("---")
+    st.markdown("---")
 
         # 📊 4. Outros Tipos de Metas (Métricas Secundárias)
         st.markdown("#### 📊 Outras Metas Operacionais do Período")
