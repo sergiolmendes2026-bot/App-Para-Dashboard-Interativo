@@ -1355,8 +1355,7 @@ elif selected == "Metas":
         st.metric("📄 Propostas", "42 / 50")
     with om5:
         st.metric("🤝 Reuniões", "35 / 40")
-        )
-        
+                
         st.markdown("---")
 
         # 📝 5. & 6. Criar e Configurar Nova Meta
