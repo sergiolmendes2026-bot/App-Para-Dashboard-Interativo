@@ -264,9 +264,24 @@ if selected == "Dashboard":
             'Realizado': [20000, 48000, 72000, 95000, 125500],
             'Meta': [25000, 50000, 75000, 100000, 150000]
         })
+        
+        # Lista de cores diferentes para cada uma das 5 barras
+        cores_barras = ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899']
+        
         fig_vendas = go.Figure()
-        fig_vendas.add_trace(go.Bar(x=df_ev_meta['Mes'], y=df_ev_meta['Realizado'], name='Realizado', marker_color='#3b82f6'))
-        fig_vendas.add_trace(go.Scatter(x=df_ev_meta['Mes'], y=df_ev_meta['Meta'], name='Meta', mode='lines+markers', line=dict(color='#ef4444', width=3)))
+        fig_vendas.add_trace(go.Bar(
+            x=df_ev_meta['Mes'], 
+            y=df_ev_meta['Realizado'], 
+            name='Realizado', 
+            marker_color=cores_barras
+        ))
+        fig_vendas.add_trace(go.Scatter(
+            x=df_ev_meta['Mes'], 
+            y=df_ev_meta['Meta'], 
+            name='Meta', 
+            mode='lines+markers', 
+            line=dict(color='#ef4444', width=3)
+        ))
         fig_vendas.update_layout(template='plotly_dark', margin=dict(t=20, b=20, l=20, r=20), height=300)
         st.plotly_chart(fig_vendas, use_container_width=True)
 
