@@ -1320,6 +1320,15 @@ elif selected == "Metas":
         with mp2:
             st.success("🚀 **Previsão de fechamento:** R$ 164.000 (Superada)")
 
+    with col_m_dir:
+        # 🏆 7. Ranking Comercial
+        st.markdown("#### 🏆 Ranking Comercial")
+        st.markdown(
+            "🥇 **Ana** — 94% *(R$ 47k)*\n\n"
+            "🥈 **Carlos** — 85% *(R$ 42,5k)*\n\n"
+            "🥉 **Larissa** — 60% *(R$ 30k)*"
+        )
+        
     st.markdown("---")
 
     # 👥 3. Metas por Consultor (Tabela Detalhada)
@@ -1333,27 +1342,19 @@ elif selected == "Metas":
 
     st.markdown("---")
 
-        # 📊 4. Outros Tipos de Metas (Métricas Secundárias)
+    # 📊 4. Outros Tipos de Metas (Métricas Secundárias)
     st.markdown("#### 📊 Outras Metas Operacionais do Período")
-        om1, om2, om3, om4, om5 = st.columns(5)
-        with om1:
-            st.metric("🧑‍💼 Vendas", "23 / 30")
-        with om2:
-            st.metric("👥 Leads", "84 / 100")
-        with om3:
-            st.metric("📞 Atividades", "165 / 200")
-        with om4:
-            st.metric("📄 Propostas", "42 / 50")
-        with om5:
-            st.metric("🤝 Reuniões", "35 / 40")
-
-    with col_m_dir:
-        # 🏆 7. Ranking Comercial
-        st.markdown("#### 🏆 Ranking Comercial")
-        st.markdown(
-            "🥇 **Ana** — 94% *(R$ 47k)*\n\n"
-            "🥈 **Carlos** — 85% *(R$ 42,5k)*\n\n"
-            "🥉 **Larissa** — 60% *(R$ 30k)*"
+    om1, om2, om3, om4, om5 = st.columns(5)
+    with om1:
+        st.metric("🧑‍💼 Vendas", "23 / 30")
+    with om2:
+        st.metric("👥 Leads", "84 / 100")
+    with om3:
+        st.metric("📞 Atividades", "165 / 200")
+    with om4:
+        st.metric("📄 Propostas", "42 / 50")
+    with om5:
+        st.metric("🤝 Reuniões", "35 / 40")
         )
         
         st.markdown("---")
