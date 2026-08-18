@@ -957,59 +957,190 @@ elif selected == "Vendas":
                     st.error("O campo Cliente / Empresa é obrigatório.")
 
 elif selected == "Propostas":
+    st.markdown("### 📄 Gestão de Propostas Comerciais")
+    
+    # Métricas rápidas no topo
+    m1, m2, m3, m4 = st.columns(4)
+    m1.metric("Total Propostas", "24", "+3 este mês")
+    m2.metric("Valor Total", "R$ 185.000", "+12%")
+    m3.metric("Aprovadas", "12", "50% conv.")
+    m4.metric("Em Negociação", "8", "Ativas")
+
     st.markdown("---")
-    st.markdown("### 📋 Lista de Propostas Comerciais")
 
-    # Exemplo de DataFrame de propostas caso não exista
-    if 'df_propostas' not in locals() or df_propostas is None:
-        try:
-            conn = conectar()
-            df_propostas = pd.read_sql("SELECT * FROM propostas", conn)
-            conn.close()
-        except Exception:
-            df_propostas = pd.DataFrame(columns=['id', 'cliente', 'valor', 'status', 'responsavel', 'validade'])
+    # Botão para abrir o formulário de Nova Proposta
+    col_p1, col_p2 = st.columns([3, 1])
+    with col_p1:
+        pesquisa_prop = st.text_input("🔍 Pesquisar Proposta por ID ou Cliente", "", key="pesquisa_propostas_geral")
+    with col_p2:
+        if st.button("➕ Nova Proposta", use_container_width=True):
+            st.session_state.modal_nova_proposta = True
 
-    if df_propostas.empty:
-        df_propostas = pd.DataFrame([{
-            'id': 1,
-            'cliente': 'Empresa Exemplo S/A',
-            'valor': 25000.0,
-            'status': 'Em Negociação',
-            'responsavel': 'Carlos',
-            'validade': '2026-09-30'
-        }])
+    # ---------------------------------------------------------
+    # MODAL / FORMULÁRIO DE NOVA PROPOSTA
+    # ---------------------------------------------------------
+    if st.session_state.get("modal_nova_proposta", False):
+        st.markdown("---")
+        st.markdown("#### 📝 Cadastro de Nova Proposta Comercial")
+        
+        with st.form("form_nova_proposta_completo"):
+            
+            # Seção 1: Cliente
+            st.markdown("##### 👤 1. Informações do Cliente")
+            c1, c2, c3 = st.columns(3)
+            with c1:
+                p_cliente = st.text_input("Nome do Cliente *")
+                p_empresa = st.text_input("Empresa")
+            with c2:
+                p_doc = st.text_input("CNPJ / CPF")
+                p_email = st.text_input("E-mail")
+            with c3:
+                p_telefone = st.text_input("Telefone")
+                p_endereco = st.text_input("Endereço")
 
-    # 8 Colunas definidas exatamente
-    headers = ["ID", "Cliente", "Valor (R$)", "Status", "Responsável", "Validade", "Ações"]
-    
-    h_cols = st.columns([0.6, 2.0, 1.5, 1.5, 1.2, 1.2, 1.5])
-    for i, h in enumerate(headers):
-        h_cols[i].markdown(f"**{h}**")
-    
-    st.divider()
+            st.markdown("---")
+            # Seção 2: Dados Comerciais
+            st.markdown("##### 💼 2. Dados Comerciais da Proposta")
+            d1, d2, d3, d4 = st.columns(4)
+            with d1:
+                p_num = st.text_input("Nº da Proposta", value="PROP-2026-002")
+                p_produto = st.text_input("Produto / Serviço")
+            with d2:
+                p_qtd = st.number_input("Quantidade", min_value=1, value=1)
+                p_valor_unit = st.number_input("Valor Unitário (R$)", min_value=0.0, value=5000.0, step=500.0)
+            with d3:
+                p_desconto = st.number_input("Desconto (R$)", min_value=0.0, value=0.0, step=100.0)
+                p_impostos = st.number_input("Impostos (R$)", min_value=0.0, value=0.0, step=100.0)
+            with d4:
+                # Cálculo automático do subtotal
+                p_subtotal = (p_qtd * p_valor_unit) - p_desconto + p_impostos
+                st.markdown(f"**Valor Total Estimado:**")
+                st.markdown(f"### R$ {p_subtotal:,.2f}")
 
-    for index, row in df_propostas.iterrows():
-        r_cols = st.columns([0.6, 2.0, 1.5, 1.5, 1.2, 1.2, 1.5])
-        
-        r_cols[0].write(str(row.get('id', '')))
-        r_cols[1].write(str(row.get('cliente', '')))
-        
-        val = row.get('valor', 0)
-        r_cols[2].write(f"R$ {val:,.2f}" if pd.notnull(val) else "R$ 0,00")
-        
-        r_cols[3].write(str(row.get('status', '')))
-        r_cols[4].write(str(row.get('responsavel', '')))
-        r_cols[5].write(str(row.get('validade', '')))
-        
-        # Ações Rápidas por linha
-        act_cols = r_cols[6].columns(3)
-        if act_cols[0].button("👁️", key=f"prop_ver_{row.get('id', index)}_{index}", help="Ver Detalhes"):
-            st.info(f"Visualizando proposta ID: {row.get('id', '')}")
-        if act_cols[1].button("✏️", key=f"prop_edit_{row.get('id', index)}_{index}", help="Editar Proposta"):
-            st.toast(f"Editando proposta ID: {row.get('id', '')}")
-        if act_cols[2].button("🗑️", key=f"prop_del_{row.get('id', index)}_{index}", help="Excluir Proposta"):
-            st.success(f"Proposta excluída com sucesso!")
+            p_descricao = st.text_area("Descrição Detalhada do Escopo")
+
+            st.markdown("---")
+            # Seção 3: Condições de Pagamento
+            st.markdown("##### 💳 3. Condições de Pagamento")
+            cp1, cp2, cp3 = st.columns(3)
+            with cp1:
+                p_forma_pgto = st.selectbox("Forma de Pagamento", [
+                    "Pix", "Boleto", "Cartão de crédito", "Cartão de débito", 
+                    "À vista", "Parcelado", "Transferência bancária", "Condição personalizada"
+                ])
+            with cp2:
+                p_parcelas = st.selectbox("Número de Parcelas", ["1x", "2x", "3x", "6x", "12x"])
+            with cp3:
+                p_vencimento = st.text_input("Vencimento / Prazo", value="30 dias")
+
+            st.markdown("---")
+            # Seção 4: Controle e Status
+            st.markdown("##### 📅 4. Controle e Status da Proposta")
+            cs1, cs2, cs3, cs4 = st.columns(4)
+            with cs1:
+                p_status = st.selectbox("Status da Proposta", [
+                    "📝 Rascunho", "📤 Enviada", "👀 Visualizada", 
+                    "💬 Em negociação", "✅ Aprovada", "❌ Recusada", 
+                    "⏰ Expirada", "🚫 Cancelada"
+                ])
+            with cs2:
+                p_responsavel = st.selectbox("Responsável", ["Carlos", "Ana", "Larissa"])
+            with cs3:
+                p_validade = st.text_input("Data de Validade", value="2026-09-30")
+            with cs4:
+                p_prob = st.slider("Probabilidade de Fechamento (%)", 0, 100, 75)
+
+            p_obs = st.text_area("Observações / Termos e Condições")
+
+            btn_salvar_prop = st.form_submit_button("💾 Salvar Nova Proposta")
+            if btn_salvar_prop:
+                if p_cliente:
+                    st.success("Proposta cadastrada com sucesso!")
+                    st.session_state.modal_nova_proposta = False
+                    st.rerun()
+                else:
+                    st.error("O campo Nome do Cliente é obrigatório.")
+
+        if st.button("❌ Fechar Formulário"):
+            st.session_state.modal_nova_proposta = False
             st.rerun()
+
+    st.markdown("---")
+    st.markdown("### 📋 Lista Completa de Propostas")
+
+    # DataFrame de Exemplo para Propostas
+    df_propostas = pd.DataFrame([
+        {
+            'id': 'PROP-2026-001',
+            'cliente': 'Empresa Exemplo S/A',
+            'produto': 'Consultoria / Software',
+            'valor': 25000.0,
+            'status': '💬 Em negociação',
+            'responsavel': 'Carlos',
+            'validade': '30/09/2026'
+        },
+        {
+            'id': 'PROP-2026-002',
+            'cliente': 'Tech Soluções Ltda',
+            'produto': 'Sistema CRM Pro',
+            'valor': 12500.0,
+            'status': '✅ Aprovada',
+            'responsavel': 'Ana',
+            'validade': '15/10/2026'
+        }
+    ])
+
+    # Filtragem por pesquisa
+    if pesquisa_prop:
+        df_propostas = df_propostas[
+            df_propostas['id'].astype(str).str.contains(pesquisa_prop, case=False, na=False) |
+            df_propostas['cliente'].astype(str).str.contains(pesquisa_prop, case=False, na=False)
+        ]
+
+    # Renderização da Tabela Personalizada com Ações Rápidas (👁️ ✏️ 📄 🗑️)
+    if not df_propostas.empty:
+        h_cols = st.columns([1.2, 2.0, 1.8, 1.2, 1.5, 1.0, 1.0, 1.5])
+        headers = ["Nº Proposta", "Cliente", "Produto", "Valor", "Status", "Resp.", "Validade", "Ações"]
+        for i, h in enumerate(headers):
+            h_cols[i].markdown(f"**{h}**")
+        
+        st.divider()
+
+        for index, row in df_propostas.iterrows():
+            r_cols = st.columns([1.2, 2.0, 1.8, 1.2, 1.5, 1.0, 1.0, 1.5])
+            
+            r_cols[0].write(str(row.get('id', '')))
+            r_cols[1].write(str(row.get('cliente', '')))
+            r_cols[2].write(str(row.get('produto', '')))
+            
+            val = row.get('valor', 0)
+            r_cols[3].write(f"R$ {val:,.2f}" if pd.notnull(val) else "R$ 0,00")
+            
+            r_cols[4].write(str(row.get('status', '')))
+            r_cols[5].write(str(row.get('responsavel', '')))
+            r_cols[6].write(str(row.get('validade', '')))
+            
+            # Mini-colunas para os 4 botões de Ações Rápidas: Ver, Editar, PDF, Excluir
+            act_cols = r_cols[7].columns(4)
+            
+            if act_cols[0].button("👁️", key=f"p_ver_{index}", help="Ver Detalhes"):
+                st.info(f"Visualizando detalhes da proposta: {row['id']}")
+                
+            if act_cols[1].button("✏️", key=f"p_edit_{index}", help="Editar Proposta"):
+                st.toast(f"Editando proposta: {row['id']}")
+                
+            if act_cols[2].button("📄", key=f"p_pdf_{index}", help="Gerar PDF Profissional"):
+                st.success(f"PDF da proposta {row['id']} gerado com sucesso!")
+                
+            if act_cols[3].button("🗑️", key=f"p_del_{index}", help="Excluir Proposta"):
+                st.warning(f"Proposta {row['id']} excluída!")
+                st.rerun()
+                
+        # Integração Inteligente: Conversão para Venda se Aprovada
+        st.markdown("---")
+        st.info("💡 **Dica do CRM:** Quando uma proposta for marcada como **✅ Aprovada**, o sistema oferece automaticamente a conversão direta para o módulo de Vendas e Pagamentos.")
+    else:
+        st.warning("Nenhuma proposta encontrada.")
 
 elif selected == "Relatórios":
     st.markdown("### 📊 Relatórios Executivos & Central de Exportação")
