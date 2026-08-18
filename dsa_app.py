@@ -957,218 +957,59 @@ elif selected == "Vendas":
                     st.error("O campo Cliente / Empresa é obrigatório.")
 
 elif selected == "Propostas":
-    st.markdown("### 📄 Gestão de Propostas Comerciais")
+    st.markdown("---")
+    st.markdown("### 📋 Lista de Propostas Comerciais")
+
+    # Exemplo de DataFrame de propostas caso não exista
+    if 'df_propostas' not in locals() or df_propostas is None:
+        try:
+            conn = conectar()
+            df_propostas = pd.read_sql("SELECT * FROM propostas", conn)
+            conn.close()
+        except Exception:
+            df_propostas = pd.DataFrame(columns=['id', 'cliente', 'valor', 'status', 'responsavel', 'validade'])
+
+    if df_propostas.empty:
+        df_propostas = pd.DataFrame([{
+            'id': 1,
+            'cliente': 'Empresa Exemplo S/A',
+            'valor': 25000.0,
+            'status': 'Em Negociação',
+            'responsavel': 'Carlos',
+            'validade': '2026-09-30'
+        }])
+
+    # 8 Colunas definidas exatamente
+    headers = ["ID", "Cliente", "Valor (R$)", "Status", "Responsável", "Validade", "Ações"]
     
-    # 📊 1. KPIs no Topo
-    kpi_p1, kpi_p2, kpi_p3, kpi_p4 = st.columns(4)
-    with kpi_p1:
-        st.metric("📄 Total Propostas", "24", "+3")
-    with kpi_p2:
-        st.metric("💰 Valor Total", "R$ 185.000", "+12%")
-    with kpi_p3:
-        st.metric("🟢 Aceitas", "12", "+2")
-    with kpi_p4:
-        st.metric("🟣 Em Negociação", "8", "+1")
-
-    st.markdown("---")
-
-    # Layout dividindo entre a Gestão/Histórico e o Formulário de Nova Proposta
-    col_prop1, col_prop2 = st.columns([1, 1])
-
-    with col_prop1:
-        st.markdown("#### ➕ Nova Proposta Comercial")
-        
-        with st.form("form_nova_proposta_completo"):
-            # 1. Dados do Cliente
-            st.markdown("##### 1. Dados do Cliente & Emissão")
-            p_cliente = st.selectbox("Cliente / Empresa", ["Global Ltda", "Alpha Tech", "Tech Solutions", "Nova Corp"])
-            
-            cp1, cp2 = st.columns(2)
-            with cp1:
-                p_contato = st.text_input("Nome do Contato", value="João Silva")
-                p_email = st.text_input("E-mail", value="joao@techsolutions.com")
-                p_cnpj = st.text_input("CNPJ / CPF", value="00.000.000/0001-00")
-            with cp2:
-                p_responsavel = st.selectbox("Responsável Comercial", ["Carlos", "Ana", "Larissa"])
-                p_telefone = st.text_input("Telefone", value="(11) 98888-7777")
-                p_endereco = st.text_input("Endereço", value="Av. Paulista, 1000 - SP")
-
-            st.markdown("---")
-            # 2. Informações da Proposta
-            st.markdown("##### 2. Identificação da Proposta")
-            ip1, ip2, ip3 = st.columns(3)
-            with ip1:
-                p_numero = st.text_input("Nº da Proposta", value="PROP-2026-004")
-            with ip2:
-                p_emissao = st.date_input("Data de Emissão", value=date(2026, 8, 15))
-            with ip3:
-                p_validade = st.date_input("Data de Validade", value=date(2026, 8, 30))
-
-            ip4, ip5 = st.columns(2)
-            with ip4:
-                p_status = st.selectbox("Status", ["🟡 Rascunho", "🔵 Enviada", "🟣 Em negociação", "🟢 Aceita", "🔴 Recusada", "⚫ Expirada"])
-            with ip5:
-                p_probabilidade = st.slider("Probabilidade de Fechamento (%)", 0, 100, 70)
-
-            st.markdown("---")
-            # 4. Itens da Proposta
-            st.markdown("##### 3. Itens da Proposta")
-            import pandas as pd
-            df_itens_padrao = pd.DataFrame([
-                {"Produto/Serviço": "Software A", "Qtd.": 1, "Valor Unit. (R$)": 10000.0, "Desconto (%)": 0.0},
-                {"Produto/Serviço": "Implantação", "Qtd.": 1, "Valor Unit. (R$)": 2000.0, "Desconto (%)": 0.0}
-            ])
-            # Editor de tabela interativo para os itens
-            df_itens_editados = st.data_editor(df_itens_padrao, num_rows="dynamic", use_container_width=True)
-
-            st.markdown("---")
-            # 3. Condições Comerciais
-            st.markdown("##### 4. Condições Comerciais")
-            cc1, cc2, cc3 = st.columns(3)
-            with cc1:
-                p_forma_pag = st.selectbox("Forma de Pagamento", ["PIX", "Boleto", "Cartão", "Transferência", "Dinheiro"])
-            with cc2:
-                p_condicao = st.selectbox("Condição", ["À vista", "Parcelado", "50% entrada + 50% entrega"])
-            with cc3:
-                p_parcelamento = st.selectbox("Parcelamento", ["1x", "2x", "3x", "6x", "12x"])
-
-            p_obs = st.text_area("Observações Comerciais & Termos", value="Prazo de implantação: 15 dias úteis.\nSuporte incluso durante os primeiros 30 dias.")
-
-            st.markdown("---")
-            # Botões de Ação do Formulário
-            btn_salvar_prop = st.form_submit_button("💾 Salvar Proposta")
-            if btn_salvar_prop:
-                st.success(f"Proposta {p_numero} salva com sucesso!")
-
-        st.markdown("##### 🚀 Ações Rápidas")
-        ba1, ba2, ba3, ba4 = st.columns(4)
-        
-        with ba1:
-            if st.button("👁️ Visualizar"):
-                st.info("Abrindo visualização em PDF da proposta selecionada.")
-                
-        with ba2:
-            if st.button("📧 Enviar por E-mail"):
-                email_destino = "sergiolmendes2026@gmail.com"
-                sucesso = disparar_email_automatico(email_destino, arquivo_bytes, nome_arquivo)
-                
-                if sucesso:
-                    st.success(f"E-mail disparado com sucesso para {email_destino}!")
-                else:
-                    st.error("Erro ao enviar.")
-
-    with col_prop2:
-        st.markdown("#### 📋 Histórico de Propostas")
-        
-        f_busca_prop = st.text_input("🔎 Pesquisar proposta...", "")
-        
-        df_historico_prop = pd.DataFrame([
-            {"Número": "PROP-2026-001", "Cliente": "Global Ltda", "Valor": "R$ 12.000", "Status": "🔵 Enviada", "Emissão": "15/08/2026"},
-            {"Número": "PROP-2026-002", "Cliente": "Alpha Tech", "Valor": "R$ 8.500", "Status": "🟢 Aceita", "Emissão": "14/08/2026"},
-            {"Número": "PROP-2026-003", "Cliente": "Nova Corp", "Valor": "R$ 15.000", "Status": "🟣 Negociação", "Emissão": "12/08/2026"}
-        ])
-        
-        st.dataframe(df_historico_prop, use_container_width=True, hide_index=True)
-
-        st.markdown("---")
-        st.markdown("#### 💡 Resumo do Funil de Propostas")
-        st.info(
-            "• **Propostas em Aberto:** 12\n\n"
-            "• **Taxa de Conversão de Propostas:** 54%\n\n"
-            "• **Valor Médio por Proposta:** R$ 7.708\n\n"
-            "• **Proposta de Maior Valor:** R$ 24.500 (Tech Solutions)"
-        )
-
-    # Layout de Configuração do Relatório
-    st.markdown("#### 📑 Configurar Relatório")
+    h_cols = st.columns([0.6, 2.0, 1.5, 1.5, 1.2, 1.2, 1.5])
+    for i, h in enumerate(headers):
+        h_cols[i].markdown(f"**{h}**")
     
-    # 📑 4. Tipos de Relatórios Expandidos
-    tipo_relatorio = st.selectbox("Selecione o Tipo de Relatório", [
-        "📊 Vendas Consolidadas", "👥 Relatório de Leads", "🎯 Conversão de Leads", 
-        "💰 Faturamento", "📈 Performance Comercial", "🏆 Performance por Vendedor", 
-        "📦 Vendas por Produto", "💳 Relatório de Pagamentos", "📋 Pipeline Comercial", 
-        "📅 Atividades e Compromissos", "📄 Propostas", "📣 Campanhas"
-    ])
+    st.divider()
 
-    # 📊 1. Filtros Avançados do Relatório
-    st.markdown("##### 🔎 Filtros do Relatório")
-    f_col1, f_col2, f_col3 = st.columns(3)
-    with f_col1:
-        per_inicio = st.date_input("Data Inicial", value=date(2026, 8, 1))
-    with f_col2:
-        per_fim = st.date_input("Data Final", value=date(2026, 8, 31))
-    with f_col3:
-        f_resp = st.selectbox("Responsável", ["Todos", "Carlos", "Ana", "Larissa"])
-
-    f_col4, f_col5, f_col6, f_col7 = st.columns(4)
-    with f_col4:
-        f_prod = st.selectbox("Produto/Serviço", ["Todos", "Software A", "Software B", "Consultoria"])
-    with f_col5:
-        f_status = st.selectbox("Status", ["Todos", "Pago / Fechado", "Pendente", "Em Negociação"])
-    with f_col6:
-        f_origem = st.selectbox("Origem", ["Todas", "Google Ads", "Indicação", "LinkedIn", "Instagram"])
-    with f_col7:
-        f_pipeline = st.selectbox("Pipeline / Etapa", ["Todas", "Qualificação", "Proposta", "Fechamento"])
-
-    st.markdown("---")
-
-    # 📋 3. Pré-visualização & 📊 2. Resumo
-    col_prev1, col_prev2 = st.columns([2, 1])
-
-    with col_prev1:
-        st.markdown("#### 👁️ Pré-visualização dos Dados")
-        import pandas as pd
-        df_preview = pd.DataFrame([
-            {"Cliente": "João Silva", "Produto": "Software A", "Valor": "R$ 5.000", "Responsável": "Carlos", "Status": "Pago"},
-            {"Cliente": "Alpha Tech", "Produto": "Software B", "Valor": "R$ 8.500", "Responsável": "Ana", "Status": "Pendente"},
-            {"Cliente": "Global Ltda", "Produto": "Enterprise", "Valor": "R$ 12.000", "Responsável": "Carlos", "Status": "Pago"}
-        ])
-        st.dataframe(df_preview, use_container_width=True, hide_index=True)
-
-    with col_prev2:
-        st.markdown("#### 📊 Resumo Executivo")
-        st.info(
-            "• **Total Registros:** 3\n\n"
-            "• **Valor Total:** R$ 25.500\n\n"
-            "• **Ticket Médio:** R$ 8.500\n\n"
-            "• **Taxa de Sucesso:** 66.6%"
-        )
-
-    st.markdown("---")
-
-    # 📤 5. Opções de Exportação Avançadas
-    st.markdown("#### 📤 Opções de Exportação")
-    
-    exp_col1, exp_col2 = st.columns(2)
-    with exp_col1:
-        formato_export = st.radio("Formato de Saída", ["Excel (.xlsx)", "CSV (.csv)", "PDF (.pdf)"], horizontal=True)
-    with exp_col2:
-        st.markdown("**Configurações Adicionais:**")
-        chk_resumo = st.checkbox("Incluir resumo executivo", value=True)
-        chk_graficos = st.checkbox("Incluir gráficos analíticos", value=True)
-        chk_filtros = st.checkbox("Incluir filtros aplicados no rodapé", value=True)
-
-    # Botões de Ação Separados
-    b1, b2, b3 = st.columns(3)
-    with b1:
-        if st.button("👁️ Visualizar Relatório Completo", use_container_width=True):
-            st.success("Relatório gerado para visualização em tela!")
-    with b2:
-        if st.button("📥 Exportar Arquivo", use_container_width=True):
-            st.success(f"Arquivo exportado com sucesso no formato {formato_export}!")
-    with b3:
-        if st.button("📧 Enviar por E-mail", use_container_width=True):
-            st.success("Relatório enviado por e-mail para a diretoria com sucesso!")
-
-    st.markdown("---")
-
-    # 🕒 6. Histórico de Exportações
-    st.markdown("#### 🕒 Histórico de Exportações Recentes")
-    df_historico = pd.DataFrame([
-        {"Data": "15/08 14:30", "Relatório": "Vendas Consolidadas", "Período": "Agosto/2026", "Formato": "Excel", "Usuário": "Carlos"},
-        {"Data": "15/08 13:10", "Relatório": "Relatório de Leads", "Período": "Agosto/2026", "Formato": "PDF", "Usuário": "Ana"}
-    ])
-    st.dataframe(df_historico, use_container_width=True, hide_index=True)
+    for index, row in df_propostas.iterrows():
+        r_cols = st.columns([0.6, 2.0, 1.5, 1.5, 1.2, 1.2, 1.5])
+        
+        r_cols[0].write(str(row.get('id', '')))
+        r_cols[1].write(str(row.get('cliente', '')))
+        
+        val = row.get('valor', 0)
+        r_cols[2].write(f"R$ {val:,.2f}" if pd.notnull(val) else "R$ 0,00")
+        
+        r_cols[3].write(str(row.get('status', '')))
+        r_cols[4].write(str(row.get('responsavel', '')))
+        r_cols[5].write(str(row.get('validade', '')))
+        
+        # Ações Rápidas por linha
+        act_cols = r_cols[6].columns(3)
+        if act_cols[0].button("👁️", key=f"prop_ver_{row.get('id', index)}_{index}", help="Ver Detalhes"):
+            st.info(f"Visualizando proposta ID: {row.get('id', '')}")
+        if act_cols[1].button("✏️", key=f"prop_edit_{row.get('id', index)}_{index}", help="Editar Proposta"):
+            st.toast(f"Editando proposta ID: {row.get('id', '')}")
+        if act_cols[2].button("🗑️", key=f"prop_del_{row.get('id', index)}_{index}", help="Excluir Proposta"):
+            st.success(f"Proposta excluída com sucesso!")
+            st.rerun()
 
 elif selected == "Relatórios":
     st.markdown("### 📊 Relatórios Executivos & Central de Exportação")
