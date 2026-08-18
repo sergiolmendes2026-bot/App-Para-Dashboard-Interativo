@@ -1322,8 +1322,8 @@ elif selected == "Metas":
 
         st.markdown("---")
 
-        # 📈 8. Gráfico de Evolução (Meta acumulada x Realizado)
-        st.markdown("#### 📈 Evolução da Meta (Acumulado)")
+     # 📈 8. Gráfico de Evolução (Meta acumulada x Realizado)
+    st.markdown("#### 📈 Evolução da Meta (Acumulado)")
 
     dias_mes = [f"Dia {i*5}" for i in range(1, 7)]
     df_evolucao = pd.DataFrame({
