@@ -1322,19 +1322,58 @@ elif selected == "Metas":
         st.markdown("---")
 
         # 📈 8. Gráfico de Evolução (Meta acumulada x Realizado)
-        st.markdown("#### 📈 Evolução da Meta (Acumulado)")
-        import pandas as pd
-        import numpy as np
-        
-        # Exemplo de dados para o gráfico de evolução temporal
-        dias_mes = [f"Dia {i*5}" for i in range(1, 7)]
-        df_evolucao = pd.DataFrame({
-            "Meta Acumulada": [25000, 50000, 75000, 100000, 125000, 150000],
-            "Realizado Acumulado": [20000, 48000, 72000, 95000, 108000, 108000]
-        }, index=dias_mes)
-        st.line_chart(df_evolucao)
+    st.markdown("#### 📈 Evolução da Meta (Acumulado)")
+    import pandas as pd
+    import numpy as np
+    import plotly.graph_objects as go
 
-        st.markdown("---")
+    # Dados de exemplo para o gráfico de evolução temporal
+    dias_mes = [f"Dia {i*5}" for i in range(1, 7)]
+    df_evolucao = pd.DataFrame({
+        "Meta Acumulada": [25000, 50000, 75000, 100000, 125000, 150000],
+        "Realizado Acumulado": [20000, 48000, 72000, 95000, 108000, 108000]
+    }, index=dias_mes)
+
+    # Criando a figura com Plotly para suportar gradiente e estilo SaaS
+    fig = go.Figure()
+
+    # Adicionando a linha/área de "Realizado Acumulado" com Gradiente Azul
+    fig.add_trace(go.Scatter(
+        x=df_evolucao.index,
+        y=df_evolucao["Realizado Acumulado"],
+        name="Realizado Acumulado",
+        mode='lines+markers',
+        fill='tozeroy',
+        fillcolor='rgba(59, 130, 246, 0.2)', # Gradiente translúcido
+        line=dict(color='#3b82f6', width=3, shape='spline') # Linha curva e moderna
+    ))
+
+    # Adicionando a linha/área de "Meta Acumulada" com Gradiente Roxo (Tracejada)
+    fig.add_trace(go.Scatter(
+        x=df_evolucao.index,
+        y=df_evolucao["Meta Acumulada"],
+        name="Meta Acumulada",
+        mode='lines',
+        fill='tozeroy',
+        fillcolor='rgba(168, 85, 247, 0.1)',
+        line=dict(color='#a855f7', width=2, dash='dash', shape='spline')
+    ))
+
+    # Estilizando o layout para combinar com o Dark Mode do CRM
+    fig.update_layout(
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)',
+        font=dict(color='#c9d1d9'),
+        margin=dict(l=10, r=10, t=10, b=10),
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+        xaxis=dict(showgrid=True, gridcolor='rgba(255,255,255,0.05)'),
+        yaxis=dict(showgrid=True, gridcolor='rgba(255,255,255,0.05)', tickprefix='R$ ')
+    )
+
+    # Exibindo no Streamlit sem fundo branco e com largura total adaptável
+    st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
+
+    st.markdown("---")
 
         # 👥 3. Metas por Consultor (Tabela Detalhada)
         st.markdown("#### 🏆 Desempenho e Metas por Consultor")
