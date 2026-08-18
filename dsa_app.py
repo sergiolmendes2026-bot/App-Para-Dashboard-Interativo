@@ -1334,7 +1334,7 @@ elif selected == "Metas":
     st.markdown("---")
 
         # 📊 4. Outros Tipos de Metas (Métricas Secundárias)
-        st.markdown("#### 📊 Outras Metas Operacionais do Período")
+    st.markdown("#### 📊 Outras Metas Operacionais do Período")
         om1, om2, om3, om4, om5 = st.columns(5)
         with om1:
             st.metric("🧑‍💼 Vendas", "23 / 30")
