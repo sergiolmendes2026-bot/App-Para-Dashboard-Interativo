@@ -1321,7 +1321,7 @@ elif selected == "Metas":
             st.success("🚀 **Previsão de fechamento:** R$ 164.000 (Superada)")
 
         st.markdown("---")
-
+    
     st.markdown("#### 📈 Evolução da Meta (Acumulado)")
 
     dias_mes = [f"Dia {i*5}" for i in range(1, 7)]
@@ -1366,7 +1366,8 @@ elif selected == "Metas":
 
     st.markdown("---")
 
-    st.markdown("#### 🏆 Desempenho e Metas por Consultor")
+    st.markdown("#### 🏆 Desempenho e Metas por Consultor")       
+   
 
         # 👥 3. Metas por Consultor (Tabela Detalhada)
         st.markdown("#### 🏆 Desempenho e Metas por Consultor")
