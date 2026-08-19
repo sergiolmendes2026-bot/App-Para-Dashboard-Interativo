@@ -25,7 +25,6 @@ st.markdown("""
         font-family: 'Inter', sans-serif;
     }
     
-    /* Remover margins superiores nativas do Streamlit */
     .block-container {
         padding-top: 1rem;
         padding-bottom: 2rem;
@@ -33,7 +32,6 @@ st.markdown("""
         padding-right: 2rem;
     }
 
-    /* Esconder o Header/Footer nativo do Streamlit */
     header, footer {
         visibility: hidden;
     }
@@ -45,16 +43,6 @@ st.markdown("""
         padding-top: 10px;
     }
 
-    .sidebar-section {
-        font-size: 10px;
-        text-transform: uppercase;
-        color: #64748b;
-        font-weight: 700;
-        letter-spacing: 1.2px;
-        margin: 16px 0 6px 4px;
-    }
-
-    /* Estilização do Radio Button na Sidebar */
     [data-testid="stSidebar"] div.row-widget.stRadio > div {
         gap: 2px;
     }
@@ -79,7 +67,7 @@ st.markdown("""
         font-weight: 600;
     }
 
-    /* Estilo Personalizado dos Cards Nativos / HTML */
+    /* Cards */
     .metric-card {
         background-color: #111827;
         border: 1px solid #1f2937;
@@ -125,7 +113,6 @@ st.markdown("""
         font-weight: 500;
     }
 
-    /* Customização de Input */
     .stTextInput>div>div>input {
         background-color: #111827 !important;
         border: 1px solid #1f2937 !important;
@@ -139,7 +126,6 @@ st.markdown("""
 # 3. SIDEBAR (NAVEGAÇÃO)
 # ---------------------------------------------------------
 with st.sidebar:
-    # Header da Sidebar (Logo)
     st.markdown("""
         <div style="display: flex; align-items: center; justify-content: space-between; padding: 5px 0 2px 0;">
             <div style="display: flex; align-items: center; gap: 10px;">
@@ -159,10 +145,8 @@ with st.sidebar:
         </p>
     """, unsafe_allow_html=True)
     
-    # Campo de Busca na Sidebar
     st.text_input("Buscar no menu...", placeholder="🔍  Buscar no menu...     Ctrl K", label_visibility="collapsed")
     
-    # Lista de Menu
     opcoes_menu = [
         "📊 Dashboard",
         "🎫 Chamados",
@@ -183,15 +167,10 @@ with st.sidebar:
         "    ⚙️ Configurações"
     ]
 
-    menu_selecionado = st.radio(
-        "Navegação",
-        opcoes_menu,
-        label_visibility="collapsed"
-    )
+    menu_selecionado = st.radio("Navegação", opcoes_menu, label_visibility="collapsed")
     
     st.markdown("<br>", unsafe_allow_html=True)
     
-    # Card: Status da Plataforma
     st.markdown("""
         <div style="background-color: #061e14; border: 1px solid #065f46; padding: 12px; border-radius: 10px; margin-bottom: 12px;">
             <p style="font-size: 9px; text-transform: uppercase; color: #64748b; font-weight: 700; margin-bottom: 6px;">STATUS DA PLATAFORMA</p>
@@ -206,7 +185,6 @@ with st.sidebar:
         </div>
     """, unsafe_allow_html=True)
     
-    # Rodapé do Usuário na Sidebar
     st.markdown("""
         <div style="display: flex; align-items: center; justify-content: space-between; border-top: 1px solid #1e293b; padding-top: 10px; margin-top: 5px;">
             <div style="display: flex; align-items: center; gap: 10px;">
@@ -222,7 +200,6 @@ with st.sidebar:
         </div>
     """, unsafe_allow_html=True)
 
-# Limpa o texto da aba selecionada
 aba_activa = menu_selecionado.strip().split(" ", 1)[-1]
 
 # ---------------------------------------------------------
@@ -263,11 +240,10 @@ with col_h2:
 st.markdown("<br>", unsafe_allow_html=True)
 
 # ---------------------------------------------------------
-# 5. CONTEÚDO PRINCIPAL (RENDERIZADO EXATAMENTE IGUAL)
+# 5. CONTEÚDO PRINCIPAL (DASHBOARD)
 # ---------------------------------------------------------
 if "Dashboard" in aba_activa:
 
-    # --- LINHA 1: CARDS DE MÉTRICAS (6 CARDS TOP) ---
     c1, c2, c3, c4, c5, c6 = st.columns(6)
 
     with c1:
@@ -344,10 +320,8 @@ if "Dashboard" in aba_activa:
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # --- LINHA 2: GRÁFICOS E TABELA CENTRAL (3 CARDS) ---
     col_l2_1, col_l2_2, col_l2_3 = st.columns([1, 1.6, 1])
 
-    # Card 1: Chamados Abertos por Prioridade (Donut)
     with col_l2_1:
         st.markdown('<div class="dashboard-card"><p class="card-title">Chamados Abertos por Prioridade</p>', unsafe_allow_html=True)
         df_prioridade = pd.DataFrame({
@@ -368,7 +342,6 @@ if "Dashboard" in aba_activa:
         st.plotly_chart(fig_donut, use_container_width=True)
         st.markdown('<p style="font-size: 11px; color: #9ca3af; text-align: right; margin: 0;">Total <b style="color: white;">128</b></p></div>', unsafe_allow_html=True)
 
-    # Card 2: Chamados Recentes (Tabela)
     with col_l2_2:
         st.markdown('<div class="dashboard-card"><p class="card-title">Chamados Recentes</p>', unsafe_allow_html=True)
         df_recentes = pd.DataFrame({
@@ -382,7 +355,6 @@ if "Dashboard" in aba_activa:
         st.dataframe(df_recentes, use_container_width=True, hide_index=True, height=220)
         st.markdown('<p class="card-footer-link">Ver todos os chamados →</p></div>', unsafe_allow_html=True)
 
-    # Card 3: Incidentes por Sistema SaaS (Barra Horizontal)
     with col_l2_3:
         st.markdown('<div class="dashboard-card"><p class="card-title">Incidentes por Sistema SaaS</p>', unsafe_allow_html=True)
         df_saas = pd.DataFrame({
@@ -393,17 +365,16 @@ if "Dashboard" in aba_activa:
         fig_bar.update_layout(
             paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
             font_color='#ffffff', height=220, margin=dict(t=5, b=5, l=5, r=5),
-            xaxis=dict(showgrid=False, visible=False), yaxis=dict(autorange="reversed", font=dict(size=10))
+            xaxis=dict(showgrid=False, visible=False), 
+            yaxis=dict(autorange="reversed", tickfont=dict(size=10, color="white"))
         )
         st.plotly_chart(fig_bar, use_container_width=True)
         st.markdown('<p class="card-footer-link">Ver todos os sistemas →</p></div>', unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # --- LINHA 3: SLA, CATEGORIAS, EQUIPES, STATUS SAAS (4 CARDS) ---
     col_l3_1, col_l3_2, col_l3_3, col_l3_4 = st.columns(4)
 
-    # Card SLA Cumprimento
     with col_l3_1:
         st.markdown('<div class="dashboard-card"><p class="card-title">SLA - Cumprimento</p>', unsafe_allow_html=True)
         fig_sla = go.Figure(go.Indicator(
@@ -422,7 +393,6 @@ if "Dashboard" in aba_activa:
         st.plotly_chart(fig_sla, use_container_width=True)
         st.markdown('<p style="font-size: 10px; color: #9ca3af;">🟢 Dentro do prazo: 312 (87%)<br>🔴 Fora do prazo: 38 (11%)<br>⏸️ Pausado: 8 (2%)</p></div>', unsafe_allow_html=True)
 
-    # Card Atendimentos por Categoria
     with col_l3_2:
         st.markdown("""
             <div class="dashboard-card">
@@ -437,7 +407,6 @@ if "Dashboard" in aba_activa:
             </div>
         """, unsafe_allow_html=True)
 
-    # Card Atendimentos por Equipe
     with col_l3_3:
         st.markdown('<div class="dashboard-card"><p class="card-title">Atendimentos por Equipe</p>', unsafe_allow_html=True)
         df_equipe = pd.DataFrame({
@@ -448,7 +417,6 @@ if "Dashboard" in aba_activa:
         st.dataframe(df_equipe, use_container_width=True, hide_index=True, height=150)
         st.markdown('<p class="card-footer-link">Ver todas as equipes →</p></div>', unsafe_allow_html=True)
 
-    # Card Status dos Sistemas SaaS
     with col_l3_4:
         st.markdown('<div class="dashboard-card"><p class="card-title">Status dos Sistemas SaaS</p>', unsafe_allow_html=True)
         df_status_saas = pd.DataFrame({
@@ -470,10 +438,8 @@ if "Dashboard" in aba_activa:
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # --- LINHA 4: BASE DE CONHECIMENTO E IA & AUTOMAÇÃO (2 CARDS INFERIORES) ---
     col_l4_1, col_l4_2 = st.columns([1.2, 1.8])
 
-    # Card Base de Conhecimento
     with col_l4_1:
         st.markdown("""
             <div class="dashboard-card">
@@ -486,7 +452,7 @@ if "Dashboard" in aba_activa:
                     <span>📄 Erro ao conectar no Outlook</span>
                     <span style="color: #94a3b8;">👁️ 98 | Microsoft 365</span>
                 </div>
-                <div style="font-size: 11px; background: #0f172a; padding: 8px; border-radius: 6px; display: flex; justify-content: space-between;">
+                <div style="font-size: 11px; background: #0f172a; padding: 8px; border-radius: 6px; margin-bottom: 6px; display: flex; justify-content: space-between;">
                     <span>📄 VPN não conecta</span>
                     <span style="color: #94a3b8;">👁️ 85 | Rede</span>
                 </div>
@@ -494,7 +460,6 @@ if "Dashboard" in aba_activa:
             </div>
         """, unsafe_allow_html=True)
 
-    # Card IA & Automação (Insights)
     with col_l4_2:
         st.markdown("""
             <div class="dashboard-card">
@@ -503,17 +468,17 @@ if "Dashboard" in aba_activa:
                 <div style="display: flex; gap: 10px;">
                     <div style="background-color: #0f172a; padding: 10px; border-radius: 8px; flex: 1; border: 1px solid #1e293b;">
                         <h4 style="margin: 0; font-size: 18px; color: #fff;">128</h4>
-                        <p style="margin: 0; font-size: 10px; color: #94a3af;">Chamados categorizados automaticamente</p>
+                        <p style="margin: 0; font-size: 10px; color: #9ca3af;">Chamados categorizados automaticamente</p>
                         <p style="margin: 2px 0 0 0; font-size: 9px; color: #10b981;">↑ 18% este mês</p>
                     </div>
                     <div style="background-color: #0f172a; padding: 10px; border-radius: 8px; flex: 1; border: 1px solid #1e293b;">
                         <h4 style="margin: 0; font-size: 18px; color: #fff;">45</h4>
-                        <p style="margin: 0; font-size: 10px; color: #94a3af;">Soluções sugeridas pela IA</p>
+                        <p style="margin: 0; font-size: 10px; color: #9ca3af;">Soluções sugeridas pela IA</p>
                         <p style="margin: 2px 0 0 0; font-size: 9px; color: #10b981;">↑ 21% este mês</p>
                     </div>
                     <div style="background-color: #0f172a; padding: 10px; border-radius: 8px; flex: 1; border: 1px solid #1e293b;">
                         <h4 style="margin: 0; font-size: 18px; color: #fff;">32%</h4>
-                        <p style="margin: 0; font-size: 10px; color: #94a3af;">Dos tickets resolvidos com apoio da IA</p>
+                        <p style="margin: 0; font-size: 10px; color: #9ca3af;">Dos tickets resolvidos com apoio da IA</p>
                         <p style="margin: 2px 0 0 0; font-size: 9px; color: #10b981;">↑ 12% este mês</p>
                     </div>
                 </div>
@@ -522,6 +487,5 @@ if "Dashboard" in aba_activa:
         """, unsafe_allow_html=True)
 
 else:
-    # Caso o usuário navegue para outra aba na Sidebar
     st.title(f"🛠️ Módulo: {aba_activa}")
-    st.info(f"Você está navegando na seção de **{aba_activa}**. O conteúdo completo deste módulo pode ser integrado aqui.")
+    st.info(f"Conteúdo correspondente à seção **{aba_activa}**.")
