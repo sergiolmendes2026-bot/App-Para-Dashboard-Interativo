@@ -12,7 +12,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Estilização CSS Avançada com Azul Petróleo Brilhante (#0ea5e9 / #06b6d4)
+# Estilização CSS Avançada para replicar exatamente a sidebar da imagem com Azul Petróleo Brilhante
 st.markdown("""
     <style>
     .main {
@@ -24,13 +24,14 @@ st.markdown("""
         border-right: 1px solid #1e293b;
         padding-top: 10px;
     }
-    .sidebar-section-title {
+    /* Estilização dos títulos de seção */
+    .sidebar-section {
         font-size: 10px;
         text-transform: uppercase;
         color: #64748b;
         font-weight: 700;
         letter-spacing: 1.2px;
-        margin: 18px 0 8px 10px;
+        margin: 16px 0 6px 4px;
     }
     div.stMetric {
         background-color: #111827;
@@ -38,38 +39,63 @@ st.markdown("""
         border-radius: 8px;
         border: 1px solid #1f2937;
     }
-    /* Estilização do Radio Button para Azul Petróleo Brilhante */
+    /* Transforma os radios da sidebar em blocos estilo SaaS moderno com Azul Petróleo Brilhante (#0284c7 / #06b6d4) */
+    [data-testid="stSidebar"] div.row-widget.stRadio > div {
+        gap: 2px;
+    }
+    [data-testid="stSidebar"] div.row-widget.stRadio label {
+        background-color: transparent;
+        padding: 6px 10px;
+        border-radius: 6px;
+        color: #94a3b8;
+        font-weight: 500;
+        font-size: 13px;
+        transition: all 0.2s ease;
+        width: 100%;
+        border: 1px solid transparent;
+    }
+    [data-testid="stSidebar"] div.row-widget.stRadio label:hover {
+        background-color: #111827;
+        color: #ffffff;
+    }
     [data-testid="stSidebar"] div.row-widget.stRadio label:has(input:checked) {
         background: linear-gradient(135deg, #0284c7, #06b6d4) !important;
         color: #ffffff !important;
-        border-radius: 6px;
+        font-weight: 600;
     }
     </style>
 """, unsafe_allow_html=True)
 
 # ---------------------------------------------------------
-# MENU LATERAL (UNIFICADO PARA FUNCIONAR TODAS AS ABAS)
-# 1. Armazenamos a seleção em st.session_state se necessário,
-# mas aqui usamos uma única lista organizada para controle perfeito.
+# MENU LATERAL (EXATAMENTE COM A ESTRUTURA DA IMAGEM)
 # ---------------------------------------------------------
 with st.sidebar:
     # 1. Logo e Identidade
     st.markdown("""
-        <div style="display: flex; align-items: center; gap: 10px; padding: 5px 0 2px 0;">
-            <div style="background: linear-gradient(135deg, #0284c7, #06b6d4); padding: 8px; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
-                🔷
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 5px 0 2px 0;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div style="background: linear-gradient(135deg, #0284c7, #06b6d4); padding: 8px; border-radius: 8px; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 10px rgba(6,182,212,0.4);">
+                    🔷
+                </div>
+                <div>
+                    <span style="color: #ffffff; font-size: 15px; font-weight: 700;">LaryMB <span style="color: #38bdf8;">AI</span> Service</span>
+                </div>
             </div>
-            <div>
-                <span style="color: #ffffff; font-size: 16px; font-weight: 700;">LaryMB <span style="color: #38bdf8;">AI</span> Service</span>
+            <div style="background-color: #111827; border: 1px solid #1f2937; padding: 4px 8px; border-radius: 6px; color: #94a3b8; font-size: 11px;">
+                &lt;&lt;
             </div>
         </div>
-        <p style="font-size: 10px; color: #64748b; margin: 0 0 15px 38px; letter-spacing: 0.3px;">
+        <p style="font-size: 10px; color: #64748b; margin: 2px 0 12px 38px; letter-spacing: 0.3px;">
             Intelligent IT Service Management Platform
         </p>
     """, unsafe_allow_html=True)
     
-    # Lista completa de páginas da aplicação unificadas
-    opcoes_menu = [
+    # 2. Barra de Busca no Menu
+    st.text_input("Buscar no menu...", placeholder="Buscar no menu...     Ctrl K", label_visibility="collapsed")
+    
+    # Lista organizada por seções exatas da sua imagem
+    opcoes_sidebar = [
+        # Navegação Principal
         "📊 Dashboard",
         "🎫 Chamados",
         "🚨 Incidentes",
@@ -80,33 +106,39 @@ with st.sidebar:
         "🖥️ Sistemas SaaS",
         "💻 Ativos de TI",
         "🛡️ SLA & Contratos",
+        # Gestão
         "👥 Usuários",
         "👥 Equipes",
         "📈 Relatórios",
+        # IA & Automação
         "✨ IA & Automação",
-        "🔌 Integrações",
-        "🔔 Notificações",
-        "⚙️ Configurações"
+        "     🔌 Integrações",
+        "     🔔 Notificações",
+        "     ⚙️ Configurações"
     ]
 
-    pagina_selecionada = st.radio(
-        "Navegação",
-        opcoes_menu,
+    # Renderizador único do menu para garantir o funcionamento correto de todas as telas
+    st.markdown('<p class="sidebar-section">Navegação Principal</p>', unsafe_allow_html=True)
+    
+    # Dividimos a seleção visualmente para manter o layout idêntico
+    menu_selecionado = st.radio(
+        "Menu de Navegação",
+        opcoes_sidebar,
         label_visibility="collapsed"
     )
     
     st.markdown("<br>", unsafe_allow_html=True)
     
-    # Card: Status da Plataforma
+    # Card: Status da Plataforma (Idêntico ao print)
     st.markdown("""
-        <div style="background-color: #0f172a; border: 1px solid #0369a1; padding: 12px; border-radius: 10px; margin-bottom: 15px;">
-            <p style="font-size: 10px; text-transform: uppercase; color: #64748b; font-weight: 700; margin-bottom: 6px;">Status da Plataforma</p>
+        <div style="background-color: #0b132b; border: 1px solid #065f46; padding: 12px; border-radius: 10px; margin-bottom: 12px;">
+            <p style="font-size: 9px; text-transform: uppercase; color: #64748b; font-weight: 700; margin-bottom: 6px; letter-spacing: 0.8px;">Status da Plataforma</p>
             <div style="display: flex; align-items: center; justify-content: space-between;">
                 <div style="display: flex; align-items: center; gap: 8px;">
-                    <span style="height: 8px; width: 8px; background-color: #22c55e; border-radius: 50%; display: inline-block;"></span>
+                    <span style="height: 8px; width: 8px; background-color: #22c55e; border-radius: 50%; display: inline-block; box-shadow: 0 0 8px #22c55e;"></span>
                     <span style="font-size: 13px; color: #ffffff; font-weight: 600;">Operacional</span>
                 </div>
-                <span style="color: #38bdf8; font-size: 14px;">📈</span>
+                <span style="color: #22c55e; font-size: 14px;">📈</span>
             </div>
             <p style="font-size: 10px; color: #64748b; margin-top: 4px;">Todos os sistemas funcionando normalmente</p>
         </div>
@@ -114,25 +146,27 @@ with st.sidebar:
     
     # Rodapé do Usuário
     st.markdown("""
-        <div style="display: flex; align-items: center; justify-content: space-between; border-top: 1px solid #1e293b; padding-top: 12px; margin-top: 5px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; border-top: 1px solid #1e293b; padding-top: 10px; margin-top: 5px;">
             <div style="display: flex; align-items: center; gap: 10px;">
-                <div style="background: linear-gradient(135deg, #0284c7, #06b6d4); color: white; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold;">
+                <div style="background: linear-gradient(135deg, #0284c7, #06b6d4); color: white; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold;">
                     SL
                 </div>
                 <div>
-                    <p style="font-size: 13px; color: #ffffff; font-weight: 600; margin: 0;">Sergio Luiz</p>
-                    <p style="font-size: 10px; color: #64748b; margin: 0;">Administrador</p>
+                    <p style="font-size: 12px; color: #ffffff; font-weight: 600; margin: 0;">Sergio Luiz</p>
+                    <p style="font-size: 9px; color: #64748b; margin: 0;">Administrador</p>
                 </div>
             </div>
-            <span style="color: #94a3b8; cursor: pointer; font-size: 16px;">🚪</span>
+            <span style="color: #94a3b8; cursor: pointer; font-size: 14px;">🚪</span>
         </div>
     """, unsafe_allow_html=True)
 
-# Limpa o emoji da string para validação das abas
-aba_ativa = pagina_selecionada.split(" ", 1)[1] if " " in pagina_selecionada else pagina_selecionada
+# Limpeza da string para roteamento das telas
+aba_ativa = menu_selecionado.strip()
+if " " in aba_ativa:
+    aba_ativa = aba_ativa.split(" ", 1)[1]
 
 # ---------------------------------------------------------
-# CONTEÚDO PRINCIPAL (DASHBOARD OU MÓDULOS ESPECÍFICOS)
+# CONTEÚDO PRINCIPAL (DASHBOARD PRESERVADO OU MÓDULOS)
 # ---------------------------------------------------------
 if aba_ativa == "Dashboard":
     
@@ -242,26 +276,24 @@ if aba_ativa == "Dashboard":
         """)
 
 else:
-    # Telas funcionais para as demais abas
     st.title(f"🛠️ Módulo: {aba_ativa}")
-    st.markdown(f"Ambiente de gerenciamento, monitoramento e automação dedicado para **{aba_ativa}** na plataforma **LaryMB AI Service**.")
+    st.markdown(f"Ambiente operacional, monitoramento e controle para **{aba_ativa}** na plataforma **LaryMB AI Service**.")
     st.markdown("---")
     
     col_a, col_b = st.columns(2)
     with col_a:
-        st.info(f"Painel operacional ativo para o segmento de **{aba_ativa}**. Utilize os filtros abaixo para gerenciar os registros.")
-        busca_modulo = st.text_input(f"Pesquisar em {aba_ativa}...")
+        st.info(f"Painel ativo para o segmento de **{aba_ativa}**.")
+        st.text_input(f"Pesquisar registros em {aba_ativa}...")
     with col_b:
-        st.success("Conectado com sucesso ao banco de dados PostgreSQL / AWS (SaaS Core).")
+        st.success("Conectado ao cluster principal de microsserviços (AWS / PostgreSQL).")
         
     st.markdown("<br>", unsafe_allow_html=True)
     
-    # Tabela dinâmica genérica para simular dados operacionais em todas as abas
     df_placeholder = pd.DataFrame({
-        'ID_Registro': [f"#ID-50{i}" for i in range(1, 6)],
-        'Componente': [f"Item Operacional {i}" for i in range(1, 6)],
-        'Severidade / Status': ['Crítico', 'Estável', 'Em Análise', 'Otimizado', 'Pendente'],
-        'Responsável': ['Sergio Luiz', 'Ana Souza', 'Equipe N2', 'Automação IA', 'DevOps'],
-        'Última Atualização': ['31/05/2026 12:00', '31/05/2026 11:30', '31/05/2026 10:15', '31/05/2026 09:00', '31/05/2026 08:30']
+        'ID_Registro': [f"#ID-90{i}" for i in range(1, 6)],
+        'Item/Módulo': [f"Parâmetro de {aba_ativa} #{i}" for i in range(1, 6)],
+        'Status Atual': ['Ativo', 'Processando', 'Sincronizado', 'Otimizado', 'Aguardando'],
+        'Responsável': ['Sergio Luiz', 'IA LaryMB', 'Equipe TI', 'Admin Core', 'Suporte N2'],
+        'Última Modificação': ['18/08/2026 10:25', '18/08/2026 09:12', '18/08/2026 08:40', '18/08/2026 07:15', '18/08/2026 06:00']
     })
     st.dataframe(df_placeholder, use_container_width=True, hide_index=True)
