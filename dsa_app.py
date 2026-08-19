@@ -33,75 +33,6 @@ if 'show_new_incident_modal' not in st.session_state:
 if 'incident_ai_analyzed' not in st.session_state:
     st.session_state.incident_ai_analyzed = False
 
-# Estados específicos para a aba de Problemas (ITSM)
-if 'selected_problem' not in st.session_state:
-    st.session_state.selected_problem = "PRB-00125"
-
-if 'show_new_problem_modal' not in st.session_state:
-    st.session_state.show_new_problem_modal = False
-
-if 'problemas_df' not in st.session_state:
-    st.session_state['problemas_df'] = pd.DataFrame([
-        {
-            "ID": "PRB-00125",
-            "Título": "Falha recorrente de acesso ao SAP",
-            "Categoria": "Software",
-            "Serviço/Sistema": "SAP",
-            "Impacto": "Alto",
-            "Prioridade": "Crítica",
-            "Status": "Em investigação",
-            "Responsável": "Carlos",
-            "Grupo": "N2 Sistemas",
-            "Incidentes relacionados": 18,
-            "Causa raiz": "Não identificada",
-            "SLA": "04:32",
-            "Data de abertura": "19/08/2026",
-            "Descrição": "Usuários relatando quedas intermitentes e lentidão ao tentar autenticar no módulo financeiro do SAP.",
-            "Subcategoria": "Autenticação",
-            "Ambiente": "Produção",
-            "Origem": "Monitoramento",
-            "Urgência": "Alta",
-            "Criticidade": "Crítica",
-            "Problema recorrente": "Sim",
-            "Sintomas": "Erro 504 Gateway Timeout e falha de token.",
-            "Hipótese": "Sobrecarga no pool de conexões do middleware de autenticação.",
-            "Plano de ação": "Ajustar o timeout e reiniciar o serviço de diretório em janela controlada.",
-            "Ação corretiva": "Revisão de parâmetros de conexão.",
-            "Ação preventiva": "Implementar auto-scale no microsserviço de auth.",
-            "Mudança necessária": "CHG-00412",
-            "Prazo": "20/08/2026 18:00"
-        },
-        {
-            "ID": "PRB-00126",
-            "Título": "Lentidão na impressora central do 3º andar",
-            "Categoria": "Hardware",
-            "Serviço/Sistema": "Impressão",
-            "Impacto": "Baixo",
-            "Prioridade": "Baixa",
-            "Status": "Novos",
-            "Responsável": "Ana",
-            "Grupo": "Suporte Local",
-            "Incidentes relacionados": 4,
-            "Causa raiz": "Não identificada",
-            "SLA": "22:15",
-            "Data de abertura": "19/08/2026",
-            "Descrição": "Fila de impressão travando com arquivos PDF grandes.",
-            "Subcategoria": "Rede",
-            "Ambiente": "Escritório SP",
-            "Origem": "Chamados",
-            "Urgência": "Baixa",
-            "Criticidade": "Baixa",
-            "Problema recorrente": "Não",
-            "Sintomas": "Jobs pausados na fila.",
-            "Hipótese": "Driver desatualizado.",
-            "Plano de ação": "Atualizar driver do servidor de impressão.",
-            "Ação corretiva": "Reinstalação do driver universal HP.",
-            "Ação preventiva": "Atualização padrão de drivers mensais.",
-            "Mudança necessária": "Nenhuma",
-            "Prazo": "22/08/2026 12:00"
-        }
-    ])
-
 # ---------------------------------------------------------
 # 2. ESTILIZAÇÃO CSS AVANÇADA (UI DESIGN DARK MODE)
 # ---------------------------------------------------------
@@ -117,7 +48,6 @@ st.markdown("""
         padding-bottom: 2rem;
         padding-left: 2rem;
         padding-right: 2rem;
-        max-width: 100% !important;
     }
     header, footer {
         visibility: hidden;
@@ -159,7 +89,6 @@ st.markdown("""
         align-items: center;
         gap: 14px;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        height: 100%;
     }
     .metric-icon {
         width: 42px;
@@ -169,7 +98,6 @@ st.markdown("""
         align-items: center;
         justify-content: center;
         font-size: 18px;
-        flex-shrink: 0;
     }
     .dashboard-card {
         background-color: #111827;
@@ -177,9 +105,6 @@ st.markdown("""
         border-radius: 10px;
         padding: 16px;
         height: 100%;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
     }
     .card-title {
         font-size: 14px;
@@ -293,8 +218,7 @@ with col_h1:
     sub_map = {
         "Dashboard": "Visão geral dos principais indicadores de TI & Operações",
         "Chamados": "Gerenciamento completo de solicitações, incidentes e suporte de TI",
-        "Incidentes": "Monitoramento e gestão avançada de incidentes críticos e interrupções de serviços",
-        "Problemas": "Foco em causa raiz, recorrência, prevenção e eliminação definitiva de incidentes"
+        "Incidentes": "Monitoramento e gestão avançada de incidentes críticos e interrupções de serviços"
     }
     subtitulo_header = sub_map.get(aba_activa, "Gerenciamento e operação de serviços de TI")
     st.markdown(f"""
@@ -336,22 +260,22 @@ if aba_activa == "Dashboard":
     # --- LINHA 1: MÉTRICAS PRINCIPAIS ---
     c1, c2, c3, c4, c5, c6 = st.columns(6)
     with c1:
-        st.markdown('<div class="metric-card"><div class="metric-icon" style="background-color: #1e3a8a; color: #3b82f6;">📋</div><div><p style="margin: 0; font-size: 10px; color: #9ca3af;">Chamados Abertos</p><h3 style="margin: 0; font-size: 18px; font-weight: 700; color: #fff;">128</h3><p style="margin: 0; font-size: 9px; color: #3b82f6;">↑ 12 hoje</p></div></div>', unsafe_allow_html=True)
+        st.markdown('<div class="metric-card"><div class="metric-icon" style="background-color: #1e3a8a; color: #3b82f6;">📋</div><div><p style="margin: 0; font-size: 10px; color: #9ca3af;">Chamados Abertos</p><h3 style="margin: 0; font-size: 20px; font-weight: 700; color: #fff;">128</h3><p style="margin: 0; font-size: 10px; color: #3b82f6;">↑ 12 hoje</p></div></div>', unsafe_allow_html=True)
     with c2:
-        st.markdown('<div class="metric-card"><div class="metric-icon" style="background-color: #064e3b; color: #10b981;">✅</div><div><p style="margin: 0; font-size: 10px; color: #9ca3af;">Chamados Resolvidos</p><h3 style="margin: 0; font-size: 18px; font-weight: 700; color: #fff;">342</h3><p style="margin: 0; font-size: 9px; color: #10b981;">↑ 28 hoje</p></div></div>', unsafe_allow_html=True)
+        st.markdown('<div class="metric-card"><div class="metric-icon" style="background-color: #064e3b; color: #10b981;">✅</div><div><p style="margin: 0; font-size: 10px; color: #9ca3af;">Chamados Resolvidos</p><h3 style="margin: 0; font-size: 20px; font-weight: 700; color: #fff;">342</h3><p style="margin: 0; font-size: 10px; color: #10b981;">↑ 28 hoje</p></div></div>', unsafe_allow_html=True)
     with c3:
-        st.markdown('<div class="metric-card"><div class="metric-icon" style="background-color: #78350f; color: #f59e0b;">🕒</div><div><p style="margin: 0; font-size: 10px; color: #9ca3af;">Em Andamento</p><h3 style="margin: 0; font-size: 18px; font-weight: 700; color: #fff;">45</h3><p style="margin: 0; font-size: 9px; color: #f59e0b;">↑ 5 hoje</p></div></div>', unsafe_allow_html=True)
+        st.markdown('<div class="metric-card"><div class="metric-icon" style="background-color: #78350f; color: #f59e0b;">🕒</div><div><p style="margin: 0; font-size: 10px; color: #9ca3af;">Em Andamento</p><h3 style="margin: 0; font-size: 20px; font-weight: 700; color: #fff;">45</h3><p style="margin: 0; font-size: 10px; color: #f59e0b;">↑ 5 hoje</p></div></div>', unsafe_allow_html=True)
     with c4:
-        st.markdown('<div class="metric-card"><div class="metric-icon" style="background-color: #7f1d1d; color: #ef4444;">⚠️</div><div><p style="margin: 0; font-size: 10px; color: #9ca3af;">SLA Fora do Prazo</p><h3 style="margin: 0; font-size: 18px; font-weight: 700; color: #fff;">12</h3><p style="margin: 0; font-size: 9px; color: #ef4444;">↓ 3 hoje</p></div></div>', unsafe_allow_html=True)
+        st.markdown('<div class="metric-card"><div class="metric-icon" style="background-color: #7f1d1d; color: #ef4444;">⚠️</div><div><p style="margin: 0; font-size: 10px; color: #9ca3af;">SLA Fora do Prazo</p><h3 style="margin: 0; font-size: 20px; font-weight: 700; color: #fff;">12</h3><p style="margin: 0; font-size: 10px; color: #ef4444;">↓ 3 hoje</p></div></div>', unsafe_allow_html=True)
     with c5:
-        st.markdown('<div class="metric-card"><div class="metric-icon" style="background-color: #4c1d95; color: #a855f7;">⏱️</div><div><p style="margin: 0; font-size: 10px; color: #9ca3af;">MTTR (h)</p><h3 style="margin: 0; font-size: 18px; font-weight: 700; color: #fff;">3,2</h3><p style="margin: 0; font-size: 9px; color: #a855f7;">↓ 0,6h</p></div></div>', unsafe_allow_html=True)
+        st.markdown('<div class="metric-card"><div class="metric-icon" style="background-color: #4c1d95; color: #a855f7;">⏱️</div><div><p style="margin: 0; font-size: 10px; color: #9ca3af;">MTTR (h)</p><h3 style="margin: 0; font-size: 20px; font-weight: 700; color: #fff;">3,2</h3><p style="margin: 0; font-size: 10px; color: #a855f7;">↓ 0,6h</p></div></div>', unsafe_allow_html=True)
     with c6:
-        st.markdown('<div class="metric-card"><div class="metric-icon" style="background-color: #0e7490; color: #06b6d4;">🖥️</div><div><p style="margin: 0; font-size: 10px; color: #9ca3af;">Sistemas Online</p><h3 style="margin: 0; font-size: 18px; font-weight: 700; color: #fff;">95%</h3><p style="margin: 0; font-size: 9px; color: #06b6d4;">↑ 2%</p></div></div>', unsafe_allow_html=True)
+        st.markdown('<div class="metric-card"><div class="metric-icon" style="background-color: #0e7490; color: #06b6d4;">🖥️</div><div><p style="margin: 0; font-size: 10px; color: #9ca3af;">Sistemas Online</p><h3 style="margin: 0; font-size: 20px; font-weight: 700; color: #fff;">95%</h3><p style="margin: 0; font-size: 10px; color: #06b6d4;">↑ 2%</p></div></div>', unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
 
     # --- LINHA 2: GRÁFICO PRIORIDADE, TABELA RECENTES, INCIDENTES SAAS ---
-    col_l2_1, col_l2_2, col_l2_3 = st.columns([1, 1.8, 1])
+    col_l2_1, col_l2_2, col_l2_3 = st.columns([1, 1.6, 1])
 
     with col_l2_1:
         st.markdown('<div class="dashboard-card"><p class="card-title">Chamados Abertos por Prioridade</p>', unsafe_allow_html=True)
@@ -367,10 +291,10 @@ if aba_activa == "Dashboard":
         fig_donut.update_traces(textinfo='percent', textfont_size=11)
         fig_donut.update_layout(
             paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
-            font_color='#ffffff', height=195, margin=dict(t=5, b=5, l=5, r=5),
+            font_color='#ffffff', height=210, margin=dict(t=10, b=10, l=10, r=10),
             showlegend=True, legend=dict(orientation="v", y=0.5, x=1.0, font=dict(size=10))
         )
-        st.plotly_chart(fig_donut, use_container_width=True, config={'displayModeBar': False})
+        st.plotly_chart(fig_donut, use_container_width=True)
         st.markdown('<p style="font-size: 11px; color: #9ca3af; text-align: right; margin: 0;">Total <b style="color: white;">128</b></p></div>', unsafe_allow_html=True)
 
     with col_l2_2:
@@ -383,7 +307,7 @@ if aba_activa == "Dashboard":
             'Status': ['Em Andamento', 'Em Andamento', 'Novo', 'Novo', 'Em Andamento'],
             'Abertura': ['31/05/2026 10:23', '31/05/2026 09:58', '31/05/2026 09:41', '31/05/2026 09:15', '31/05/2026 08:52']
         })
-        st.dataframe(df_recentes, use_container_width=True, hide_index=True, height=195)
+        st.dataframe(df_recentes, use_container_width=True, hide_index=True, height=210)
         st.markdown('<p class="card-footer-link">Ver todos os chamados →</p></div>', unsafe_allow_html=True)
 
     with col_l2_3:
@@ -392,14 +316,147 @@ if aba_activa == "Dashboard":
         fig_bar = px.bar(df_saas, x='Incidentes', y='Sistema', orientation='h', text='Incidentes', color_discrete_sequence=['#0ea5e9'])
         fig_bar.update_layout(
             paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
-            font_color='#ffffff', height=195, margin=dict(t=5, b=5, l=5, r=5),
+            font_color='#ffffff', height=210, margin=dict(t=5, b=5, l=5, r=5),
             xaxis=dict(showgrid=False, visible=False), 
             yaxis=dict(autorange="reversed", tickfont=dict(size=10, color="white"))
         )
-        st.plotly_chart(fig_bar, use_container_width=True, config={'displayModeBar': False})
+        st.plotly_chart(fig_bar, use_container_width=True)
         st.markdown('<p class="card-footer-link">Ver todos os sistemas →</p></div>', unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
+
+    # --- LINHA 3: SLA CUMPRIMENTO, ATENDIMENTOS POR CATEGORIA, EQUIPES, STATUS SAAS ---
+    col_l3_1, col_l3_2, col_l3_3, col_l3_4 = st.columns([1, 1, 1.4, 1])
+
+    with col_l3_1:
+        st.markdown('<div class="dashboard-card"><p class="card-title">SLA - Cumprimento</p>', unsafe_allow_html=True)
+        fig_gauge = go.Figure(go.Indicator(
+            mode = "gauge+number",
+            value = 87,
+            number = {'suffix': "%", 'font': {'size': 24, 'color': 'white'}},
+            gauge = {
+                'axis': {'range': [0, 100], 'tickwidth': 1, 'tickcolor': "white"},
+                'bar': {'color': "#22c55e"},
+                'bgcolor': "rgba(0,0,0,0)",
+                'borderwidth': 0,
+                'steps': [
+                    {'range': [0, 70], 'color': '#7f1d1d'},
+                    {'range': [70, 90], 'color': '#78350f'},
+                    {'range': [90, 100], 'color': '#064e3b'}
+                ],
+            }
+        ))
+        fig_gauge.update_layout(
+            paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
+            font_color='#ffffff', height=140, margin=dict(t=10, b=10, l=10, r=10)
+        )
+        st.plotly_chart(fig_gauge, use_container_width=True)
+        st.markdown("""
+            <div style="font-size: 11px; color: #9ca3af; margin-top: -10px;">
+                🟢 Dentro do prazo: <b>312 (87%)</b><br>
+                🔴 Fora do prazo: <b>38 (11%)</b><br>
+                🟡 Pausado: <b>8 (2%)</b>
+            </div>
+            <p style="font-size: 11px; color: #9ca3af; text-align: right; margin: 4px 0 0 0;">Total <b style="color: white;">358</b></p>
+        </div>""", unsafe_allow_html=True)
+
+    with col_l3_2:
+        st.markdown('<div class="dashboard-card"><p class="card-title">Atendimentos por Categoria</p>', unsafe_allow_html=True)
+        st.markdown("""
+            <div style="font-size: 11px; color: #94a3b8; line-height: 1.6;">
+                🔵 <b>Acesso / Permissões</b> &nbsp;&nbsp;&nbsp;&nbsp; 56 (26%)<br>
+                🟢 <b>Falhas / Erros</b> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 48 (22%)<br>
+                🟢 <b>Solicitações</b> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 46 (21%)<br>
+                🟣 <b>Hardware</b> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 24 (11%)<br>
+                🟣 <b>Software</b> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 20 (9%)<br>
+                🟠 <b>Outros</b> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 18 (8%)
+            </div>
+        """, unsafe_allow_html=True)
+        st.markdown('<p class="card-footer-link" style="margin-top: 14px;">Ver todas as categorias →</p></div>', unsafe_allow_html=True)
+
+    with col_l3_3:
+        st.markdown('<div class="dashboard-card"><p class="card-title">Atendimentos por Equipe</p>', unsafe_allow_html=True)
+        df_equipes = pd.DataFrame({
+            'Equipe': ['N1 - Suporte', 'N2 - Especialista', 'Infraestrutura', 'Sistemas'],
+            'Abertos': [72, 32, 14, 10],
+            'Em Andam.': [28, 12, 5, 4],
+            'Resolv.': [152, 98, 56, 36],
+            'SLA': ['91%', '85%', '88%', '90%']
+        })
+        st.dataframe(df_equipes, use_container_width=True, hide_index=True, height=140)
+        st.markdown('<p class="card-footer-link" style="margin-top: 4px;">Ver todas as equipes →</p></div>', unsafe_allow_html=True)
+
+    with col_l3_4:
+        st.markdown('<div class="dashboard-card"><p class="card-title">Status dos Sistemas SaaS</p>', unsafe_allow_html=True)
+        df_status_saas = pd.DataFrame({
+            'Status': ['Operacional', 'Atenção', 'Indisponível'],
+            'Qtd': [76, 18, 6]
+        })
+        fig_donut_saas = px.pie(
+            df_status_saas, names='Status', values='Qtd', hole=0.65,
+            color='Status',
+            color_discrete_map={'Operacional': '#16a34a', 'Atenção': '#f59e0b', 'Indisponível': '#dc2626'}
+        )
+        fig_donut_saas.update_traces(textinfo='none')
+        fig_donut_saas.update_layout(
+            paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
+            font_color='#ffffff', height=130, margin=dict(t=5, b=5, l=5, r=5),
+            showlegend=False
+        )
+        st.plotly_chart(fig_donut_saas, use_container_width=True)
+        st.markdown("""
+            <div style="font-size: 10px; color: #9ca3af; margin-top: -5px;">
+                🟢 Operacional: <b>76 (76%)</b> &nbsp;&nbsp;&nbsp;&nbsp; 🟠 Atenção: <b>18 (18%)</b> &nbsp;&nbsp;&nbsp;&nbsp; 🔴 Indisponível: <b>6 (6%)</b>
+            </div>
+            <p style="font-size: 11px; color: #9ca3af; text-align: right; margin: 2px 0 0 0;">Total <b style="color: white;">100</b></p>
+        </div>""", unsafe_allow_html=True)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # --- LINHA 4: BASE DE CONHECIMENTO E IA & AUTOMAÇÃO ---
+    col_l4_1, col_l4_2 = st.columns([1, 1])
+
+    with col_l4_1:
+        st.markdown("""
+            <div class="dashboard-card">
+                <p class="card-title">Base de Conhecimento - Artigos Populares</p>
+                <div style="font-size: 12px; color: #e2e8f0; line-height: 2.2;">
+                    📄 Como redefinir senha no AD &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 👁️ 124 &nbsp; <b>Acessos</b> &nbsp;&nbsp;&nbsp;&nbsp; Atualizado: 29/05/2026<br>
+                    📄 Erro ao conectar no Outlook &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 👁️ 98 &nbsp;&nbsp; <b>Microsoft 365</b> &nbsp; Atualizado: 28/05/2026<br>
+                    📄 VPN não conecta &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 👁️ 85 &nbsp;&nbsp; <b>Rede</b> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Atualizado: 27/05/2026
+                </div>
+                <p class="card-footer-link" style="margin-top: 8px;">Ver todos os artigos →</p>
+            </div>
+        """, unsafe_allow_html=True)
+
+    with col_l4_2:
+        st.markdown("""
+            <div class="dashboard-card">
+                <p class="card-title">🤖 IA & Automação (Insights)</p>
+                <p style="font-size: 11px; color: #94a3b8; margin-bottom: 12px;">A IA identificou padrões nos chamados e sugere ações automáticas para acelerar a resolução.</p>
+                <div style="display: flex; gap: 10px; justify-content: space-between;">
+                    <div style="background-color: #0f172a; border: 1px solid #1e293b; padding: 10px; border-radius: 8px; flex: 1; text-align: center;">
+                        <p style="font-size: 16px; margin: 0; color: #38bdf8;">🤖</p>
+                        <h4 style="margin: 4px 0 2px 0; color: #fff; font-size: 16px;">128</h4>
+                        <p style="font-size: 9px; color: #9ca3af; margin: 0;">Chamados categorizados automaticamente</p>
+                        <p style="font-size: 9px; color: #22c55e; margin: 2px 0 0 0;">↑ 18% este mês</p>
+                    </div>
+                    <div style="background-color: #0f172a; border: 1px solid #1e293b; padding: 10px; border-radius: 8px; flex: 1; text-align: center;">
+                        <p style="font-size: 16px; margin: 0; color: #a855f7;">💡</p>
+                        <h4 style="margin: 4px 0 2px 0; color: #fff; font-size: 16px;">45</h4>
+                        <p style="font-size: 9px; color: #9ca3af; margin: 0;">Soluções sugeridas pela IA</p>
+                        <p style="font-size: 9px; color: #22c55e; margin: 2px 0 0 0;">↑ 21% este mês</p>
+                    </div>
+                    <div style="background-color: #0f172a; border: 1px solid #1e293b; padding: 10px; border-radius: 8px; flex: 1; text-align: center;">
+                        <p style="font-size: 16px; margin: 0; color: #10b981;">⚡</p>
+                        <h4 style="margin: 4px 0 2px 0; color: #fff; font-size: 16px;">32%</h4>
+                        <p style="font-size: 9px; color: #9ca3af; margin: 0;">Dos tickets resolvidos com apoio da IA</p>
+                        <p style="font-size: 9px; color: #22c55e; margin: 2px 0 0 0;">↑ 12% este mês</p>
+                    </div>
+                </div>
+                <p class="card-footer-link" style="margin-top: 8px;">Ver painel de IA →</p>
+            </div>
+        """, unsafe_allow_html=True)
 
 elif aba_activa == "Chamados":
 
@@ -504,274 +561,39 @@ elif aba_activa == "Chamados":
 
         if st.session_state.show_new_ticket_modal:
             st.markdown('<div style="background-color: #111827; border: 1px solid #3b82f6; padding: 20px; border-radius: 10px; margin-top: 15px; margin-bottom: 20px;"><h3 style="color: #ffffff; margin-top: 0;">➕ Criar Novo Chamado / Incidente com Apoio de IA</h3></div>', unsafe_allow_html=True)
+            
+            with st.form("form_novo_chamado"):
+                f_solicitante = st.text_input("Solicitante", value="Sergio Luiz")
+                f_titulo = st.text_input("Título do Chamado")
+                f_categoria = st.selectbox("Categoria", ["Acesso / Permissões", "Falhas / Erros", "Solicitações", "Hardware", "Software", "Outros"])
+                f_prioridade = st.selectbox("Prioridade", ["Baixa", "Média", "Alta", "Crítica"])
+                f_descricao = st.text_area("Descrição detalhada")
+                
+                submitted = st.form_submit_button("Salvar e Analisar com IA 🤖")
+                if submitted:
+                    st.success("Novo chamado criado e analisado com sucesso!")
+                    st.session_state.show_new_ticket_modal = False
+                    st.rerun()
 
-        st.markdown("### 📋 Lista de Chamados")
-        df_chamados = pd.DataFrame({
-            'ID': ['#CH-10234', '#CH-10233', '#CH-10232', '#CH-10231', '#CH-10230'],
-            'Título': ['Erro ao acessar o ERP', 'Falha na integração com API', 'Impressora sem resposta', 'Solicitação de acesso VPN', 'Tela azul no Windows 11'],
-            'Solicitante': ['Ana Souza', 'Carlos Mendes', 'João Ferreira', 'Mariana Lima', 'Pedro Oliveira'],
-            'Prioridade': ['Alta', 'Crítica', 'Média', 'Baixa', 'Alta'],
-            'Status': ['Em Andamento', 'Em Andamento', 'Novo', 'Novo', 'Em Andamento'],
-            'Abertura': ['31/05/2026 10:23', '31/05/2026 09:58', '31/05/2026 09:41', '31/05/2026 09:15', '31/05/2026 08:52']
+        st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown("### Todos os Chamados")
+        df_todos = pd.DataFrame({
+            'ID': ['#CH-10234', '#CH-10233', '#CH-10232', '#CH-10231', '#CH-10230', '#CH-10229'],
+            'Título': ['Erro ao acessar o ERP', 'Falha na integração com API', 'Impressora sem resposta', 'Solicitação de acesso VPN', 'Tela azul no Windows 11', 'Lentidão na rede Wi-Fi'],
+            'Solicitante': ['Ana Souza', 'Carlos Mendes', 'João Ferreira', 'Mariana Lima', 'Pedro Oliveira', 'Lucas Dias'],
+            'Prioridade': ['Alta', 'Crítica', 'Média', 'Baixa', 'Alta', 'Média'],
+            'Status': ['Em Andamento', 'Em Andamento', 'Novo', 'Novo', 'Em Andamento', 'Resolvido'],
+            'Abertura': ['31/05/2026 10:23', '31/05/2026 09:58', '31/05/2026 09:41', '31/05/2026 09:15', '31/05/2026 08:52', '30/05/2026 16:10']
         })
-        
-        for index, row in df_chamados.iterrows():
-            cols = st.columns([1, 2.5, 1.5, 1, 1.2, 1.2, 0.8])
-            with cols[0]: st.write(row['ID'])
-            with cols[1]: st.write(row['Título'])
-            with cols[2]: st.write(row['Solicitante'])
-            with cols[3]: st.write(row['Prioridade'])
-            with cols[4]: st.write(row['Status'])
-            with cols[5]: st.write(row['Abertura'])
-            with cols[6]:
-                if st.button("Abrir", key=f"btn_ticket_{row['ID']}"):
-                    st.session_state.selected_ticket = row['ID']
-                    st.rerun()
-            st.markdown("<hr style='margin:5px 0;opacity:0.2;'>", unsafe_allow_html=True)
-
-elif aba_activa == "Incidentes":
-    st.title("🚨 Gestão de Incidentes")
-    st.write("Monitoramento e gestão avançada de incidentes críticos e interrupções de serviços.")
-
-elif aba_activa == "Problemas":
-    st.title("🛠️ Gestão de Problemas (ITSM)")
-    st.markdown("Foco em causa raiz, recorrência, prevenção e eliminação definitiva de incidentes.")
-    st.markdown("---")
-
-    # 1. INDICADORES NO TOPO
-    col1, col2, col3, col4, col5, col6, col7, col8 = st.columns(8)
-    
-    with col1: st.metric("Total", "156")
-    with col2: st.metric("Novos", "12")
-    with col3: st.metric("Investigação", "18")
-    with col4: st.metric("Tratamento", "9")
-    with col5: st.metric("Resolvidos", "108")
-    with col6: st.metric("Críticos", "5")
-    with col7: st.metric("Recorrentes", "14")
-    with col8: st.metric("Erros Conhecidos", "7")
-
-    st.markdown("---")
-
-    # AÇÕES DO TOPO (NOVO PROBLEMA)
-    col_btn1, col_btn2 = st.columns([8, 2])
-    with col_btn2:
-        if st.button("➕ Criar Novo Problema", use_container_width=True):
-            st.session_state['show_new_problem_modal'] = not st.session_state['show_new_problem_modal']
-
-    # MODAL / FORMULÁRIO DE CRIAÇÃO DE NOVO PROBLEMA
-    if st.session_state['show_new_problem_modal']:
-        with st.expander("📋 Formulário de Abertura de Novo Problema", expanded=True):
-            with st.form("form_novo_problema"):
-                st.subheader("1. Identificação")
-                f_titulo = st.text_input("Título do problema")
-                f_desc = st.text_area("Descrição")
-                col_f1, col_f2, col_f3 = st.columns(3)
-                with col_f1:
-                    f_cat = st.selectbox("Categoria", ["Software", "Hardware", "Rede", "Segurança"])
-                    f_serv = st.text_input("Serviço/Sistema afetado")
-                with col_f2:
-                    f_subcat = st.text_input("Subcategoria")
-                    f_amb = st.selectbox("Ambiente", ["Produção", "Homologação", "Desenvolvimento"])
-                with col_f3:
-                    f_origem = st.selectbox("Origem", ["Monitoramento", "Chamados", "Auditoria", "Proativo"])
-
-                st.subheader("2. Classificação")
-                col_f4, col_f5, col_f6, col_f7 = st.columns(4)
-                with col_f4:
-                    f_imp = st.selectbox("Impacto", ["Baixo", "Médio", "Alto", "Crítico"])
-                with col_f5:
-                    f_urg = st.selectbox("Urgência", ["Baixa", "Média", "Alta"])
-                with col_f6:
-                    f_prio = st.selectbox("Prioridade", ["Baixa", "Média", "Alta", "Crítica"])
-                with col_f7:
-                    f_recorrente = st.selectbox("Problema recorrente?", ["Não", "Sim"])
-
-                st.subheader("3. Investigação")
-                col_f8, col_f9 = st.columns(2)
-                with col_f8:
-                    f_resp = st.text_input("Analista responsável")
-                    f_sintomas = st.text_area("Sintomas")
-                with col_f9:
-                    f_grupo = st.text_input("Grupo responsável")
-                    f_inc_rel = st.number_input("Incidentes relacionados (Qtd)", min_value=1, value=1)
-                
-                f_evid = st.file_uploader("Evidências / Logs / Anexos", accept_multiple_files=True)
-                f_hipotese = st.text_area("Hipótese da causa")
-
-                submit_prob = st.form_submit_button("Salvar Problema")
-                if submit_prob and f_titulo:
-                    novo_registro = {
-                        "ID": f"PRB-00{len(st.session_state['problemas_df']) + 127}",
-                        "Título": f_titulo,
-                        "Categoria": f_cat,
-                        "Serviço/Sistema": f_serv,
-                        "Impacto": f_imp,
-                        "Prioridade": f_prio,
-                        "Status": "Novos",
-                        "Responsável": f_resp,
-                        "Grupo": f_grupo,
-                        "Incidentes relacionados": f_inc_rel,
-                        "Causa raiz": "Não identificada",
-                        "SLA": "08:00",
-                        "Data de abertura": datetime.now().strftime("%d/%m/%Y"),
-                        "Descrição": f_desc,
-                        "Subcategoria": f_subcat,
-                        "Ambiente": f_amb,
-                        "Origem": f_origem,
-                        "Urgência": f_urg,
-                        "Criticidade": f_prio,
-                        "Problema recorrente": f_recorrente,
-                        "Sintomas": f_sintomas,
-                        "Hipótese": f_hipotese,
-                        "Plano de ação": "Pendente",
-                        "Ação corretiva": "Pendente",
-                        "Ação preventiva": "Pendente",
-                        "Mudança necessária": "Nenhuma",
-                        "Prazo": (datetime.now() + timedelta(days=2)).strftime("%d/%m/%Y %H:%M")
-                    }
-                    st.session_state['problemas_df'] = pd.concat([st.session_state['problemas_df'], pd.DataFrame([novo_registro])], ignore_index=True)
-                    st.success("Problema cadastrado com sucesso!")
-                    st.session_state['show_new_problem_modal'] = False
-                    st.rerun()
-
-    st.markdown("### 📋 Lista de Problemas")
-
-    # 2. TABELA PRINCIPAL DE PROBLEMAS
-    df_exibicao = st.session_state['problemas_df'][[
-        "ID", "Título", "Categoria", "Serviço/Sistema", "Impacto", 
-        "Prioridade", "Status", "Responsável", "Incidentes relacionados", 
-        "Causa raiz", "SLA", "Data de abertura"
-    ]].copy()
-
-    for index, row in df_exibicao.iterrows():
-        cols = st.columns([1, 2.5, 1, 1, 1, 1, 1.2, 1, 1, 1, 1, 1, 1])
-        with cols[0]: st.write(row["ID"])
-        with cols[1]: st.write(row["Título"])
-        with cols[2]: st.write(row["Categoria"])
-        with cols[3]: st.write(row["Serviço/Sistema"])
-        with cols[4]: st.write(row["Impacto"])
-        with cols[5]: st.write(row["Prioridade"])
-        with cols[6]: st.write(row["Status"])
-        with cols[7]: st.write(row["Responsável"])
-        with cols[8]: st.write(str(row["Incidentes relacionados"]))
-        with cols[9]: st.write(row["Causa raiz"])
-        with cols[10]: st.write(row["SLA"])
-        with cols[11]: st.write(row["Data de abertura"])
-        with cols[12]:
-            if st.button("Abrir", key=f"btn_abrir_prob_{row['ID']}"):
-                st.session_state['selected_problem'] = row["ID"]
-                st.rerun()
-        st.markdown("<hr style='margin:5px 0;opacity:0.2;'>", unsafe_allow_html=True)
-
-    st.markdown("---")
-
-    # 6. DETALHE DO PROBLEMA (SELECIONADO)
-    prob_atual_id = st.session_state['selected_problem']
-    prob_dados = st.session_state['problemas_df'][st.session_state['problemas_df']['ID'] == prob_atual_id]
-
-    if not prob_dados.empty:
-        p_row = prob_dados.iloc[0]
-        st.markdown(f"## Detalhes do Problema: {p_row['ID']} — {p_row['Título']}")
-        
-        aba_resumo, aba_inc, aba_inv, aba_causa, aba_plano, aba_mudancas, aba_hist, aba_conhec = st.tabs([
-            "Resumo", "Incidentes", "Investigação", "Causa Raiz", "Plano de Ação", "Mudanças", "Histórico", "Conhecimento"
-        ])
-
-        with aba_resumo:
-            col_r1, col_r2, col_r3 = st.columns(3)
-            with col_r1:
-                st.info(f"**Categoria:** {p_row['Categoria']} / {p_row['Subcategoria']}")
-                st.info(f"**Serviço:** {p_row['Serviço/Sistema']}")
-            with col_r2:
-                st.warning(f"**Impacto:** {p_row['Impacto']} | **Prioridade:** {p_row['Prioridade']}")
-                st.warning(f"**Status:** {p_row['Status']}")
-            with col_r3:
-                st.success(f"**Responsável:** {p_row['Responsável']} ({p_row['Grupo']})")
-                st.success(f"**Incidentes Vinculados:** {p_row['Incidentes relacionados']}")
-            
-            st.markdown("### Descrição Completa")
-            st.write(p_row['Descrição'])
-
-        with aba_inc:
-            st.markdown("### 🔗 Relação entre Chamados e Problemas")
-            st.markdown(f"**1 Problema → {p_row['Incidentes relacionados']} Incidentes Relacionados**")
-            st.markdown("Quando a causa raiz for corrigida, você conseguirá acompanhar quantos chamados deixaram de ocorrer.")
-            
-            chamados_ficticios = pd.DataFrame({
-                "ID Chamado": ["CH-10234", "CH-10228", "CH-10217", "CH-10198", "CH-10175"],
-                "Usuário": ["Mariana Souza", "Roberto Dias", "Fernanda Lima", "João Pedro", "Camila Rocha"],
-                "Abertura": ["19/08/2026 09:12", "19/08/2026 08:45", "19/08/2026 08:30", "18/08/2026 17:20", "18/08/2026 16:10"],
-                "Status do Chamado": ["Em atendimento", "Fechado", "Fechado", "Fechado", "Fechado"]
-            })
-            st.dataframe(chamados_ficticios, use_container_width=True)
-
-        with aba_inv:
-            st.markdown("### 🔍 Investigação e Apoio de IA")
-            
-            with st.container(border=True):
-                st.markdown("#### ✨ Apoio de IA — Análise Inteligente de Causa Raiz")
-                st.write("A IA analisa o histórico de incidentes relacionados para sugerir diagnósticos e padrões.")
-                
-                if st.button("✨ Analisar Problema com IA", key="btn_ia_analise_prob"):
-                    with st.spinner("Analisando padrões e logs correlacionados..."):
-                        st.markdown("""
-                        > **Resultado da Análise IA:**
-                        > * **Possível causa raiz:** Falha recorrente no serviço de autenticação SAP (Timeout no token OAuth).
-                        > * **Confiança:** `87%`
-                        > * **Incidentes relacionados:** `18` chamados mapeados.
-                        > * **Padrão identificado:** Pico de ocorrências concentrado entre 08h e 10h (horário de pico de login).
-                        > * **Recomendação:** Verificar o pool de conexões do middleware de autenticação e os logs do servidor de diretório.
-                        """)
-                        col_ia1, col_ia2 = st.columns(2)
-                        with col_ia1:
-                            if st.button("✅ [Aceitar análise]"):
-                                st.success("Análise incorporada ao registro do problema com sucesso!")
-                        with col_ia2:
-                            if st.button("🔄 [Reanalisar]"):
-                                st.info("Solicitando nova varredura profunda de logs...")
-
-            st.markdown("#### Dados Atuais da Investigação")
-            st.text_area("Sintomas relatados", value=p_row['Sintomas'], key="txt_sintomas_p")
-            st.text_area("Hipótese levantada", value=p_row['Hipótese'], key="txt_hipotese_p")
-
-        with aba_causa:
-            st.markdown("### 🎯 Causa Raiz Oficial")
-            st.text_input("Método de análise (Ex: 5 Porquês / Ishikawa)", value="Diagrama de Ishikawa", key="met_analise_p")
-            st.text_area("Causa Raiz Definitiva", value=p_row['Causa raiz'], key="causa_raiz_def_p")
-            st.text_area("Evidência da causa", value="Logs do gateway indicam esgotamento de threads no pool de autenticação.", key="evid_causa_p")
-
-        with aba_plano:
-            st.markdown("### 🛠️ Plano de Ação e Tratamento")
-            st.text_area("Plano de Ação", value=p_row['Plano de ação'], key="plano_acao_p")
-            col_pa1, col_pa2 = st.columns(2)
-            with col_pa1:
-                st.text_input("Ação corretiva", value=p_row['Ação corretiva'], key="acao_corr_p")
-                st.text_input("Responsável pela ação", value=p_row['Responsável'], key="resp_acao_p")
-            with col_pa2:
-                st.text_input("Ação preventiva", value=p_row['Ação preventiva'], key="acao_prev_p")
-                st.text_input("Prazo limite", value=p_row['Prazo'], key="prazo_lim_p")
-
-        with aba_mudancas:
-            st.markdown("### 🔄 Gestão de Mudanças (RFC)")
-            st.info(f"Mudança vinculada para correção definitiva: **{p_row['Mudança necessária']}**")
-            if st.button("Criar Nova RFC Relacionada", key="btn_nova_rfc_p"):
-                st.success("Redirecionando para o módulo de Mudanças (RFC)...")
-
-        with aba_hist:
-            st.markdown("### 📜 Histórico de Auditoria e Alterações")
-            historico_df = pd.DataFrame({
-                "Data/Hora": ["19/08/2026 10:00", "19/08/2026 08:30"],
-                "Usuário": ["Carlos (N2)", "Sistema LaryMB AI"],
-                "Ação": ["Status alterado para 'Em investigação'", "Problema criado automaticamente via monitoramento"]
-            })
-            st.dataframe(historico_df, use_container_width=True)
-
-        with aba_conhec:
-            st.markdown("### 📚 Base de Conhecimento Relacionada (KEDB)")
-            st.success("Artigo sugerido: **KB-00892 - Solução de contorno para falhas de autenticação SAP 504**")
-            st.button("Vincular Artigo à Base de Conhecimento", key="btn_vinc_kb_p")
+        st.dataframe(df_todos, use_container_width=True, hide_index=True)
 
 else:
-    st.title(f"🤖 LaryMB AI Service — {aba_activa}")
-    st.write(f"Você está acessando a aba: **{aba_activa}**")
-    st.info("Módulo em fase de expansão. Navegue pelas abas principais como Dashboard, Chamados ou Problemas.")
+    # Tratamento genérico para as demais abas para evitar telas em branco
+    st.markdown(f"""
+        <div style="background-color: #111827; border: 1px solid #1f2937; padding: 24px; border-radius: 10px; text-align: center; margin-top: 20px;">
+            <h3 style="color: #ffffff; margin-top: 0;">Módulo: {aba_activa}</h3>
+            <p style="color: #9ca3af; font-size: 14px;">Este painel está integrado ao ecossistema <b>LaryMB AI Service</b>.</p>
+            <hr style="border-color: #1f2937; margin: 20px 0;">
+            <p style="color: #38bdf8; font-size: 13px;">Selecione os filtros ou utilize o menu lateral para navegar entre os módulos.</p>
+        </div>
+    """, unsafe_allow_html=True)
