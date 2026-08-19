@@ -117,6 +117,7 @@ st.markdown("""
         padding-bottom: 2rem;
         padding-left: 2rem;
         padding-right: 2rem;
+        max-width: 100% !important;
     }
     header, footer {
         visibility: hidden;
@@ -158,6 +159,7 @@ st.markdown("""
         align-items: center;
         gap: 14px;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        height: 100%;
     }
     .metric-icon {
         width: 42px;
@@ -167,6 +169,7 @@ st.markdown("""
         align-items: center;
         justify-content: center;
         font-size: 18px;
+        flex-shrink: 0;
     }
     .dashboard-card {
         background-color: #111827;
@@ -174,6 +177,9 @@ st.markdown("""
         border-radius: 10px;
         padding: 16px;
         height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
     }
     .card-title {
         font-size: 14px;
@@ -330,22 +336,22 @@ if aba_activa == "Dashboard":
     # --- LINHA 1: MÉTRICAS PRINCIPAIS ---
     c1, c2, c3, c4, c5, c6 = st.columns(6)
     with c1:
-        st.markdown('<div class="metric-card"><div class="metric-icon" style="background-color: #1e3a8a; color: #3b82f6;">📋</div><div><p style="margin: 0; font-size: 10px; color: #9ca3af;">Chamados Abertos</p><h3 style="margin: 0; font-size: 20px; font-weight: 700; color: #fff;">128</h3><p style="margin: 0; font-size: 10px; color: #3b82f6;">↑ 12 hoje</p></div></div>', unsafe_allow_html=True)
+        st.markdown('<div class="metric-card"><div class="metric-icon" style="background-color: #1e3a8a; color: #3b82f6;">📋</div><div><p style="margin: 0; font-size: 10px; color: #9ca3af;">Chamados Abertos</p><h3 style="margin: 0; font-size: 18px; font-weight: 700; color: #fff;">128</h3><p style="margin: 0; font-size: 9px; color: #3b82f6;">↑ 12 hoje</p></div></div>', unsafe_allow_html=True)
     with c2:
-        st.markdown('<div class="metric-card"><div class="metric-icon" style="background-color: #064e3b; color: #10b981;">✅</div><div><p style="margin: 0; font-size: 10px; color: #9ca3af;">Chamados Resolvidos</p><h3 style="margin: 0; font-size: 20px; font-weight: 700; color: #fff;">342</h3><p style="margin: 0; font-size: 10px; color: #10b981;">↑ 28 hoje</p></div></div>', unsafe_allow_html=True)
+        st.markdown('<div class="metric-card"><div class="metric-icon" style="background-color: #064e3b; color: #10b981;">✅</div><div><p style="margin: 0; font-size: 10px; color: #9ca3af;">Chamados Resolvidos</p><h3 style="margin: 0; font-size: 18px; font-weight: 700; color: #fff;">342</h3><p style="margin: 0; font-size: 9px; color: #10b981;">↑ 28 hoje</p></div></div>', unsafe_allow_html=True)
     with c3:
-        st.markdown('<div class="metric-card"><div class="metric-icon" style="background-color: #78350f; color: #f59e0b;">🕒</div><div><p style="margin: 0; font-size: 10px; color: #9ca3af;">Em Andamento</p><h3 style="margin: 0; font-size: 20px; font-weight: 700; color: #fff;">45</h3><p style="margin: 0; font-size: 10px; color: #f59e0b;">↑ 5 hoje</p></div></div>', unsafe_allow_html=True)
+        st.markdown('<div class="metric-card"><div class="metric-icon" style="background-color: #78350f; color: #f59e0b;">🕒</div><div><p style="margin: 0; font-size: 10px; color: #9ca3af;">Em Andamento</p><h3 style="margin: 0; font-size: 18px; font-weight: 700; color: #fff;">45</h3><p style="margin: 0; font-size: 9px; color: #f59e0b;">↑ 5 hoje</p></div></div>', unsafe_allow_html=True)
     with c4:
-        st.markdown('<div class="metric-card"><div class="metric-icon" style="background-color: #7f1d1d; color: #ef4444;">⚠️</div><div><p style="margin: 0; font-size: 10px; color: #9ca3af;">SLA Fora do Prazo</p><h3 style="margin: 0; font-size: 20px; font-weight: 700; color: #fff;">12</h3><p style="margin: 0; font-size: 10px; color: #ef4444;">↓ 3 hoje</p></div></div>', unsafe_allow_html=True)
+        st.markdown('<div class="metric-card"><div class="metric-icon" style="background-color: #7f1d1d; color: #ef4444;">⚠️</div><div><p style="margin: 0; font-size: 10px; color: #9ca3af;">SLA Fora do Prazo</p><h3 style="margin: 0; font-size: 18px; font-weight: 700; color: #fff;">12</h3><p style="margin: 0; font-size: 9px; color: #ef4444;">↓ 3 hoje</p></div></div>', unsafe_allow_html=True)
     with c5:
-        st.markdown('<div class="metric-card"><div class="metric-icon" style="background-color: #4c1d95; color: #a855f7;">⏱️</div><div><p style="margin: 0; font-size: 10px; color: #9ca3af;">MTTR (h)</p><h3 style="margin: 0; font-size: 20px; font-weight: 700; color: #fff;">3,2</h3><p style="margin: 0; font-size: 10px; color: #a855f7;">↓ 0,6h</p></div></div>', unsafe_allow_html=True)
+        st.markdown('<div class="metric-card"><div class="metric-icon" style="background-color: #4c1d95; color: #a855f7;">⏱️</div><div><p style="margin: 0; font-size: 10px; color: #9ca3af;">MTTR (h)</p><h3 style="margin: 0; font-size: 18px; font-weight: 700; color: #fff;">3,2</h3><p style="margin: 0; font-size: 9px; color: #a855f7;">↓ 0,6h</p></div></div>', unsafe_allow_html=True)
     with c6:
-        st.markdown('<div class="metric-card"><div class="metric-icon" style="background-color: #0e7490; color: #06b6d4;">🖥️</div><div><p style="margin: 0; font-size: 10px; color: #9ca3af;">Sistemas Online</p><h3 style="margin: 0; font-size: 20px; font-weight: 700; color: #fff;">95%</h3><p style="margin: 0; font-size: 10px; color: #06b6d4;">↑ 2%</p></div></div>', unsafe_allow_html=True)
+        st.markdown('<div class="metric-card"><div class="metric-icon" style="background-color: #0e7490; color: #06b6d4;">🖥️</div><div><p style="margin: 0; font-size: 10px; color: #9ca3af;">Sistemas Online</p><h3 style="margin: 0; font-size: 18px; font-weight: 700; color: #fff;">95%</h3><p style="margin: 0; font-size: 9px; color: #06b6d4;">↑ 2%</p></div></div>', unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
 
     # --- LINHA 2: GRÁFICO PRIORIDADE, TABELA RECENTES, INCIDENTES SAAS ---
-    col_l2_1, col_l2_2, col_l2_3 = st.columns([1, 1.6, 1])
+    col_l2_1, col_l2_2, col_l2_3 = st.columns([1, 1.8, 1])
 
     with col_l2_1:
         st.markdown('<div class="dashboard-card"><p class="card-title">Chamados Abertos por Prioridade</p>', unsafe_allow_html=True)
@@ -361,10 +367,10 @@ if aba_activa == "Dashboard":
         fig_donut.update_traces(textinfo='percent', textfont_size=11)
         fig_donut.update_layout(
             paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
-            font_color='#ffffff', height=210, margin=dict(t=10, b=10, l=10, r=10),
+            font_color='#ffffff', height=195, margin=dict(t=5, b=5, l=5, r=5),
             showlegend=True, legend=dict(orientation="v", y=0.5, x=1.0, font=dict(size=10))
         )
-        st.plotly_chart(fig_donut, use_container_width=True)
+        st.plotly_chart(fig_donut, use_container_width=True, config={'displayModeBar': False})
         st.markdown('<p style="font-size: 11px; color: #9ca3af; text-align: right; margin: 0;">Total <b style="color: white;">128</b></p></div>', unsafe_allow_html=True)
 
     with col_l2_2:
@@ -377,7 +383,7 @@ if aba_activa == "Dashboard":
             'Status': ['Em Andamento', 'Em Andamento', 'Novo', 'Novo', 'Em Andamento'],
             'Abertura': ['31/05/2026 10:23', '31/05/2026 09:58', '31/05/2026 09:41', '31/05/2026 09:15', '31/05/2026 08:52']
         })
-        st.dataframe(df_recentes, use_container_width=True, hide_index=True, height=210)
+        st.dataframe(df_recentes, use_container_width=True, hide_index=True, height=195)
         st.markdown('<p class="card-footer-link">Ver todos os chamados →</p></div>', unsafe_allow_html=True)
 
     with col_l2_3:
@@ -386,11 +392,11 @@ if aba_activa == "Dashboard":
         fig_bar = px.bar(df_saas, x='Incidentes', y='Sistema', orientation='h', text='Incidentes', color_discrete_sequence=['#0ea5e9'])
         fig_bar.update_layout(
             paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
-            font_color='#ffffff', height=210, margin=dict(t=5, b=5, l=5, r=5),
+            font_color='#ffffff', height=195, margin=dict(t=5, b=5, l=5, r=5),
             xaxis=dict(showgrid=False, visible=False), 
             yaxis=dict(autorange="reversed", tickfont=dict(size=10, color="white"))
         )
-        st.plotly_chart(fig_bar, use_container_width=True)
+        st.plotly_chart(fig_bar, use_container_width=True, config={'displayModeBar': False})
         st.markdown('<p class="card-footer-link">Ver todos os sistemas →</p></div>', unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
