@@ -16,6 +16,9 @@ st.set_page_config(
 if 'selected_ticket' not in st.session_state:
     st.session_state.selected_ticket = None
 
+if 'show_new_ticket_modal' not in st.session_state:
+    st.session_state.show_new_ticket_modal = False
+
 # ---------------------------------------------------------
 # 2. ESTILIZAÇÃO CSS AVANÇADA (UI DESIGN DARK MODE)
 # ---------------------------------------------------------
@@ -439,7 +442,7 @@ if aba_activa == "Dashboard":
 elif aba_activa == "Chamados":
 
     # =========================================================
-    # 6. MÓDULO DE CHAMADOS ITSM (COMPLETO E PROFISSIONAL)
+    # 6. MÓDULO DE CHAMADOS ITSM (COMPLETO E FUNCIONAL)
     # =========================================================
     if st.session_state.selected_ticket:
         t_id = st.session_state.selected_ticket
@@ -451,7 +454,7 @@ elif aba_activa == "Chamados":
         st.markdown(f"""
             <div style="background-color: #111827; border: 1px solid #1f2937; padding: 20px; border-radius: 10px; margin-top: 10px;">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <h3 style="margin: 0; color: #ffffff;">🎫 {t_id} — Erro ao acessar o ERP SAP</h3>
+                    <h3 style="margin: 0; color: #ffffff;">🎫 {t_id} — Detalhes do Chamado</h3>
                     <span style="background-color: #7f1d1d; color: #f87171; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: bold;">🔴 Alta Prioridade</span>
                 </div>
             </div>
@@ -459,7 +462,7 @@ elif aba_activa == "Chamados":
 
         st.markdown("<br>", unsafe_allow_html=True)
         
-        tab_det, tab_hist, tab_ia, tab_anexos, tab_auditoria = st.tabs(["📋 Informações & Descrição", "⏱️ Histórico & Timeline", "🤖 AI Assistant & RAG", "📎 Anexos (2)", "🔐 Auditoria"])
+        tab_det, tab_hist, tab_ia, tab_anexos, tab_auditoria = st.tabs(["📋 Informações & Descrição", "⏱️ Histórico & Timeline", "🤖 AI Assistant & RAG", "📎 Anexos", "🔐 Auditoria"])
 
         with tab_det:
             col_d1, col_d2 = st.columns([1.5, 1])
@@ -474,7 +477,7 @@ elif aba_activa == "Chamados":
                 - **Responsável:** Carlos Mendes (N1)
                 """)
                 st.markdown("#### Descrição do Problema")
-                st.info("Usuária informa que não consegue acessar o sistema ERP desde as 08:30 da manhã. Apresenta erro de timeout e credenciais rejeitadas após atualização de senha.")
+                st.info("Usuária informa que não consegue acessar o sistema ERP. Apresenta erro de timeout e credenciais rejeitadas.")
             
             with col_d2:
                 st.markdown("#### ⏱️ Controle de SLA")
@@ -484,60 +487,35 @@ elif aba_activa == "Chamados":
                 - **Prazo limite:** 31/05/2026 12:30
                 - **Status SLA:** 🟢 Dentro do prazo
                 """)
-                st.markdown("---")
-                st.markdown("#### 🔀 Escalonamento")
-                st.selectbox("Escalar para nível:", ["Manter em N1", "N2 — Especialistas", "N3 — Arquitetura", "Infraestrutura"])
-                if st.button("Executar Escalonamento"):
-                    st.success("Chamado escalado com sucesso para N2!")
 
         with tab_hist:
             st.markdown("#### ⏱️ Linha do Tempo (Timeline do Chamado)")
             st.markdown("""
             - 🟢 **08:30** — 🎫 **Chamado aberto** por Ana Souza.
-            - 🤖 **08:32** — 🤖 **IA analisou o chamado:** Categoria identificada como *Acesso*, Prioridade sugerida: *Alta*.
+            - 🤖 **08:32** — 🤖 **IA analisou o chamado:** Categoria identificada como *Acesso*.
             - 👤 **08:34** — 👤 **Atribuído** para Carlos Mendes (N1).
-            - 🔧 **08:45** — 🔧 **Em atendimento:** Analista iniciou investigação remota.
-            - 💬 **09:10** — 💬 **Atualização:** Solicitado teste de autenticação em modo anônimo.
-            - ⏳ **09:25** — ⏳ **Status alterado:** Aguardando resposta do usuário.
             """)
 
         with tab_ia:
             st.markdown("""
                 <div style="background-color: #0f172a; border: 1px solid #1e293b; padding: 15px; border-radius: 10px;">
                     <h4 style="color: #a78bfa; margin-top: 0;">🤖 AI Assistant & RAG Insights</h4>
-                    <p style="font-size: 13px; color: #cbd5e1;">O chamado apresenta características de problema de autenticação no SAP devido a expiração de token no AD.</p>
-                    <hr style="border-color: #1e293b;">
-                    <p style="font-size: 13px; color: #e2e8f0; font-weight: bold;">📚 Base de Conhecimento RAG Encontrada:</p>
-                    <p style="font-size: 12px; color: #38bdf8;">Artigo: "Problemas de autenticação e reset de token no SAP" (Relevância: 94%)</p>
-                    <p style="font-size: 12px; color: #cbd5e1;"><b>💡 Solução sugerida pela IA:</b> Verificar o status da conta no Active Directory, forçar sincronização de credenciais e limpar cache do client SAP.</p>
+                    <p style="font-size: 13px; color: #cbd5e1;">O chamado apresenta características de problema de autenticação no SAP.</p>
                 </div>
             """, unsafe_allow_html=True)
-            st.markdown("<br>", unsafe_allow_html=True)
-            col_ia1, col_ia2, col_ia3 = st.columns(3)
-            with col_ia1:
-                if st.button("✨ Aplicar Solução Sugerida"):
-                    st.success("Solução aplicada e enviada ao usuário!")
-            with col_ia2:
-                if st.button("📖 Ver Artigo na KB"):
-                    st.info("Abrindo base de conhecimento...")
-            with col_ia3:
-                if st.button("📤 Enviar Resposta Pronta"):
-                    st.success("Resposta enviada por e-mail para Ana Souza!")
 
         with tab_anexos:
             st.markdown("#### 📎 Arquivos Anexados")
-            st.markdown("- 📄 `erro_login_sap.png` (Enviado por Ana Souza às 08:30)")
-            st.markdown("- 📄 `log_autenticacao.txt` (Enviado por Carlos Mendes às 08:46)")
             st.file_uploader("Adicionar novo anexo ao chamado", type=['png', 'jpg', 'pdf', 'txt', 'docx'])
 
         with tab_auditoria:
             st.markdown("#### 🔐 Registro de Governança e Auditoria")
             df_audit = pd.DataFrame({
-                'Data/Hora': ['31/05/2026 08:34', '31/05/2026 08:32', '31/05/2026 08:30'],
-                'Usuário': ['Carlos Mendes', 'IA LaryMB', 'Ana Souza'],
-                'Campo Alterado': ['Responsável / Status', 'Prioridade / Categoria', 'Criação do Ticket'],
-                'Valor Anterior': ['Não atribuído', 'Média', '-'],
-                'Novo Valor': ['Carlos Mendes / Em atendimento', 'Alta / Acesso', 'Aberto']
+                'Data/Hora': ['31/05/2026 08:34', '31/05/2026 08:30'],
+                'Usuário': ['Carlos Mendes', 'Ana Souza'],
+                'Campo Alterado': ['Responsável / Status', 'Criação do Ticket'],
+                'Valor Anterior': ['Não atribuído', '-'],
+                'Novo Valor': ['Carlos Mendes / Em atendimento', 'Aberto']
             })
             st.dataframe(df_audit, use_container_width=True, hide_index=True)
 
@@ -545,18 +523,60 @@ elif aba_activa == "Chamados":
         # TELA PRINCIPAL DE CHAMADOS
         col_top1, col_top2 = st.columns([2, 2])
         with col_top1:
-            st.text_input("Buscar chamado", placeholder="🔎 Buscar por ID, título ou solicitante...", label_visibility="collapsed")
+            pesquisa_chamado = st.text_input("Buscar chamado", placeholder="🔎 Buscar por ID, título ou solicitante...", label_visibility="collapsed")
         with col_top2:
             bc1, bc2, bc3, bc4 = st.columns(4)
             with bc1:
-                if st.button("➕ Novo"):
-                    st.toast("Abrindo painel de novo chamado...")
+                if st.button("➕ Novo", use_container_width=True):
+                    st.session_state.show_new_ticket_modal = not st.session_state.show_new_ticket_modal
             with bc2:
-                st.button("🎛️ Filtros")
+                if st.button("🎛️ Filtros", use_container_width=True):
+                    st.toast("Filtros avançados ativados.")
             with bc3:
-                st.button("📥 Exportar")
+                if st.button("📥 Exportar", use_container_width=True):
+                    st.success("Lista de chamados exportada para CSV com sucesso!")
             with bc4:
-                if st.button("🔄 Atualizar"):
+                if st.button("🔄 Atualizar", use_container_width=True):
+                    st.rerun()
+
+        # MODAL / FORMULÁRIO DE NOVO CHAMADO
+        if st.session_state.show_new_ticket_modal:
+            st.markdown("""
+                <div style="background-color: #111827; border: 1px solid #3b82f6; padding: 20px; border-radius: 10px; margin-top: 15px; margin-bottom: 20px;">
+                    <h3 style="color: #ffffff; margin-top: 0;">➕ Criar Novo Chamado / Incidente</h3>
+                </div>
+            """, unsafe_allow_html=True)
+            
+            with st.form("form_novo_chamado"):
+                f_titulo = st.text_input("Título do Chamado / Problema")
+                f_solicitante = st.text_input("Nome do Solicitante")
+                
+                fc_1, fc_2, fc_3 = st.columns(3)
+                with fc_1:
+                    f_tipo = st.selectbox("Tipo", ["Incidente", "Solicitação", "Problema", "Dúvida"])
+                with fc_2:
+                    f_prioridade = st.selectbox("Prioridade", ["Baixa", "Média", "Alta", "Crítica"])
+                with fc_3:
+                    f_sistema = st.selectbox("Sistema / Ativo", ["SAP", "Microsoft 365", "Salesforce", "Rede / VPN", "Hardware"])
+                
+                f_descricao = st.text_area("Descrição Detalhada do Problema")
+                
+                col_btn1, col_btn2 = st.columns([1, 5])
+                with col_btn1:
+                    submit_btn = st.form_submit_button("💾 Salvar Chamado")
+                with col_btn2:
+                    cancel_btn = st.form_submit_button("❌ Cancelar")
+                
+                if submit_btn:
+                    if f_titulo and f_solicitante:
+                        st.success(f"Chamado criado com sucesso! (Título: {f_titulo})")
+                        st.session_state.show_new_ticket_modal = False
+                        st.rerun()
+                    else:
+                        st.warning("Por favor, preencha pelo menos o Título e o Solicitante.")
+                
+                if cancel_btn:
+                    st.session_state.show_new_ticket_modal = False
                     st.rerun()
 
         st.markdown("<br>", unsafe_allow_html=True)
@@ -596,6 +616,8 @@ elif aba_activa == "Chamados":
         ]
         
         for row in chamados_data:
+            if pesquisa_chamado and pesquisa_chamado.lower() not in row['ID'].lower() and pesquisa_chamado.lower() not in row['Título'].lower() and pesquisa_chamado.lower() not in row['Solicitante'].lower():
+                continue
             cols = st.columns([1, 2.5, 1, 1, 1, 1, 1, 1, 1, 1])
             cols[0].markdown(f"**{row['ID']}**")
             cols[1].markdown(f"{row['Título']}")
