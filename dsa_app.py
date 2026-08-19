@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
+from datetime import datetime, timedelta
 
 # ---------------------------------------------------------
 # 1. CONFIGURAÇÃO DA PÁGINA
@@ -18,6 +19,9 @@ if 'selected_ticket' not in st.session_state:
 
 if 'show_new_ticket_modal' not in st.session_state:
     st.session_state.show_new_ticket_modal = False
+
+if 'ai_analyzed' not in st.session_state:
+    st.session_state.ai_analyzed = False
 
 # ---------------------------------------------------------
 # 2. ESTILIZAÇÃO CSS AVANÇADA (UI DESIGN DARK MODE)
@@ -234,7 +238,7 @@ with col_h2:
 st.markdown("<br>", unsafe_allow_html=True)
 
 # ---------------------------------------------------------
-# 5. ROTEAMENTO DE MÓDULOS
+# 5. ROTEAMENTO DE MÓDULOS (DASHBOARD ORIGINAL INTACTO)
 # ---------------------------------------------------------
 if aba_activa == "Dashboard":
 
@@ -442,7 +446,7 @@ if aba_activa == "Dashboard":
 elif aba_activa == "Chamados":
 
     # =========================================================
-    # 6. MÓDULO DE CHAMADOS ITSM (COMPLETO E FUNCIONAL)
+    # 6. MÓDULO DE CHAMADOS ITSM (ATUALIZADO)
     # =========================================================
     if st.session_state.selected_ticket:
         t_id = st.session_state.selected_ticket
@@ -451,73 +455,111 @@ elif aba_activa == "Chamados":
             st.session_state.selected_ticket = None
             st.rerun()
 
+        # TELA DE DETALHAMENTO DO CHAMADO
         st.markdown(f"""
             <div style="background-color: #111827; border: 1px solid #1f2937; padding: 20px; border-radius: 10px; margin-top: 10px;">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <h3 style="margin: 0; color: #ffffff;">🎫 {t_id} — Detalhes do Chamado</h3>
-                    <span style="background-color: #7f1d1d; color: #f87171; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: bold;">🔴 Alta Prioridade</span>
+                    <div>
+                        <h3 style="margin: 0; color: #ffffff;">🎫 {t_id} — Erro ao acessar ERP</h3>
+                    </div>
+                    <div>
+                        <span style="background-color: #7f1d1d; color: #f87171; padding: 6px 12px; border-radius: 6px; font-size: 13px; font-weight: bold;">🔴 Alta Prioridade</span>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 20px; margin-top: 15px; font-size: 13px; color: #9ca3af;">
+                    <div>Status: <b style="color: #ffffff;">Em atendimento</b></div>
+                    <div>SLA Restante: <b style="color: #38bdf8;">01:42 restante</b></div>
                 </div>
             </div>
         """, unsafe_allow_html=True)
 
         st.markdown("<br>", unsafe_allow_html=True)
-        
-        tab_det, tab_hist, tab_ia, tab_anexos, tab_auditoria = st.tabs(["📋 Informações & Descrição", "⏱️ Histórico & Timeline", "🤖 AI Assistant & RAG", "📎 Anexos", "🔐 Auditoria"])
 
-        with tab_det:
-            col_d1, col_d2 = st.columns([1.5, 1])
-            with col_d1:
-                st.markdown("#### Informações do Solicitante e Atendimento")
-                st.markdown("""
-                - **Solicitante:** Ana Souza
-                - **Empresa / Departamento:** Empresa XYZ / Financeiro
-                - **Sistema:** SAP Business One
-                - **Tipo / Categoria:** Incidente / Acesso & Permissões
-                - **Status Atual:** Em atendimento
-                - **Responsável:** Carlos Mendes (N1)
-                """)
-                st.markdown("#### Descrição do Problema")
-                st.info("Usuária informa que não consegue acessar o sistema ERP. Apresenta erro de timeout e credenciais rejeitadas.")
-            
-            with col_d2:
-                st.markdown("#### ⏱️ Controle de SLA")
-                st.metric("Tempo Restante", "01h 42m", "- 2h 18m decorridas", delta_color="normal")
-                st.markdown("""
-                - **Início:** 31/05/2026 08:30
-                - **Prazo limite:** 31/05/2026 12:30
-                - **Status SLA:** 🟢 Dentro do prazo
-                """)
+        # GRID DE INFORMAÇÕES DO CHAMADO
+        col_det1, col_det2, col_det3, col_det4 = st.columns(4)
+        with col_det1:
+            st.markdown("""
+                <div style="background-color: #111827; border: 1px solid #1f2937; padding: 12px; border-radius: 8px;">
+                    <p style="font-size: 11px; color: #9ca3af; margin: 0;">👤 Solicitante</p>
+                    <p style="font-size: 14px; color: #ffffff; font-weight: 600; margin: 4px 0 0 0;">Ana Souza</p>
+                </div>
+            """, unsafe_allow_html=True)
+        with col_det2:
+            st.markdown("""
+                <div style="background-color: #111827; border: 1px solid #1f2937; padding: 12px; border-radius: 8px;">
+                    <p style="font-size: 11px; color: #9ca3af; margin: 0;">🖥️ Sistema</p>
+                    <p style="font-size: 14px; color: #ffffff; font-weight: 600; margin: 4px 0 0 0;">SAP</p>
+                </div>
+            """, unsafe_allow_html=True)
+        with col_det3:
+            st.markdown("""
+                <div style="background-color: #111827; border: 1px solid #1f2937; padding: 12px; border-radius: 8px;">
+                    <p style="font-size: 11px; color: #9ca3af; margin: 0;">📂 Categoria</p>
+                    <p style="font-size: 14px; color: #ffffff; font-weight: 600; margin: 4px 0 0 0;">Acesso / Permissões</p>
+                </div>
+            """, unsafe_allow_html=True)
+        with col_det4:
+            st.markdown("""
+                <div style="background-color: #111827; border: 1px solid #1f2937; padding: 12px; border-radius: 8px;">
+                    <p style="font-size: 11px; color: #9ca3af; margin: 0;">👨‍💻 Responsável</p>
+                    <p style="font-size: 14px; color: #ffffff; font-weight: 600; margin: 4px 0 0 0;">Carlos Mendes</p>
+                </div>
+            """, unsafe_allow_html=True)
+
+        st.markdown("<br>", unsafe_allow_html=True)
+        
+        # ABAS DE DETALHAMENTO
+        tab_desc, tab_coment, tab_anexos, tab_hist, tab_ia, tab_rag = st.tabs(["📝 Descrição", "💬 Comentários", "📎 Anexos", "🕐 Histórico", "🤖 Análise da IA", "🔎 RAG & Base de Conhecimento"])
+
+        with tab_desc:
+            st.markdown("#### Descrição Detalhada do Problema")
+            st.info("Usuária informa que não consegue acessar o sistema ERP desde esta manhã. Apresenta erro de timeout e credenciais rejeitadas ao tentar realizar o login corporativo.")
+
+        with tab_coment:
+            st.markdown("#### Interações & Comentários")
+            st.text_area("Adicionar novo comentário...", placeholder="Escreva uma nota ou resposta ao solicitante...")
+            if st.button("Enviar Comentário"):
+                st.success("Comentário adicionado com sucesso!")
+
+        with tab_anexos:
+            st.markdown("#### Arquivos Anexados")
+            st.file_uploader("Enviar anexo", type=['png', 'jpg', 'pdf', 'txt'])
 
         with tab_hist:
-            st.markdown("#### ⏱️ Linha do Tempo (Timeline do Chamado)")
+            st.markdown("#### Histórico de Atividades")
             st.markdown("""
-            - 🟢 **08:30** — 🎫 **Chamado aberto** por Ana Souza.
-            - 🤖 **08:32** — 🤖 **IA analisou o chamado:** Categoria identificada como *Acesso*.
-            - 👤 **08:34** — 👤 **Atribuído** para Carlos Mendes (N1).
+            - 🟢 **31/05/2026 08:30** — Chamado criado por Ana Souza.
+            - 🤖 **31/05/2026 08:31** — IA classificou automaticamente como *Acesso / Permissões*.
+            - 👤 **31/05/2026 08:34** — Atribuído para Carlos Mendes.
             """)
 
         with tab_ia:
             st.markdown("""
                 <div style="background-color: #0f172a; border: 1px solid #1e293b; padding: 15px; border-radius: 10px;">
-                    <h4 style="color: #a78bfa; margin-top: 0;">🤖 AI Assistant & RAG Insights</h4>
-                    <p style="font-size: 13px; color: #cbd5e1;">O chamado apresenta características de problema de autenticação no SAP.</p>
+                    <h4 style="color: #a78bfa; margin-top: 0;">🤖 Análise Inteligente de Causa Raiz</h4>
+                    <p style="font-size: 13px; color: #cbd5e1;">O padrão de erro indica expiração de credenciais no Active Directory sincronizado com o SAP.</p>
                 </div>
             """, unsafe_allow_html=True)
 
-        with tab_anexos:
-            st.markdown("#### 📎 Arquivos Anexados")
-            st.file_uploader("Adicionar novo anexo ao chamado", type=['png', 'jpg', 'pdf', 'txt', 'docx'])
+        with tab_rag:
+            st.markdown("#### 📚 Base de Conhecimento Relacionada (RAG)")
+            st.markdown("""
+            - 📄 **Artigo #402:** Como redefinir credenciais integradas SAP/AD (Relevância: 94%)
+            - 📄 **Artigo #115:** Solução de Erros de Timeout em ERPs Corporativos (Relevância: 88%)
+            """)
 
-        with tab_auditoria:
-            st.markdown("#### 🔐 Registro de Governança e Auditoria")
-            df_audit = pd.DataFrame({
-                'Data/Hora': ['31/05/2026 08:34', '31/05/2026 08:30'],
-                'Usuário': ['Carlos Mendes', 'Ana Souza'],
-                'Campo Alterado': ['Responsável / Status', 'Criação do Ticket'],
-                'Valor Anterior': ['Não atribuído', '-'],
-                'Novo Valor': ['Carlos Mendes / Em atendimento', 'Aberto']
-            })
-            st.dataframe(df_audit, use_container_width=True, hide_index=True)
+        st.markdown("<br>", unsafe_allow_html=True)
+        
+        # BOTÕES DE AÇÃO INFERIOR
+        act_col1, act_col2 = st.columns([1, 4])
+        with act_col1:
+            if st.button("⬆️ Escalonar para N2", use_container_width=True):
+                st.warning("Chamado escalonado para a equipe N2 - Especialista.")
+        with act_col2:
+            if st.button("✅ Resolver chamado", use_container_width=True):
+                st.success("Chamado marcado como resolvido com sucesso!")
+                st.session_state.selected_ticket = None
+                st.rerun()
 
     else:
         # TELA PRINCIPAL DE CHAMADOS
@@ -539,27 +581,69 @@ elif aba_activa == "Chamados":
                 if st.button("🔄 Atualizar", use_container_width=True):
                     st.rerun()
 
-        # MODAL / FORMULÁRIO DE NOVO CHAMADO
+        # MODAL / FORMULÁRIO DE NOVO CHAMADO COM IA E CATEGORIA/SLA
         if st.session_state.show_new_ticket_modal:
             st.markdown("""
                 <div style="background-color: #111827; border: 1px solid #3b82f6; padding: 20px; border-radius: 10px; margin-top: 15px; margin-bottom: 20px;">
-                    <h3 style="color: #ffffff; margin-top: 0;">➕ Criar Novo Chamado / Incidente</h3>
+                    <h3 style="color: #ffffff; margin-top: 0;">➕ Criar Novo Chamado / Incidente com Apoio de IA</h3>
                 </div>
             """, unsafe_allow_html=True)
             
             with st.form("form_novo_chamado"):
-                f_titulo = st.text_input("Título do Chamado / Problema")
-                f_solicitante = st.text_input("Nome do Solicitante")
+                f_solicitante = st.text_input("Nome do Solicitante", value="Ana Souza")
+                f_descricao = st.text_area("Descreva o problema (A IA preencherá o restante automaticamente)", value="Não consigo acessar o SAP desde esta manhã.")
                 
-                fc_1, fc_2, fc_3 = st.columns(3)
-                with fc_1:
-                    f_tipo = st.selectbox("Tipo", ["Incidente", "Solicitação", "Problema", "Dúvida"])
-                with fc_2:
-                    f_prioridade = st.selectbox("Prioridade", ["Baixa", "Média", "Alta", "Crítica"])
-                with fc_3:
-                    f_sistema = st.selectbox("Sistema / Ativo", ["SAP", "Microsoft 365", "Salesforce", "Rede / VPN", "Hardware"])
+                if st.form_submit_button("🤖 Analisar com IA"):
+                    st.session_state.ai_analyzed = True
+                    st.success("IA analisou o texto com sucesso!")
                 
-                f_descricao = st.text_area("Descrição Detalhada do Problema")
+                if st.session_state.ai_analyzed:
+                    st.markdown("""
+                        <div style="background-color: #0f172a; border: 1px solid #7c3aed; padding: 15px; border-radius: 8px; margin-top: 10px; margin-bottom: 15px;">
+                            <h4 style="color: #a78bfa; margin-top: 0;">🤖 Análise Automática da IA</h4>
+                    """, unsafe_allow_html=True)
+                    
+                    st.markdown("""
+                    - **Tipo:** Incidente
+                    - **Categoria:** Acesso / Permissões
+                    - **Prioridade sugerida:** Alta
+                    - **Sistema identificado:** SAP
+                    - **Artigos relacionados:** 3 artigos na Base de Conhecimento
+                    - **Equipe sugerida:** N1 - Suporte
+                    """)
+                    
+                    if st.form_submit_button("✓ Aceitar classificação da IA"):
+                        st.toast("Classificação da IA aplicada com sucesso!")
+
+                f_tipo = st.selectbox("Tipo", ["Incidente", "Solicitação", "Problema", "Dúvida"], index=0)
+                
+                # Categoria adicionada
+                f_categoria = st.selectbox("Categoria", [
+                    "Acesso / Permissões",
+                    "Hardware",
+                    "Software",
+                    "Rede",
+                    "E-mail",
+                    "Segurança",
+                    "Sistemas SaaS",
+                    "Integração",
+                    "Infraestrutura",
+                    "Outros"
+                ], index=0)
+
+                f_prioridade = st.selectbox("Prioridade", ["Baixa", "Média", "Alta", "Crítica"], index=2)
+
+                # SLA Automático
+                sla_map = {
+                    "Crítica": "1 hora",
+                    "Alta": "4 horas",
+                    "Média": "8 horas",
+                    "Baixa": "24 horas"
+                }
+                f_sla_calculado = sla_map.get(f_prioridade, "4 horas")
+                st.info(f"⏱️ **SLA Definido Automaticamente:** {f_sla_calculado} (com base na prioridade {f_prioridade})")
+
+                f_sistema = st.selectbox("Sistema / Alvo", ["SAP", "Microsoft 365", "Salesforce", "Rede / VPN", "Hardware"], index=0)
                 
                 col_btn1, col_btn2 = st.columns([1, 5])
                 with col_btn1:
@@ -568,15 +652,14 @@ elif aba_activa == "Chamados":
                     cancel_btn = st.form_submit_button("❌ Cancelar")
                 
                 if submit_btn:
-                    if f_titulo and f_solicitante:
-                        st.success(f"Chamado criado com sucesso! (Título: {f_titulo})")
-                        st.session_state.show_new_ticket_modal = False
-                        st.rerun()
-                    else:
-                        st.warning("Por favor, preencha pelo menos o Título e o Solicitante.")
+                    st.success("Chamado criado com sucesso!")
+                    st.session_state.show_new_ticket_modal = False
+                    st.session_state.ai_analyzed = False
+                    st.rerun()
                 
                 if cancel_btn:
                     st.session_state.show_new_ticket_modal = False
+                    st.session_state.ai_analyzed = False
                     st.rerun()
 
         st.markdown("<br>", unsafe_allow_html=True)
@@ -593,18 +676,19 @@ elif aba_activa == "Chamados":
 
         st.markdown("<br>", unsafe_allow_html=True)
 
-        with st.expander("🎛️ Filtros Avançados de Chamados (Status, Prioridade, Tipo, Categoria, Sistema)"):
+        with st.expander("🎛️ Filtros Avançados de Chamados (Status, Prioridade, Categoria, Sistema)"):
             fc1, fc2, fc3, fc4 = st.columns(4)
             with fc1:
-                st.selectbox("Status", ["Todos", "Novo", "Em triagem", "Em atendimento", "Aguardando usuário", "Resolvido", "Fechado"])
+                st.selectbox("Status", ["Todos", "Novo", "Em triagem", "Em atendimento", "Resolvido"])
             with fc2:
                 st.selectbox("Prioridade", ["Todas", "Baixa", "Média", "Alta", "Crítica"])
             with fc3:
-                st.selectbox("Tipo", ["Todos", "Incidente", "Solicitação", "Problema", "Dúvida"])
+                st.selectbox("Categoria", ["Todas", "Acesso / Permissões", "Hardware", "Software", "Rede", "Sistemas SaaS"])
             with fc4:
-                st.selectbox("Sistema", ["Todos", "Microsoft 365", "Salesforce", "SAP", "Google Workspace"])
+                st.selectbox("Sistema", ["Todos", "Microsoft 365", "Salesforce", "SAP"])
 
         st.markdown("<br>", unsafe_allow_html=True)
+        
         st.markdown("#### Lista de Chamados Ativos")
         
         chamados_data = [
@@ -615,10 +699,25 @@ elif aba_activa == "Chamados":
             {"ID": "#CH-10230", "Título": "Tela azul no Windows 11", "Solicitante": "Pedro Oliveira", "Tipo": "Incidente", "Prioridade": "🔴 Alta", "Sistema": "M365", "Responsável": "Carlos", "SLA": "00:15", "Status": "Em atendimento"}
         ]
         
+        # CABEÇALHOS EXPLÍCITOS DA TABELA
+        header_cols = st.columns([1, 2.3, 1.2, 1, 1.1, 1, 1.1, 0.9, 1.2, 0.9])
+        header_cols[0].markdown("**ID**")
+        header_cols[1].markdown("**Título**")
+        header_cols[2].markdown("**Solicitante**")
+        header_cols[3].markdown("**Tipo**")
+        header_cols[4].markdown("**Prioridade**")
+        header_cols[5].markdown("**Sistema**")
+        header_cols[6].markdown("**Responsável**")
+        header_cols[7].markdown("**SLA**")
+        header_cols[8].markdown("**Status**")
+        header_cols[9].markdown("**Ação**")
+        
+        st.markdown("<hr style='margin: 4px 0; border-color: #3b82f6;'>", unsafe_allow_html=True)
+
         for row in chamados_data:
             if pesquisa_chamado and pesquisa_chamado.lower() not in row['ID'].lower() and pesquisa_chamado.lower() not in row['Título'].lower() and pesquisa_chamado.lower() not in row['Solicitante'].lower():
                 continue
-            cols = st.columns([1, 2.5, 1, 1, 1, 1, 1, 1, 1, 1])
+            cols = st.columns([1, 2.3, 1.2, 1, 1.1, 1, 1.1, 0.9, 1.2, 0.9])
             cols[0].markdown(f"**{row['ID']}**")
             cols[1].markdown(f"{row['Título']}")
             cols[2].markdown(f"{row['Solicitante']}")
@@ -628,7 +727,7 @@ elif aba_activa == "Chamados":
             cols[6].markdown(f"{row['Responsável']}")
             cols[7].markdown(f"{row['SLA']}")
             cols[8].markdown(f"{row['Status']}")
-            if cols[9].button("👁️ Abrir", key=f"btn_{row['ID']}"):
+            if cols[9].button("Abrir", key=f"btn_{row['ID']}"):
                 st.session_state.selected_ticket = row['ID']
                 st.rerun()
             st.markdown("<hr style='margin: 4px 0; border-color: #1e293b;'>", unsafe_allow_html=True)
