@@ -235,7 +235,7 @@ st.markdown("<br>", unsafe_allow_html=True)
 # ---------------------------------------------------------
 if aba_activa == "Dashboard":
 
-    # --- DASHBOARD EXATAMENTE COMO NA SUA PRIMEIRA FOTO ---
+    # --- LINHA 1: MÉTRICAS PRINCIPAIS ---
     c1, c2, c3, c4, c5, c6 = st.columns(6)
     with c1:
         st.markdown('<div class="metric-card"><div class="metric-icon" style="background-color: #1e3a8a; color: #3b82f6;">📋</div><div><p style="margin: 0; font-size: 10px; color: #9ca3af;">Chamados Abertos</p><h3 style="margin: 0; font-size: 20px; font-weight: 700; color: #fff;">128</h3><p style="margin: 0; font-size: 10px; color: #3b82f6;">↑ 12 hoje</p></div></div>', unsafe_allow_html=True)
@@ -251,13 +251,15 @@ if aba_activa == "Dashboard":
         st.markdown('<div class="metric-card"><div class="metric-icon" style="background-color: #0e7490; color: #06b6d4;">🖥️</div><div><p style="margin: 0; font-size: 10px; color: #9ca3af;">Sistemas Online</p><h3 style="margin: 0; font-size: 20px; font-weight: 700; color: #fff;">95%</h3><p style="margin: 0; font-size: 10px; color: #06b6d4;">↑ 2%</p></div></div>', unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
+
+    # --- LINHA 2: GRÁFICO PRIORIDADE, TABELA RECENTES, INCIDENTES SAAS ---
     col_l2_1, col_l2_2, col_l2_3 = st.columns([1, 1.6, 1])
 
     with col_l2_1:
         st.markdown('<div class="dashboard-card"><p class="card-title">Chamados Abertos por Prioridade</p>', unsafe_allow_html=True)
         df_prioridade = pd.DataFrame({
-            'Prioridade': ['Média', 'Alta', 'Crítica', 'Baixa'],
-            'Quantidade': [42, 36, 28, 22]
+            'Prioridade': ['Crítica', 'Alta', 'Média', 'Baixa'],
+            'Quantidade': [28, 36, 42, 22]
         })
         fig_donut = px.pie(
             df_prioridade, names='Prioridade', values='Quantidade', hole=0.65,
@@ -267,7 +269,7 @@ if aba_activa == "Dashboard":
         fig_donut.update_traces(textinfo='percent', textfont_size=11)
         fig_donut.update_layout(
             paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
-            font_color='#ffffff', height=230, margin=dict(t=10, b=10, l=10, r=10),
+            font_color='#ffffff', height=210, margin=dict(t=10, b=10, l=10, r=10),
             showlegend=True, legend=dict(orientation="v", y=0.5, x=1.0, font=dict(size=10))
         )
         st.plotly_chart(fig_donut, use_container_width=True)
@@ -283,7 +285,7 @@ if aba_activa == "Dashboard":
             'Status': ['Em Andamento', 'Em Andamento', 'Novo', 'Novo', 'Em Andamento'],
             'Abertura': ['31/05/2026 10:23', '31/05/2026 09:58', '31/05/2026 09:41', '31/05/2026 09:15', '31/05/2026 08:52']
         })
-        st.dataframe(df_recentes, use_container_width=True, hide_index=True, height=220)
+        st.dataframe(df_recentes, use_container_width=True, hide_index=True, height=210)
         st.markdown('<p class="card-footer-link">Ver todos os chamados →</p></div>', unsafe_allow_html=True)
 
     with col_l2_3:
@@ -292,12 +294,147 @@ if aba_activa == "Dashboard":
         fig_bar = px.bar(df_saas, x='Incidentes', y='Sistema', orientation='h', text='Incidentes', color_discrete_sequence=['#0ea5e9'])
         fig_bar.update_layout(
             paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
-            font_color='#ffffff', height=220, margin=dict(t=5, b=5, l=5, r=5),
+            font_color='#ffffff', height=210, margin=dict(t=5, b=5, l=5, r=5),
             xaxis=dict(showgrid=False, visible=False), 
             yaxis=dict(autorange="reversed", tickfont=dict(size=10, color="white"))
         )
         st.plotly_chart(fig_bar, use_container_width=True)
         st.markdown('<p class="card-footer-link">Ver todos os sistemas →</p></div>', unsafe_allow_html=True)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # --- LINHA 3: SLA CUMPRIMENTO, ATENDIMENTOS POR CATEGORIA, EQUIPES, STATUS SAAS ---
+    col_l3_1, col_l3_2, col_l3_3, col_l3_4 = st.columns([1, 1, 1.4, 1])
+
+    with col_l3_1:
+        st.markdown('<div class="dashboard-card"><p class="card-title">SLA - Cumprimento</p>', unsafe_allow_html=True)
+        fig_gauge = go.Figure(go.Indicator(
+            mode = "gauge+number",
+            value = 87,
+            number = {'suffix': "%", 'font': {'size': 24, 'color': 'white'}},
+            gauge = {
+                'axis': {'range': [0, 100], 'tickwidth': 1, 'tickcolor': "white"},
+                'bar': {'color': "#22c55e"},
+                'bgcolor': "rgba(0,0,0,0)",
+                'borderwidth': 0,
+                'steps': [
+                    {'range': [0, 70], 'color': '#7f1d1d'},
+                    {'range': [70, 90], 'color': '#78350f'},
+                    {'range': [90, 100], 'color': '#064e3b'}
+                ],
+            }
+        ))
+        fig_gauge.update_layout(
+            paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
+            font_color='#ffffff', height=140, margin=dict(t=10, b=10, l=10, r=10)
+        )
+        st.plotly_chart(fig_gauge, use_container_width=True)
+        st.markdown("""
+            <div style="font-size: 11px; color: #9ca3af; margin-top: -10px;">
+                🟢 Dentro do prazo: <b>312 (87%)</b><br>
+                🔴 Fora do prazo: <b>38 (11%)</b><br>
+                🟡 Pausado: <b>8 (2%)</b>
+            </div>
+            <p style="font-size: 11px; color: #9ca3af; text-align: right; margin: 4px 0 0 0;">Total <b style="color: white;">358</b></p>
+        </div>""", unsafe_allow_html=True)
+
+    with col_l3_2:
+        st.markdown('<div class="dashboard-card"><p class="card-title">Atendimentos por Categoria</p>', unsafe_allow_html=True)
+        st.markdown("""
+            <div style="font-size: 11px; color: #94a3b8; line-height: 1.6;">
+                🔵 <b>Acesso / Permissões</b> &nbsp;&nbsp;&nbsp;&nbsp; 56 (26%)<br>
+                🟢 <b>Falhas / Erros</b> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 48 (22%)<br>
+                🟢 <b>Solicitações</b> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 46 (21%)<br>
+                🟣 <b>Hardware</b> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 24 (11%)<br>
+                🟣 <b>Software</b> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 20 (9%)<br>
+                🟠 <b>Outros</b> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 18 (8%)
+            </div>
+        """, unsafe_allow_html=True)
+        st.markdown('<p class="card-footer-link" style="margin-top: 14px;">Ver todas as categorias →</p></div>', unsafe_allow_html=True)
+
+    with col_l3_3:
+        st.markdown('<div class="dashboard-card"><p class="card-title">Atendimentos por Equipe</p>', unsafe_allow_html=True)
+        df_equipes = pd.DataFrame({
+            'Equipe': ['N1 - Suporte', 'N2 - Especialista', 'Infraestrutura', 'Sistemas'],
+            'Abertos': [72, 32, 14, 10],
+            'Em Andam.': [28, 12, 5, 4],
+            'Resolv.': [152, 98, 56, 36],
+            'SLA': ['91%', '85%', '88%', '90%']
+        })
+        st.dataframe(df_equipes, use_container_width=True, hide_index=True, height=140)
+        st.markdown('<p class="card-footer-link" style="margin-top: 4px;">Ver todas as equipes →</p></div>', unsafe_allow_html=True)
+
+    with col_l3_4:
+        st.markdown('<div class="dashboard-card"><p class="card-title">Status dos Sistemas SaaS</p>', unsafe_allow_html=True)
+        df_status_saas = pd.DataFrame({
+            'Status': ['Operacional', 'Atenção', 'Indisponível'],
+            'Qtd': [76, 18, 6]
+        })
+        fig_donut_saas = px.pie(
+            df_status_saas, names='Status', values='Qtd', hole=0.65,
+            color='Status',
+            color_discrete_map={'Operacional': '#16a34a', 'Atenção': '#f59e0b', 'Indisponível': '#dc2626'}
+        )
+        fig_donut_saas.update_traces(textinfo='none')
+        fig_donut_saas.update_layout(
+            paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
+            font_color='#ffffff', height=130, margin=dict(t=5, b=5, l=5, r=5),
+            showlegend=False
+        )
+        st.plotly_chart(fig_donut_saas, use_container_width=True)
+        st.markdown("""
+            <div style="font-size: 10px; color: #9ca3af; margin-top: -5px;">
+                🟢 Operacional: <b>76 (76%)</b> &nbsp;&nbsp;&nbsp;&nbsp; 🟠 Atenção: <b>18 (18%)</b> &nbsp;&nbsp;&nbsp;&nbsp; 🔴 Indisponível: <b>6 (6%)</b>
+            </div>
+            <p style="font-size: 11px; color: #9ca3af; text-align: right; margin: 2px 0 0 0;">Total <b style="color: white;">100</b></p>
+        </div>""", unsafe_allow_html=True)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # --- LINHA 4: BASE DE CONHECIMENTO E IA & AUTOMAÇÃO ---
+    col_l4_1, col_l4_2 = st.columns([1, 1])
+
+    with col_l4_1:
+        st.markdown("""
+            <div class="dashboard-card">
+                <p class="card-title">Base de Conhecimento - Artigos Populares</p>
+                <div style="font-size: 12px; color: #e2e8f0; line-height: 2.2;">
+                    📄 Como redefinir senha no AD &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 👁️ 124 &nbsp; <b>Acessos</b> &nbsp;&nbsp;&nbsp;&nbsp; Atualizado: 29/05/2026<br>
+                    📄 Erro ao conectar no Outlook &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 👁️ 98 &nbsp;&nbsp; <b>Microsoft 365</b> &nbsp; Atualizado: 28/05/2026<br>
+                    📄 VPN não conecta &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 👁️ 85 &nbsp;&nbsp; <b>Rede</b> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Atualizado: 27/05/2026
+                </div>
+                <p class="card-footer-link" style="margin-top: 8px;">Ver todos os artigos →</p>
+            </div>
+        """, unsafe_allow_html=True)
+
+    with col_l4_2:
+        st.markdown("""
+            <div class="dashboard-card">
+                <p class="card-title">🤖 IA & Automação (Insights)</p>
+                <p style="font-size: 11px; color: #94a3b8; margin-bottom: 12px;">A IA identificou padrões nos chamados e sugere ações automáticas para acelerar a resolução.</p>
+                <div style="display: flex; gap: 10px; justify-content: space-between;">
+                    <div style="background-color: #0f172a; border: 1px solid #1e293b; padding: 10px; border-radius: 8px; flex: 1; text-align: center;">
+                        <p style="font-size: 16px; margin: 0; color: #38bdf8;">🤖</p>
+                        <h4 style="margin: 4px 0 2px 0; color: #fff; font-size: 16px;">128</h4>
+                        <p style="font-size: 9px; color: #9ca3af; margin: 0;">Chamados categorizados automaticamente</p>
+                        <p style="font-size: 9px; color: #22c55e; margin: 2px 0 0 0;">↑ 18% este mês</p>
+                    </div>
+                    <div style="background-color: #0f172a; border: 1px solid #1e293b; padding: 10px; border-radius: 8px; flex: 1; text-align: center;">
+                        <p style="font-size: 16px; margin: 0; color: #a855f7;">💡</p>
+                        <h4 style="margin: 4px 0 2px 0; color: #fff; font-size: 16px;">45</h4>
+                        <p style="font-size: 9px; color: #9ca3af; margin: 0;">Soluções sugeridas pela IA</p>
+                        <p style="font-size: 9px; color: #22c55e; margin: 2px 0 0 0;">↑ 21% este mês</p>
+                    </div>
+                    <div style="background-color: #0f172a; border: 1px solid #1e293b; padding: 10px; border-radius: 8px; flex: 1; text-align: center;">
+                        <p style="font-size: 16px; margin: 0; color: #10b981;">⚡</p>
+                        <h4 style="margin: 4px 0 2px 0; color: #fff; font-size: 16px;">32%</h4>
+                        <p style="font-size: 9px; color: #9ca3af; margin: 0;">Dos tickets resolvidos com apoio da IA</p>
+                        <p style="font-size: 9px; color: #22c55e; margin: 2px 0 0 0;">↑ 12% este mês</p>
+                    </div>
+                </div>
+                <p class="card-footer-link" style="margin-top: 8px;">Ver painel de IA →</p>
+            </div>
+        """, unsafe_allow_html=True)
 
 elif aba_activa == "Chamados":
 
