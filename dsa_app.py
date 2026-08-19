@@ -13,7 +13,6 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Inicializar estado da sessão para navegação interna de chamados
 if 'selected_ticket' not in st.session_state:
     st.session_state.selected_ticket = None
 
@@ -199,12 +198,13 @@ aba_activa = menu_selecionado.strip().split(" ", 1)[-1]
 col_h1, col_h2 = st.columns([2, 1])
 
 with col_h1:
+    subtitulo_header = "Visão geral dos principais indicadores de TI & Operações" if aba_activa == "Dashboard" else "Gerenciamento completo de solicitações, incidentes e suporte de TI"
     st.markdown(f"""
         <div style="display: flex; align-items: center; gap: 12px;">
             <span style="font-size: 18px; color: #94a3b8; cursor: pointer;">☰</span>
             <h2 style="margin: 0; font-size: 20px; font-weight: 700; color: #ffffff;">{aba_activa}</h2>
         </div>
-        <p style="margin: 2px 0 0 30px; font-size: 11px; color: #64748b;">Gerenciamento completo de solicitações, incidentes e suporte de TI</p>
+        <p style="margin: 2px 0 0 30px; font-size: 11px; color: #64748b;">{subtitulo_header}</p>
     """, unsafe_allow_html=True)
 
 with col_h2:
@@ -235,7 +235,7 @@ st.markdown("<br>", unsafe_allow_html=True)
 # ---------------------------------------------------------
 if aba_activa == "Dashboard":
 
-    # --- DASHBOARD PRINCIPAL ---
+    # --- DASHBOARD EXATAMENTE COMO NA SUA PRIMEIRA FOTO ---
     c1, c2, c3, c4, c5, c6 = st.columns(6)
     with c1:
         st.markdown('<div class="metric-card"><div class="metric-icon" style="background-color: #1e3a8a; color: #3b82f6;">📋</div><div><p style="margin: 0; font-size: 10px; color: #9ca3af;">Chamados Abertos</p><h3 style="margin: 0; font-size: 20px; font-weight: 700; color: #fff;">128</h3><p style="margin: 0; font-size: 10px; color: #3b82f6;">↑ 12 hoje</p></div></div>', unsafe_allow_html=True)
@@ -255,10 +255,21 @@ if aba_activa == "Dashboard":
 
     with col_l2_1:
         st.markdown('<div class="dashboard-card"><p class="card-title">Chamados Abertos por Prioridade</p>', unsafe_allow_html=True)
-        df_prioridade = pd.DataFrame({'Prioridade': ['Crítica', 'Alta', 'Média', 'Baixa'], 'Quantidade': [28, 36, 42, 22]})
-        fig_donut = px.pie(df_prioridade, names='Prioridade', values='Quantidade', hole=0.65, color='Prioridade', color_discrete_map={'Crítica': '#dc2626', 'Alta': '#ea580c', 'Média': '#facc15', 'Baixa': '#16a34a'})
+        df_prioridade = pd.DataFrame({
+            'Prioridade': ['Média', 'Alta', 'Crítica', 'Baixa'],
+            'Quantidade': [42, 36, 28, 22]
+        })
+        fig_donut = px.pie(
+            df_prioridade, names='Prioridade', values='Quantidade', hole=0.65,
+            color='Prioridade',
+            color_discrete_map={'Crítica': '#dc2626', 'Alta': '#ea580c', 'Média': '#facc15', 'Baixa': '#16a34a'}
+        )
         fig_donut.update_traces(textinfo='percent', textfont_size=11)
-        fig_donut.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color='#ffffff', height=230, margin=dict(t=10, b=10, l=10, r=10), showlegend=True, legend=dict(orientation="v", y=0.5, x=1.0, font=dict(size=10)))
+        fig_donut.update_layout(
+            paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
+            font_color='#ffffff', height=230, margin=dict(t=10, b=10, l=10, r=10),
+            showlegend=True, legend=dict(orientation="v", y=0.5, x=1.0, font=dict(size=10))
+        )
         st.plotly_chart(fig_donut, use_container_width=True)
         st.markdown('<p style="font-size: 11px; color: #9ca3af; text-align: right; margin: 0;">Total <b style="color: white;">128</b></p></div>', unsafe_allow_html=True)
 
@@ -279,17 +290,20 @@ if aba_activa == "Dashboard":
         st.markdown('<div class="dashboard-card"><p class="card-title">Incidentes por Sistema SaaS</p>', unsafe_allow_html=True)
         df_saas = pd.DataFrame({'Sistema': ['Microsoft 365', 'Salesforce', 'SAP Business One', 'Totvs Protheus', 'Google Workspace'], 'Incidentes': [24, 18, 15, 10, 8]})
         fig_bar = px.bar(df_saas, x='Incidentes', y='Sistema', orientation='h', text='Incidentes', color_discrete_sequence=['#0ea5e9'])
-        fig_bar.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color='#ffffff', height=220, margin=dict(t=5, b=5, l=5, r=5), xaxis=dict(showgrid=False, visible=False), yaxis=dict(autorange="reversed", tickfont=dict(size=10, color="white")))
+        fig_bar.update_layout(
+            paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
+            font_color='#ffffff', height=220, margin=dict(t=5, b=5, l=5, r=5),
+            xaxis=dict(showgrid=False, visible=False), 
+            yaxis=dict(autorange="reversed", tickfont=dict(size=10, color="white"))
+        )
         st.plotly_chart(fig_bar, use_container_width=True)
         st.markdown('<p class="card-footer-link">Ver todos os sistemas →</p></div>', unsafe_allow_html=True)
 
 elif aba_activa == "Chamados":
 
     # =========================================================
-    # 6. MÓDULO DE CHAMADOS ITSM (COMPLETO)
+    # 6. MÓDULO DE CHAMADOS ITSM (COMPLETO E PROFISSIONAL)
     # =========================================================
-
-    # Se um chamado foi selecionado para detalhamento
     if st.session_state.selected_ticket:
         t_id = st.session_state.selected_ticket
         
@@ -308,7 +322,6 @@ elif aba_activa == "Chamados":
 
         st.markdown("<br>", unsafe_allow_html=True)
         
-        # Abas de detalhe do Chamado
         tab_det, tab_hist, tab_ia, tab_anexos, tab_auditoria = st.tabs(["📋 Informações & Descrição", "⏱️ Histórico & Timeline", "🤖 AI Assistant & RAG", "📎 Anexos (2)", "🔐 Auditoria"])
 
         with tab_det:
@@ -392,9 +405,7 @@ elif aba_activa == "Chamados":
             st.dataframe(df_audit, use_container_width=True, hide_index=True)
 
     else:
-        # --- TELA PRINCIPAL DE LISTAGEM DE CHAMADOS ---
-        
-        # 1. Topo: Ações e Botões
+        # TELA PRINCIPAL DE CHAMADOS
         col_top1, col_top2 = st.columns([2, 2])
         with col_top1:
             st.text_input("Buscar chamado", placeholder="🔎 Buscar por ID, título ou solicitante...", label_visibility="collapsed")
@@ -413,7 +424,6 @@ elif aba_activa == "Chamados":
 
         st.markdown("<br>", unsafe_allow_html=True)
 
-        # 2. Cards de Indicadores
         ic1, ic2, ic3, ic4, ic5, ic6, ic7, ic8 = st.columns(8)
         with ic1: st.metric("Total", "342")
         with ic2: st.metric("Novos", "28")
@@ -426,7 +436,6 @@ elif aba_activa == "Chamados":
 
         st.markdown("<br>", unsafe_allow_html=True)
 
-        # 3. Filtros Avançados Expansíveis
         with st.expander("🎛️ Filtros Avançados de Chamados (Status, Prioridade, Tipo, Categoria, Sistema)"):
             fc1, fc2, fc3, fc4 = st.columns(4)
             with fc1:
@@ -439,8 +448,6 @@ elif aba_activa == "Chamados":
                 st.selectbox("Sistema", ["Todos", "Microsoft 365", "Salesforce", "SAP", "Google Workspace"])
 
         st.markdown("<br>", unsafe_allow_html=True)
-
-        # 4. Tabela Principal de Chamados com Ação de Clique
         st.markdown("#### Lista de Chamados Ativos")
         
         chamados_data = [
@@ -451,10 +458,7 @@ elif aba_activa == "Chamados":
             {"ID": "#CH-10230", "Título": "Tela azul no Windows 11", "Solicitante": "Pedro Oliveira", "Tipo": "Incidente", "Prioridade": "🔴 Alta", "Sistema": "M365", "Responsável": "Carlos", "SLA": "00:15", "Status": "Em atendimento"}
         ]
         
-        df_chamados = pd.DataFrame(chamados_data)
-
-        # Renderização interativa por linhas com botões de acesso ao detalhe
-        for idx, row in df_chamados.iterrows():
+        for row in chamados_data:
             cols = st.columns([1, 2.5, 1, 1, 1, 1, 1, 1, 1, 1])
             cols[0].markdown(f"**{row['ID']}**")
             cols[1].markdown(f"{row['Título']}")
@@ -471,7 +475,6 @@ elif aba_activa == "Chamados":
             st.markdown("<hr style='margin: 4px 0; border-color: #1e293b;'>", unsafe_allow_html=True)
 
 else:
-    # Outros módulos gerais da sidebar
     st.title(f"🛠️ Módulo: {aba_activa}")
     st.info(f"Ambiente operacional configurado para a seção **{aba_activa}** na plataforma LaryMB AI Service.")
     st.markdown("---")
