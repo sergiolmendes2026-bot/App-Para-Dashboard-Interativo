@@ -12,7 +12,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Estilização CSS Avançada (Transforma os radio buttons em um menu SaaS moderno)
+# Estilização CSS Avançada para replicar exatamente o layout da imagem na Sidebar
 st.markdown("""
     <style>
     .main {
@@ -20,37 +20,18 @@ st.markdown("""
         color: #f3f4f6;
     }
     [data-testid="stSidebar"] {
-        background-color: #0f172a;
-        border-right: 1px solid #1e293b;
+        background-color: #0b0f19;
+        border-right: 1px string #1e293b;
         padding-top: 10px;
     }
-    /* Esconde os radio buttons nativos e transforma em menu profissional */
-    [data-testid="stSidebar"] .row-widget.stRadio > div {
-        gap: 4px;
-    }
-    [data-testid="stSidebar"] .row-widget.stRadio label {
-        background-color: transparent;
-        padding: 8px 12px;
-        border-radius: 6px;
-        color: #94a3b8;
-        font-weight: 500;
-        font-size: 14px;
-        transition: all 0.2s ease;
-        border: 1px solid transparent;
-        width: 100%;
-    }
-    [data-testid="stSidebar"] .row-widget.stRadio label:hover {
-        background-color: #1e293b;
-        color: #ffffff;
-    }
-    /* Estilo do item selecionado */
-    [data-testid="stSidebar"] .row-widget.stRadio input:checked + div p {
-        color: #ffffff !important;
-    }
-    [data-testid="stSidebar"] .row-widget.stRadio label:has(input:checked) {
-        background-color: #2563eb !important;
-        color: #ffffff !important;
-        border-color: #3b82f6;
+    /* Estilização dos títulos de seção na sidebar */
+    .sidebar-section-title {
+        font-size: 10px;
+        text-transform: uppercase;
+        color: #64748b;
+        font-weight: 700;
+        letter-spacing: 1.2px;
+        margin: 18px 0 8px 10px;
     }
     div.stMetric {
         background-color: #111827;
@@ -62,26 +43,30 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ---------------------------------------------------------
-# MENU LATERAL (SIDEBAR PROFISSIONAL)
+# MENU LATERAL (SIDEBAR EXATA CONFORME MODELO)
 # ---------------------------------------------------------
 with st.sidebar:
-    # Logo e Identidade
+    # 1. Logo e Identidade
     st.markdown("""
-        <div style="padding: 5px 0 15px 0;">
-            <h3 style="color: #ffffff; margin: 0; font-size: 18px; display: flex; align-items: center; gap: 8px;">
-                🤖 LaryMB AI Service
-            </h3>
-            <p style="font-size: 11px; color: #64748b; margin: 4px 0 0 0; letter-spacing: 0.5px;">
-                Intelligent IT Service Management
-            </p>
+        <div style="display: flex; align-items: center; gap: 10px; padding: 5px 0 2px 0;">
+            <div style="background: linear-gradient(135deg, #3b82f6, #1d4ed8); padding: 8px; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                🔷
+            </div>
+            <div>
+                <span style="color: #ffffff; font-size: 16px; font-weight: 700;">LaryMB <span style="color: #a78bfa;">AI</span> Service</span>
+            </div>
         </div>
+        <p style="font-size: 10px; color: #64748b; margin: 0 0 15px 38px; letter-spacing: 0.3px;">
+            Intelligent IT Service Management Platform
+        </p>
     """, unsafe_allow_html=True)
     
-    st.markdown("<hr style='border-color: #1e293b; margin: 5px 0 15px 0;'>", unsafe_allow_html=True)
-    st.markdown("<p style='font-size: 11px; text-transform: uppercase; color: #64748b; font-weight: 600; letter-spacing: 1px; padding-left: 4px;'>Navegação Principal</p>", unsafe_allow_html=True)
-
-    # Opções do Menu com Ícones Embutidos
-    menu_selecionado = st.radio(
+    # 2. Barra de Pesquisa no Menu
+    st.text_input("Buscar no menu...", placeholder="Buscar no menu... ⌘K", label_visibility="collapsed")
+    
+    # 3. Seção: NAVEGAÇÃO PRINCIPAL
+    st.markdown('<p class="sidebar-section-title">Navegação Principal</p>', unsafe_allow_html=True)
+    menu_principal = st.radio(
         "Navegação Principal",
         [
             "📊 Dashboard",
@@ -93,39 +78,79 @@ with st.sidebar:
             "📚 Base de Conhecimento",
             "🖥️ Sistemas SaaS",
             "💻 Ativos de TI",
-            "⏱️ SLA & Contratos",
-            "👥 Usuários",
-            "👥 Equipes",
-            "📈 Relatórios",
-            "🤖 IA & Automação",
-            "🔌 Integrações",
-            "🔔 Notificações",
-            "⚙️ Configurações"
+            "🛡️ SLA & Contratos"
         ],
-        label_visibility="collapsed"
+        label_visibility="collapsed",
+        key="nav_principal"
     )
     
-    st.markdown("<hr style='border-color: #1e293b; margin: 20px 0 15px 0;'>", unsafe_allow_html=True)
+    # 4. Seção: GESTÃO
+    st.markdown('<p class="sidebar-section-title">Gestão</p>', unsafe_allow_html=True)
+    menu_gestao = st.radio(
+        "Gestão",
+        [
+            "👥 Usuários",
+            "👥 Equipes",
+            "📈 Relatórios"
+        ],
+        label_visibility="collapsed",
+        key="nav_gestao"
+    )
     
-    # Rodapé da Sidebar (Status)
+    # 5. Seção: IA & AUTOMAÇÃO
+    st.markdown('<p class="sidebar-section-title">IA & Automação</p>', unsafe_allow_html=True)
+    menu_ia = st.radio(
+        "IA e Automação",
+        [
+            "✨ IA & Automação",
+            "    🔌 Integrações",
+            "    🔔 Notificações",
+            "    ⚙️ Configurações"
+        ],
+        label_visibility="collapsed",
+        key="nav_ia"
+    )
+    
+    st.markdown("<br>", unsafe_allow_html=True)
+    
+    # 6. Card: Status da Plataforma (Exatamente como na imagem)
     st.markdown("""
-        <div style="padding: 8px 4px;">
-            <p style="font-size: 11px; text-transform: uppercase; color: #64748b; font-weight: 600; margin-bottom: 6px;">Status da Plataforma</p>
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <span style="height: 8px; width: 8px; background-color: #22c55e; border-radius: 50%; display: inline-block;"></span>
-                <span style="font-size: 13px; color: #e2e8f0; font-weight: 500;">Operacional</span>
+        <div style="background-color: #0f172a; border: 1px solid #1e3a8a; padding: 12px; border-radius: 10px; margin-bottom: 15px;">
+            <p style="font-size: 10px; text-transform: uppercase; color: #64748b; font-weight: 700; margin-bottom: 6px;">Status da Plataforma</p>
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="height: 8px; width: 8px; background-color: #22c55e; border-radius: 50%; display: inline-block;"></span>
+                    <span style="font-size: 13px; color: #ffffff; font-weight: 600;">Operacional</span>
+                </div>
+                <span style="color: #22c55e; font-size: 14px;">📈</span>
             </div>
-            <p style="font-size: 10px; color: #475569; margin-top: 8px;">Versão 1.0.0</p>
+            <p style="font-size: 10px; color: #64748b; margin-top: 4px;">Todos os sistemas funcionando normalmente</p>
+        </div>
+    """, unsafe_allow_html=True)
+    
+    # 7. Rodapé do Usuário
+    st.markdown("""
+        <div style="display: flex; align-items: center; justify-content: space-between; border-top: 1px solid #1e293b; padding-top: 12px; margin-top: 5px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div style="background-color: #3b82f6; color: white; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold;">
+                    SL
+                </div>
+                <div>
+                    <p style="font-size: 13px; color: #ffffff; font-weight: 600; margin: 0;">Sergio Luiz</p>
+                    <p style="font-size: 10px; color: #64748b; margin: 0;">Administrador</p>
+                </div>
+            </div>
+            <span style="color: #94a3b8; cursor: pointer; font-size: 16px;">🚪</span>
         </div>
     """, unsafe_allow_html=True)
 
-# Remove os emojis do nome da string selecionada para tratar a lógica das telas limpas
-menu_limpo = menu_selecionado.split(" ", 1)[1] if " " in menu_selecionado else menu_selecionado
+# Captura qual aba foi selecionada (priorizando a navegação principal ou submenus)
+menu_ativo = menu_principal if menu_principal else menu_gestao
 
 # ---------------------------------------------------------
-# CONTEÚDO PRINCIPAL: DASHBOARD DE TI
+# CONTEÚDO PRINCIPAL: DASHBOARD DE TI (PRESERVADO INTACTO)
 # ---------------------------------------------------------
-if menu_limpo == "Dashboard":
+if "Dashboard" in menu_ativo:
     
     col_title, col_user = st.columns([4, 1])
     with col_title:
@@ -233,5 +258,5 @@ if menu_limpo == "Dashboard":
         """)
 
 else:
-    st.title(f"Módulo: {menu_limpo}")
-    st.write(f"Ambiente de gerenciamento e controle dedicado para **{menu_limpo}** na plataforma LaryMB AI Service.")
+    st.title(f"Módulo Selecionado")
+    st.write("Ambiente de gerenciamento e controle integrado ao ecossistema LaryMB AI Service.")
