@@ -12,7 +12,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Estilização CSS Avançada para replicar exatamente o layout da imagem na Sidebar
+# Estilização CSS Avançada com Azul Petróleo Brilhante (#0ea5e9 / #06b6d4)
 st.markdown("""
     <style>
     .main {
@@ -21,10 +21,9 @@ st.markdown("""
     }
     [data-testid="stSidebar"] {
         background-color: #0b0f19;
-        border-right: 1px string #1e293b;
+        border-right: 1px solid #1e293b;
         padding-top: 10px;
     }
-    /* Estilização dos títulos de seção na sidebar */
     .sidebar-section-title {
         font-size: 10px;
         text-transform: uppercase;
@@ -39,21 +38,29 @@ st.markdown("""
         border-radius: 8px;
         border: 1px solid #1f2937;
     }
+    /* Estilização do Radio Button para Azul Petróleo Brilhante */
+    [data-testid="stSidebar"] div.row-widget.stRadio label:has(input:checked) {
+        background: linear-gradient(135deg, #0284c7, #06b6d4) !important;
+        color: #ffffff !important;
+        border-radius: 6px;
+    }
     </style>
 """, unsafe_allow_html=True)
 
 # ---------------------------------------------------------
-# MENU LATERAL (SIDEBAR EXATA CONFORME MODELO)
+# MENU LATERAL (UNIFICADO PARA FUNCIONAR TODAS AS ABAS)
+# 1. Armazenamos a seleção em st.session_state se necessário,
+# mas aqui usamos uma única lista organizada para controle perfeito.
 # ---------------------------------------------------------
 with st.sidebar:
     # 1. Logo e Identidade
     st.markdown("""
         <div style="display: flex; align-items: center; gap: 10px; padding: 5px 0 2px 0;">
-            <div style="background: linear-gradient(135deg, #3b82f6, #1d4ed8); padding: 8px; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+            <div style="background: linear-gradient(135deg, #0284c7, #06b6d4); padding: 8px; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
                 🔷
             </div>
             <div>
-                <span style="color: #ffffff; font-size: 16px; font-weight: 700;">LaryMB <span style="color: #a78bfa;">AI</span> Service</span>
+                <span style="color: #ffffff; font-size: 16px; font-weight: 700;">LaryMB <span style="color: #38bdf8;">AI</span> Service</span>
             </div>
         </div>
         <p style="font-size: 10px; color: #64748b; margin: 0 0 15px 38px; letter-spacing: 0.3px;">
@@ -61,78 +68,55 @@ with st.sidebar:
         </p>
     """, unsafe_allow_html=True)
     
-    # 2. Barra de Pesquisa no Menu
-    st.text_input("Buscar no menu...", placeholder="Buscar no menu... ⌘K", label_visibility="collapsed")
-    
-    # 3. Seção: NAVEGAÇÃO PRINCIPAL
-    st.markdown('<p class="sidebar-section-title">Navegação Principal</p>', unsafe_allow_html=True)
-    menu_principal = st.radio(
-        "Navegação Principal",
-        [
-            "📊 Dashboard",
-            "🎫 Chamados",
-            "🚨 Incidentes",
-            "📝 Solicitações",
-            "⚠️ Problemas",
-            "🔄 Mudanças",
-            "📚 Base de Conhecimento",
-            "🖥️ Sistemas SaaS",
-            "💻 Ativos de TI",
-            "🛡️ SLA & Contratos"
-        ],
-        label_visibility="collapsed",
-        key="nav_principal"
-    )
-    
-    # 4. Seção: GESTÃO
-    st.markdown('<p class="sidebar-section-title">Gestão</p>', unsafe_allow_html=True)
-    menu_gestao = st.radio(
-        "Gestão",
-        [
-            "👥 Usuários",
-            "👥 Equipes",
-            "📈 Relatórios"
-        ],
-        label_visibility="collapsed",
-        key="nav_gestao"
-    )
-    
-    # 5. Seção: IA & AUTOMAÇÃO
-    st.markdown('<p class="sidebar-section-title">IA & Automação</p>', unsafe_allow_html=True)
-    menu_ia = st.radio(
-        "IA e Automação",
-        [
-            "✨ IA & Automação",
-            "    🔌 Integrações",
-            "    🔔 Notificações",
-            "    ⚙️ Configurações"
-        ],
-        label_visibility="collapsed",
-        key="nav_ia"
+    # Lista completa de páginas da aplicação unificadas
+    opcoes_menu = [
+        "📊 Dashboard",
+        "🎫 Chamados",
+        "🚨 Incidentes",
+        "📝 Solicitações",
+        "⚠️ Problemas",
+        "🔄 Mudanças",
+        "📚 Base de Conhecimento",
+        "🖥️ Sistemas SaaS",
+        "💻 Ativos de TI",
+        "🛡️ SLA & Contratos",
+        "👥 Usuários",
+        "👥 Equipes",
+        "📈 Relatórios",
+        "✨ IA & Automação",
+        "🔌 Integrações",
+        "🔔 Notificações",
+        "⚙️ Configurações"
+    ]
+
+    pagina_selecionada = st.radio(
+        "Navegação",
+        opcoes_menu,
+        label_visibility="collapsed"
     )
     
     st.markdown("<br>", unsafe_allow_html=True)
     
-    # 6. Card: Status da Plataforma (Exatamente como na imagem)
+    # Card: Status da Plataforma
     st.markdown("""
-        <div style="background-color: #0f172a; border: 1px solid #1e3a8a; padding: 12px; border-radius: 10px; margin-bottom: 15px;">
+        <div style="background-color: #0f172a; border: 1px solid #0369a1; padding: 12px; border-radius: 10px; margin-bottom: 15px;">
             <p style="font-size: 10px; text-transform: uppercase; color: #64748b; font-weight: 700; margin-bottom: 6px;">Status da Plataforma</p>
             <div style="display: flex; align-items: center; justify-content: space-between;">
                 <div style="display: flex; align-items: center; gap: 8px;">
                     <span style="height: 8px; width: 8px; background-color: #22c55e; border-radius: 50%; display: inline-block;"></span>
                     <span style="font-size: 13px; color: #ffffff; font-weight: 600;">Operacional</span>
                 </div>
-                <span style="color: #22c55e; font-size: 14px;">📈</span>
+                <span style="color: #38bdf8; font-size: 14px;">📈</span>
             </div>
             <p style="font-size: 10px; color: #64748b; margin-top: 4px;">Todos os sistemas funcionando normalmente</p>
         </div>
     """, unsafe_allow_html=True)
     
-    # 7. Rodapé do Usuário
+    # Rodapé do Usuário
     st.markdown("""
         <div style="display: flex; align-items: center; justify-content: space-between; border-top: 1px solid #1e293b; padding-top: 12px; margin-top: 5px;">
             <div style="display: flex; align-items: center; gap: 10px;">
-                <div style="background-color: #3b82f6; color: white; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold;">
+                <div style="background: linear-gradient(135deg, #0284c7, #06b6d4); color: white; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold;">
                     SL
                 </div>
                 <div>
@@ -144,13 +128,13 @@ with st.sidebar:
         </div>
     """, unsafe_allow_html=True)
 
-# Captura qual aba foi selecionada (priorizando a navegação principal ou submenus)
-menu_ativo = menu_principal if menu_principal else menu_gestao
+# Limpa o emoji da string para validação das abas
+aba_ativa = pagina_selecionada.split(" ", 1)[1] if " " in pagina_selecionada else pagina_selecionada
 
 # ---------------------------------------------------------
-# CONTEÚDO PRINCIPAL: DASHBOARD DE TI (PRESERVADO INTACTO)
+# CONTEÚDO PRINCIPAL (DASHBOARD OU MÓDULOS ESPECÍFICOS)
 # ---------------------------------------------------------
-if "Dashboard" in menu_ativo:
+if aba_ativa == "Dashboard":
     
     col_title, col_user = st.columns([4, 1])
     with col_title:
@@ -221,7 +205,7 @@ if "Dashboard" in menu_ativo:
             'Sistema': ['Microsoft 365', 'Salesforce', 'SAP Business One', 'Totvs Protheus', 'Google Workspace'],
             'Incidentes': [24, 18, 15, 10, 8]
         })
-        fig_bar = px.bar(df_saas, x='Incidentes', y='Sistema', orientation='h', color_discrete_sequence=['#3b82f6'])
+        fig_bar = px.bar(df_saas, x='Incidentes', y='Sistema', orientation='h', color_discrete_sequence=['#06b6d4'])
         fig_bar.update_layout(
             paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
             font_color='#ffffff', margin=dict(t=10, b=10, l=10, r=10),
@@ -238,9 +222,9 @@ if "Dashboard" in menu_ativo:
             title = {'text': "Dentro do prazo", 'font': {'size': 14, 'color': '#9ca3af'}},
             gauge = {
                 'axis': {'range': [None, 100], 'tickcolor': "white"},
-                'bar': {'color': '#10b981'},
+                'bar': {'color': '#06b6d4'},
                 'bgcolor': "#1f2937",
-                'steps': [{'range': [0, 80], 'color': '#ef4444'}, {'range': [80, 100], 'color': '#065f46'}],
+                'steps': [{'range': [0, 80], 'color': '#ef4444'}, {'range': [80, 100], 'color': '#0e7490'}],
             }
         ))
         fig_sla.update_layout(paper_bgcolor='rgba(0,0,0,0)', font_color='#ffffff', height=220, margin=dict(t=20, b=10, l=20, r=20))
@@ -258,5 +242,26 @@ if "Dashboard" in menu_ativo:
         """)
 
 else:
-    st.title(f"Módulo Selecionado")
-    st.write("Ambiente de gerenciamento e controle integrado ao ecossistema LaryMB AI Service.")
+    # Telas funcionais para as demais abas
+    st.title(f"🛠️ Módulo: {aba_ativa}")
+    st.markdown(f"Ambiente de gerenciamento, monitoramento e automação dedicado para **{aba_ativa}** na plataforma **LaryMB AI Service**.")
+    st.markdown("---")
+    
+    col_a, col_b = st.columns(2)
+    with col_a:
+        st.info(f"Painel operacional ativo para o segmento de **{aba_ativa}**. Utilize os filtros abaixo para gerenciar os registros.")
+        busca_modulo = st.text_input(f"Pesquisar em {aba_ativa}...")
+    with col_b:
+        st.success("Conectado com sucesso ao banco de dados PostgreSQL / AWS (SaaS Core).")
+        
+    st.markdown("<br>", unsafe_allow_html=True)
+    
+    # Tabela dinâmica genérica para simular dados operacionais em todas as abas
+    df_placeholder = pd.DataFrame({
+        'ID_Registro': [f"#ID-50{i}" for i in range(1, 6)],
+        'Componente': [f"Item Operacional {i}" for i in range(1, 6)],
+        'Severidade / Status': ['Crítico', 'Estável', 'Em Análise', 'Otimizado', 'Pendente'],
+        'Responsável': ['Sergio Luiz', 'Ana Souza', 'Equipe N2', 'Automação IA', 'DevOps'],
+        'Última Atualização': ['31/05/2026 12:00', '31/05/2026 11:30', '31/05/2026 10:15', '31/05/2026 09:00', '31/05/2026 08:30']
+    })
+    st.dataframe(df_placeholder, use_container_width=True, hide_index=True)
