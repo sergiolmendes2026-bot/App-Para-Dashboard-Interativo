@@ -132,24 +132,164 @@ st.markdown("""
 # ---------------------------------------------------------
 # 3. SIDEBAR (NAVEGAÇÃO)
 # ---------------------------------------------------------
+if 'menu_escolhido' not in st.session_state:
+    st.session_state.menu_escolhido = "📊 Dashboard"
+
+# Estilização CSS específica da Sidebar
+st.markdown("""
+    <style>
+    [data-testid="stSidebar"] {
+        background-color: #0b0f19;
+        border-right: 1px solid #1e293b;
+        padding-top: 10px;
+    }
+    [data-testid="stSidebar"] div.row-widget.stRadio > div {
+        gap: 2px;
+    }
+    [data-testid="stSidebar"] div.row-widget.stRadio label {
+        background-color: transparent;
+        padding: 6px 10px;
+        border-radius: 8px;
+        color: #94a3b8;
+        font-weight: 500;
+        font-size: 13px;
+        transition: all 0.2s ease;
+        width: 100%;
+        border: 1px solid transparent;
+    }
+    [data-testid="stSidebar"] div.row-widget.stRadio label:hover {
+        background-color: #111827;
+        color: #ffffff;
+    }
+    [data-testid="stSidebar"] div.row-widget.stRadio label:has(input:checked) {
+        background: #111827 !important;
+        color: #ffffff !important;
+        font-weight: 600;
+        border: 1px solid #3b82f6 !important;
+        box-shadow: 0 0 10px rgba(59, 130, 246, 0.2);
+    }
+    .stTextInput>div>div>input {
+        background-color: #111827 !important;
+        border: 1px solid #1f2937 !important;
+        color: #ffffff !important;
+        border-radius: 8px !important;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+# ---------------------------------------------------------
+# SIDEBAR
+# ---------------------------------------------------------
 with st.sidebar:
+    # Topo (Logo + Collapse)
     st.markdown("""
-        <div style="display: flex; align-items: center; justify-content: space-between; padding: 5px 0 2px 0;">
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 2px 0 10px 0;">
             <div style="display: flex; align-items: center; gap: 10px;">
-                <div style="background: linear-gradient(135deg, #2563eb, #1d4ed8); padding: 8px; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
-                    🔷
+                <div style="background: linear-gradient(135deg, #2563eb, #1d4ed8); padding: 6px 9px; border-radius: 8px; color: white; font-weight: 800; font-size: 13px; letter-spacing: 0.5px;">
+                    LA
                 </div>
                 <div>
-                    <span style="color: #ffffff; font-size: 15px; font-weight: 700;">LaryMB <span style="color: #a78bfa;">AI</span> Service</span>
+                    <span style="color: #ffffff; font-size: 15px; font-weight: 700;">LaryMB <span style="color: #38bdf8;">AI</span></span>
                 </div>
             </div>
-            <div style="background-color: #111827; border: 1px solid #1f2937; padding: 4px 8px; border-radius: 6px; color: #94a3b8; font-size: 11px; cursor: pointer;">
-                &lt;&lt;
-            </div>
+            <span style="color: #64748b; font-size: 13px; cursor: pointer; font-weight: bold;">&lt;&lt;</span>
         </div>
-        <p style="font-size: 10px; color: #64748b; margin: 2px 0 12px 38px; letter-spacing: 0.3px;">
-            Intelligent IT Service Management Platform
-        </p>
+    """, unsafe_allow_html=True)
+    
+    st.text_input("Buscar no menu", placeholder="🔍  Buscar no menu...     Ctrl K", label_visibility="collapsed")
+    
+    # Dicionário de Seções e Itens
+    secoes = {
+        "OPERAÇÕES": [
+            "📊 Dashboard",
+            "🎫 Chamados",
+            "🚨 Incidentes",
+            "📝 Solicitações",
+            "⚠️ Problemas",
+            "🔄 Mudanças"
+        ],
+        "ATIVOS & INFRA": [
+            "📚 Base de Conhecimento",
+            "🖥️ Sistemas SaaS",
+            "💻 Ativos de TI",
+            "🛡️ SLA & Contratos"
+        ],
+        "CONTROLE & IA": [
+            "✨ IA & Automação",
+            "👥 Usuários",
+            "👥 Equipes",
+            "📈 Relatórios",
+            "🔌 Integrações"
+        ],
+        "SISTEMA": [
+            "🔔 Notificações",
+            "⚙️ Configurações"
+        ]
+    }
+
+    # Renderização das Seções e Radios
+    for secao, itens in secoes.items():
+        st.markdown(f"""
+            <p style="font-size: 9px; text-transform: uppercase; color: #64748b; font-weight: 700; margin: 14px 0 4px 4px; letter-spacing: 0.5px;">
+                {secao}
+            </p>
+        """, unsafe_allow_html=True)
+        
+        current_val = st.session_state.menu_escolhido
+        idx_default = 0
+        in_this = False
+        for i, item in enumerate(itens):
+            if item == current_val:
+                idx_default = i
+                in_this = True
+                break
+                
+        escolha = st.radio(
+            secao, 
+            itens, 
+            index=idx_default if in_this else 0, 
+            key=f"rad_{secao}", 
+            label_visibility="collapsed"
+        )
+        
+        if in_this or escolha != current_val:
+            if escolha in itens:
+                st.session_state.menu_escolhido = escolha
+
+    # Variável limpa sem o emoji para usar no roteamento principal se precisar
+    aba_activa = st.session_state.menu_escolhido.strip().split(" ", 1)[-1]
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    
+    # Status da Plataforma
+    st.markdown("""
+        <div style="background-color: #061e14; border: 1px solid #065f46; padding: 12px; border-radius: 10px; margin-bottom: 12px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+                <span style="font-size: 11px; text-transform: uppercase; color: #64748b; font-weight: 700;">Status da plataforma</span>
+                <span style="color: #22c55e; font-size: 12px;">📶</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="height: 8px; width: 8px; background-color: #22c55e; border-radius: 50%; display: inline-block; box-shadow: 0 0 8px #22c55e;"></span>
+                <span style="font-size: 13px; color: #22c55e; font-weight: 600;">Operacional</span>
+            </div>
+            <p style="font-size: 10px; color: #64748b; margin-top: 6px; margin-bottom: 0;">Todos os sistemas operando normalmente.</p>
+        </div>
+    """, unsafe_allow_html=True)
+    
+    # Rodapé da Sidebar (Perfil do Usuário)
+    st.markdown("""
+        <div style="display: flex; align-items: center; justify-content: space-between; border-top: 1px solid #1e293b; padding-top: 10px; margin-top: 5px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div style="background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold;">
+                    SL
+                </div>
+                <div>
+                    <p style="font-size: 12px; color: #ffffff; font-weight: 600; margin: 0;">Sergio Luiz</p>
+                    <p style="font-size: 9px; color: #64748b; margin: 0;">Administrador</p>
+                </div>
+            </div>
+            <span style="color: #94a3b8; cursor: pointer; font-size: 15px;">🚪</span>
+        </div>
     """, unsafe_allow_html=True)
     
     st.text_input("Buscar no menu...", placeholder="🔍  Buscar no menu...     Ctrl K", label_visibility="collapsed")
